@@ -6,9 +6,21 @@ This is an **Occupational Safety Management System** designed to help organizati
 
 The system is built as a full-stack web application with a focus on data management, professional UI, and efficient workflows for safety officers and administrators.
 
+## Recent Changes
+
+### October 10, 2025
+- **Worker Detail Dialog Enhancement**: Implemented a modal dialog that opens when clicking on a worker card in the Trabajadores page
+  - Displays complete worker information (name, category, DNI, birth date)
+  - Shows EPIs (Personal Protective Equipment) delivered to the worker, sorted by delivery date (most recent first)
+  - Shows training courses completed by the worker, sorted by completion date (most recent first)
+  - Provides a clean, organized view of all worker-related data in one place
+- Created `WorkerDetailDialog` component for reusable worker detail display
+- Updated Trabajadores page to integrate the detail dialog functionality
+- All changes tested and verified with end-to-end tests
+
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language (Spanish).
 
 ## System Architecture
 
@@ -40,9 +52,10 @@ Preferred communication style: Simple, everyday language.
 **Key UI Patterns:**
 - Sidebar navigation with collapsible state
 - Card-based layouts for data display
-- Modal dialogs for CRUD operations
+- Modal dialogs for CRUD operations and detail views
 - Tabbed interfaces for worker detail views
-- Data tables with filtering and search capabilities
+- Data tables with filtering, sorting, and search capabilities
+- Worker detail dialog showing comprehensive information
 
 ### Backend Architecture
 
@@ -76,7 +89,7 @@ The application uses **Drizzle ORM** with **PostgreSQL** dialect for database op
 **Core Tables:**
 1. **trabajadores** (Workers)
    - Worker personal information (name, DNI, birth date, category)
-   - Categories include: OFICIAL, ENCARGADO, OPERADOR M.P., PEON ESP., etc.
+   - Categories include: ENC. GRAL. O.P., ENCARGADO, OPERADOR M.P., PEON ESP., OFICIAL, VIGILANTE CRTAS., CONDUCTOR
    - UUID primary keys with cascade deletion for related records
 
 2. **epis** (Personal Protective Equipment)
@@ -128,7 +141,7 @@ The application uses **Drizzle ORM** with **PostgreSQL** dialect for database op
 - **drizzle-zod** - Zod schema generation from Drizzle schemas
 
 **Utilities:**
-- **date-fns** - Date formatting and manipulation
+- **date-fns** - Date formatting and manipulation (with Spanish locale support)
 - **class-variance-authority** - Type-safe component variants
 - **clsx** & **tailwind-merge** - Conditional className utilities
 - **nanoid** - Unique ID generation
@@ -147,3 +160,30 @@ The application uses **Drizzle ORM** with **PostgreSQL** dialect for database op
 - Database schema is defined and ready for PostgreSQL connection
 - Frontend components are built with mock data placeholders
 - Routes are structured but not yet implemented with database operations
+- Worker detail dialog implemented with sorted EPIs and courses display
+
+## Key Features
+
+### Worker Management
+- Create, view, edit, and delete workers
+- Worker detail dialog showing comprehensive information
+- Search and filter workers by name, DNI, or category
+- View worker-specific EPIs and courses in an organized dialog
+
+### EPIs Management
+- Track Personal Protective Equipment deliveries
+- Link EPIs to specific workers
+- Record delivery dates and observations
+- View EPIs sorted by delivery date
+
+### Training Courses
+- Record employee training and certifications
+- Track course completion dates and duration
+- Link courses to workers
+- View courses sorted by completion date
+
+### Accident Reporting
+- Document workplace incidents
+- Track severity levels (LEVE, MODERADO, GRAVE)
+- Associate accidents with workers
+- Store detailed descriptions and observations
