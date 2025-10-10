@@ -24,6 +24,11 @@ The system is built as a full-stack web application with a focus on data managem
     - Implemented dialog-based form for new EPI registration
     - Updated table to display new columns: Marca, Modelo, Fecha de Caducidad
     - Implemented local state management for real-time table updates
+  - **Search and Filter Functionality**:
+    - Added search input field with search icon
+    - Implemented real-time filtering by worker name, equipment type, brand, or model
+    - Case-insensitive search across all searchable fields
+    - Display "No se encontraron EPIs" message when no results match search criteria
   - All changes tested and verified with end-to-end tests
 
 - **Worker Detail Dialog Enhancement**: Implemented a modal dialog that opens when clicking on a worker card in the Trabajadores page
