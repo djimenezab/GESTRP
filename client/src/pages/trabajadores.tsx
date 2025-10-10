@@ -22,7 +22,9 @@ export default function Trabajadores() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<Trabajador | null>(null);
+  const [editingWorker, setEditingWorker] = useState<Trabajador | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -71,8 +73,41 @@ export default function Trabajadores() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertTrabajador> }) => {
+      return await apiRequest("PATCH", `/api/trabajadores/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trabajadores"] });
+      setIsEditDialogOpen(false);
+      setEditingWorker(null);
+      toast({
+        title: "Trabajador actualizado",
+        description: "Los datos del trabajador han sido actualizados correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el trabajador",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateWorker = (data: InsertTrabajador) => {
     createMutation.mutate(data);
+  };
+
+  const handleEditWorker = (data: InsertTrabajador) => {
+    if (editingWorker) {
+      updateMutation.mutate({ id: editingWorker.id, data });
+    }
+  };
+
+  const handleOpenEditDialog = (worker: Trabajador) => {
+    setEditingWorker(worker);
+    setIsEditDialogOpen(true);
   };
 
   const handleWorkerClick = (worker: Trabajador) => {
@@ -155,7 +190,7 @@ export default function Trabajadores() {
           <WorkerCard
             key={worker.id}
             {...worker}
-            onEdit={() => console.log("Editar", worker.id)}
+            onEdit={() => handleOpenEditDialog(worker)}
             onDelete={() => handleDeleteWorker(worker.id)}
             onClick={() => handleWorkerClick(worker)}
           />
@@ -167,6 +202,25 @@ export default function Trabajadores() {
           <p className="text-muted-foreground">No se encontraron trabajadores</p>
         </div>
       )}
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Trabajador</DialogTitle>
+          </DialogHeader>
+          {editingWorker && (
+            <WorkerForm 
+              onSubmit={handleEditWorker}
+              initialData={{
+                nombreCompleto: editingWorker.nombreCompleto,
+                dni: editingWorker.dni,
+                categoria: editingWorker.categoria as typeof CATEGORIAS[number],
+                fechaNacimiento: editingWorker.fechaNacimiento,
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {selectedWorker && (
         <WorkerDetailDialog
