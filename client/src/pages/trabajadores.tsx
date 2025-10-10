@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { WorkerCard } from "@/components/worker-card";
 import { WorkerDetailDialog } from "@/components/worker-detail-dialog";
 import { Button } from "@/components/ui/button";
@@ -13,127 +14,95 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CATEGORIAS, type InsertTrabajador } from "@shared/schema";
-
-//todo: remove mock data
-const mockWorkers = [
-  {
-    id: "1",
-    nombreCompleto: "Juan Pérez García",
-    categoria: "OFICIAL",
-    dni: "12345678A",
-    fechaNacimiento: "1985-03-15",
-  },
-  {
-    id: "2",
-    nombreCompleto: "María López Fernández",
-    categoria: "ENCARGADO",
-    dni: "87654321B",
-    fechaNacimiento: "1990-07-22",
-  },
-  {
-    id: "3",
-    nombreCompleto: "Carlos Martínez Ruiz",
-    categoria: "OPERADOR M.P.",
-    dni: "11223344C",
-    fechaNacimiento: "1988-11-30",
-  },
-  {
-    id: "4",
-    nombreCompleto: "Ana Sánchez Torres",
-    categoria: "PEON ESP.",
-    dni: "55667788D",
-    fechaNacimiento: "1992-05-18",
-  },
-  {
-    id: "5",
-    nombreCompleto: "Pedro González Vega",
-    categoria: "ENC. GRAL. O.P.",
-    dni: "99887766E",
-    fechaNacimiento: "1983-09-12",
-  },
-  {
-    id: "6",
-    nombreCompleto: "Laura Jiménez Morales",
-    categoria: "VIGILANTE CRTAS.",
-    dni: "44332211F",
-    fechaNacimiento: "1995-02-28",
-  },
-];
-
-//todo: remove mock data
-const mockEpisByWorker: Record<string, Array<{ id: string; tipoEquipo: string; fechaEntrega: string; observaciones?: string }>> = {
-  "1": [
-    { id: "1", tipoEquipo: "Casco de seguridad", fechaEntrega: "2024-01-15", observaciones: "Talla M" },
-    { id: "2", tipoEquipo: "Guantes anticorte", fechaEntrega: "2024-02-20", observaciones: "" },
-    { id: "3", tipoEquipo: "Botas de seguridad", fechaEntrega: "2024-03-10", observaciones: "Talla 42" },
-  ],
-  "2": [
-    { id: "4", tipoEquipo: "Chaleco reflectante", fechaEntrega: "2024-03-25", observaciones: "Talla L" },
-    { id: "5", tipoEquipo: "Gafas de protección", fechaEntrega: "2024-01-10", observaciones: "" },
-  ],
-  "3": [
-    { id: "6", tipoEquipo: "Arnés de seguridad", fechaEntrega: "2024-02-15", observaciones: "Para trabajos en altura" },
-  ],
-  "4": [
-    { id: "7", tipoEquipo: "Protectores auditivos", fechaEntrega: "2024-03-01", observaciones: "" },
-  ],
-  "5": [],
-  "6": [
-    { id: "8", tipoEquipo: "Chaleco reflectante", fechaEntrega: "2024-02-28", observaciones: "Talla M" },
-  ],
-};
-
-//todo: remove mock data
-const mockCursosByWorker: Record<string, Array<{ id: string; nombreCurso: string; fechaRealizacion: string; duracionHoras: number }>> = {
-  "1": [
-    { id: "1", nombreCurso: "PRL Básico", fechaRealizacion: "2024-01-10", duracionHoras: 20 },
-    { id: "2", nombreCurso: "Trabajos en Altura", fechaRealizacion: "2024-03-15", duracionHoras: 8 },
-  ],
-  "2": [
-    { id: "3", nombreCurso: "Primeros Auxilios", fechaRealizacion: "2024-02-20", duracionHoras: 12 },
-    { id: "4", nombreCurso: "Gestión de Equipos", fechaRealizacion: "2024-03-05", duracionHoras: 16 },
-  ],
-  "3": [
-    { id: "5", nombreCurso: "Manejo de Maquinaria", fechaRealizacion: "2024-03-05", duracionHoras: 16 },
-  ],
-  "4": [
-    { id: "6", nombreCurso: "PRL Básico", fechaRealizacion: "2024-01-20", duracionHoras: 20 },
-  ],
-  "5": [
-    { id: "7", nombreCurso: "PRL Básico", fechaRealizacion: "2024-01-15", duracionHoras: 20 },
-    { id: "8", nombreCurso: "Liderazgo", fechaRealizacion: "2024-02-10", duracionHoras: 24 },
-  ],
-  "6": [],
-};
+import { CATEGORIAS, type InsertTrabajador, type Trabajador } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Trabajadores() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedWorker, setSelectedWorker] = useState<typeof mockWorkers[0] | null>(null);
+  const [selectedWorker, setSelectedWorker] = useState<Trabajador | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  //todo: remove mock functionality
+  const { data: trabajadores = [], isLoading } = useQuery<Trabajador[]>({
+    queryKey: ["/api/trabajadores"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertTrabajador) => {
+      return await apiRequest("POST", "/api/trabajadores", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trabajadores"] });
+      setIsCreateDialogOpen(false);
+      toast({
+        title: "Trabajador creado",
+        description: "El trabajador ha sido añadido correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo crear el trabajador",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/trabajadores/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trabajadores"] });
+      toast({
+        title: "Trabajador eliminado",
+        description: "El trabajador ha sido eliminado correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el trabajador",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateWorker = (data: InsertTrabajador) => {
-    console.log("Crear trabajador:", data);
-    setIsCreateDialogOpen(false);
+    createMutation.mutate(data);
   };
 
-  //todo: remove mock functionality
-  const handleWorkerClick = (worker: typeof mockWorkers[0]) => {
+  const handleWorkerClick = (worker: Trabajador) => {
     setSelectedWorker(worker);
     setIsDetailDialogOpen(true);
   };
 
-  //todo: remove mock functionality
-  const filteredWorkers = mockWorkers.filter((worker) => {
+  const handleDeleteWorker = (id: string) => {
+    if (confirm("¿Estás seguro de que deseas eliminar este trabajador?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const filteredWorkers = trabajadores.filter((worker) => {
     const matchesSearch =
       worker.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
       worker.dni.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoriaFilter === "all" || worker.categoria === categoriaFilter;
     return matchesSearch && matchesCategory;
   });
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">Cargando trabajadores...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -187,7 +156,7 @@ export default function Trabajadores() {
             key={worker.id}
             {...worker}
             onEdit={() => console.log("Editar", worker.id)}
-            onDelete={() => console.log("Eliminar", worker.id)}
+            onDelete={() => handleDeleteWorker(worker.id)}
             onClick={() => handleWorkerClick(worker)}
           />
         ))}
@@ -199,14 +168,11 @@ export default function Trabajadores() {
         </div>
       )}
 
-      {/* Diálogo de detalle del trabajador */}
       {selectedWorker && (
         <WorkerDetailDialog
           open={isDetailDialogOpen}
           onOpenChange={setIsDetailDialogOpen}
           worker={selectedWorker}
-          epis={mockEpisByWorker[selectedWorker.id] || []}
-          cursos={mockCursosByWorker[selectedWorker.id] || []}
         />
       )}
     </div>

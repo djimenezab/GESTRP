@@ -43,13 +43,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/trabajadores/:id", async (req, res) => {
     try {
-      const trabajador = await storage.updateTrabajador(req.params.id, req.body);
+      const partialSchema = insertTrabajadorSchema.partial();
+      const data = partialSchema.parse(req.body);
+      const trabajador = await storage.updateTrabajador(req.params.id, data);
       if (!trabajador) {
         return res.status(404).json({ error: "Trabajador no encontrado" });
       }
       res.json(trabajador);
     } catch (error) {
-      res.status(400).json({ error: "Error al actualizar trabajador" });
+      res.status(400).json({ error: "Datos inválidos" });
     }
   });
 
@@ -105,13 +107,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/epis/:id", async (req, res) => {
     try {
-      const epi = await storage.updateEpi(req.params.id, req.body);
+      const partialSchema = insertEpiSchema.partial();
+      const data = partialSchema.parse(req.body);
+      const epi = await storage.updateEpi(req.params.id, data);
       if (!epi) {
         return res.status(404).json({ error: "EPI no encontrado" });
       }
       res.json(epi);
     } catch (error) {
-      res.status(400).json({ error: "Error al actualizar EPI" });
+      res.status(400).json({ error: "Datos inválidos" });
     }
   });
 
@@ -167,13 +171,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/cursos/:id", async (req, res) => {
     try {
-      const curso = await storage.updateCurso(req.params.id, req.body);
+      const partialSchema = insertCursoSchema.partial();
+      const data = partialSchema.parse(req.body);
+      const curso = await storage.updateCurso(req.params.id, data);
       if (!curso) {
         return res.status(404).json({ error: "Curso no encontrado" });
       }
       res.json(curso);
     } catch (error) {
-      res.status(400).json({ error: "Error al actualizar curso" });
+      res.status(400).json({ error: "Datos inválidos" });
     }
   });
 
@@ -229,13 +235,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/accidentes/:id", async (req, res) => {
     try {
-      const accidente = await storage.updateAccidente(req.params.id, req.body);
+      const partialSchema = insertAccidenteSchema.partial();
+      const data = partialSchema.parse(req.body);
+      const accidente = await storage.updateAccidente(req.params.id, data);
       if (!accidente) {
         return res.status(404).json({ error: "Accidente no encontrado" });
       }
       res.json(accidente);
     } catch (error) {
-      res.status(400).json({ error: "Error al actualizar accidente" });
+      res.status(400).json({ error: "Datos inválidos" });
     }
   });
 

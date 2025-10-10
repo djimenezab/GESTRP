@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { Epi, Curso } from "@shared/schema";
 
 interface WorkerDetailDialogProps {
   open: boolean;
@@ -28,27 +30,23 @@ interface WorkerDetailDialogProps {
     dni: string;
     fechaNacimiento: string;
   };
-  epis?: Array<{
-    id: string;
-    tipoEquipo: string;
-    fechaEntrega: string;
-    observaciones?: string;
-  }>;
-  cursos?: Array<{
-    id: string;
-    nombreCurso: string;
-    fechaRealizacion: string;
-    duracionHoras: number;
-  }>;
 }
 
 export function WorkerDetailDialog({
   open,
   onOpenChange,
   worker,
-  epis = [],
-  cursos = [],
 }: WorkerDetailDialogProps) {
+  const { data: epis = [] } = useQuery<Epi[]>({
+    queryKey: ["/api/trabajadores", worker.id, "epis"],
+    enabled: open,
+  });
+
+  const { data: cursos = [] } = useQuery<Curso[]>({
+    queryKey: ["/api/trabajadores", worker.id, "cursos"],
+    enabled: open,
+  });
+
   // Ordenar EPIs por fecha (más recientes primero)
   const sortedEpis = [...epis].sort(
     (a, b) => new Date(b.fechaEntrega).getTime() - new Date(a.fechaEntrega).getTime()

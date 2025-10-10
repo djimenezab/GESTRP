@@ -69,10 +69,10 @@ export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id
 export const insertEpiSchema = createInsertSchema(epis).omit({ id: true }).extend({
   tipoEquipo: z.string().min(1, "Tipo de equipo es requerido"),
   fechaEntrega: z.string().min(1, "Fecha de entrega es requerida"),
-  marca: z.string().optional(),
-  modelo: z.string().optional(),
-  fechaCaducidad: z.string().optional(),
-  observaciones: z.string().optional(),
+  marca: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  modelo: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  fechaCaducidad: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
 export const insertCursoSchema = createInsertSchema(cursos).omit({ id: true }).extend({

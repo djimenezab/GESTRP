@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,106 +23,66 @@ import {
 } from "@/components/ui/dialog";
 import { EpiForm } from "@/components/epi-form";
 import { EpiDetailDialog } from "@/components/epi-detail-dialog";
-import { type InsertEpi } from "@shared/schema";
-
-//todo: remove mock data
-const mockWorkers = [
-  { id: "1", nombreCompleto: "Juan Pérez García", dni: "12345678A" },
-  { id: "2", nombreCompleto: "María López Fernández", dni: "87654321B" },
-  { id: "3", nombreCompleto: "Carlos Martínez Ruiz", dni: "11223344C" },
-  { id: "4", nombreCompleto: "Ana Sánchez Torres", dni: "55667788D" },
-  { id: "5", nombreCompleto: "Pedro González Vega", dni: "99887766E" },
-  { id: "6", nombreCompleto: "Laura Jiménez Morales", dni: "44332211F" },
-];
-
-//todo: remove mock data
-const initialMockEpis = [
-  {
-    id: "1",
-    tipoEquipo: "Casco de seguridad",
-    marca: "3M",
-    modelo: "H-700",
-    fechaEntrega: "2024-01-15",
-    fechaCaducidad: "2029-01-15",
-    observaciones: "Talla M",
-    trabajadorId: "1",
-    trabajador: "Juan Pérez García",
-  },
-  {
-    id: "2",
-    tipoEquipo: "Guantes anticorte",
-    marca: "Ansell",
-    modelo: "HyFlex 11-801",
-    fechaEntrega: "2024-02-20",
-    fechaCaducidad: "",
-    observaciones: "",
-    trabajadorId: "2",
-    trabajador: "María López Fernández",
-  },
-  {
-    id: "3",
-    tipoEquipo: "Botas de seguridad",
-    marca: "Puma Safety",
-    modelo: "Conquest",
-    fechaEntrega: "2024-03-10",
-    fechaCaducidad: "2026-03-10",
-    observaciones: "Talla 42",
-    trabajadorId: "3",
-    trabajador: "Carlos Martínez Ruiz",
-  },
-  {
-    id: "4",
-    tipoEquipo: "Chaleco reflectante",
-    marca: "Portwest",
-    modelo: "C470",
-    fechaEntrega: "2024-03-25",
-    fechaCaducidad: "",
-    observaciones: "Talla L",
-    trabajadorId: "4",
-    trabajador: "Ana Sánchez Torres",
-  },
-];
+import { type InsertEpi, type Epi, type Trabajador } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Epis() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [epis, setEpis] = useState(initialMockEpis);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedEpi, setSelectedEpi] = useState<typeof initialMockEpis[0] | null>(null);
+  const [selectedEpi, setSelectedEpi] = useState<Epi | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  //todo: remove mock functionality
+  const { data: epis = [], isLoading: episLoading } = useQuery<Epi[]>({
+    queryKey: ["/api/epis"],
+  });
+
+  const { data: trabajadores = [] } = useQuery<Trabajador[]>({
+    queryKey: ["/api/trabajadores"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertEpi) => {
+      return await apiRequest("POST", "/api/epis", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/epis"] });
+      setIsDialogOpen(false);
+      toast({
+        title: "EPI registrado",
+        description: "El equipo de protección ha sido registrado correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo registrar el EPI",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateEpi = (data: InsertEpi) => {
-    console.log("Crear EPI:", data);
-    
-    // Find worker name
-    const trabajador = mockWorkers.find(w => w.id === data.trabajadorId);
-    
-    // Create new EPI with mock ID
-    const newEpi = {
-      id: String(Date.now()),
-      tipoEquipo: data.tipoEquipo,
-      marca: data.marca || "",
-      modelo: data.modelo || "",
-      fechaEntrega: data.fechaEntrega,
-      fechaCaducidad: data.fechaCaducidad || "",
-      observaciones: data.observaciones || "",
-      trabajadorId: data.trabajadorId,
-      trabajador: trabajador?.nombreCompleto || "",
-    };
-    
-    // Add to state
-    setEpis([...epis, newEpi]);
-    setIsDialogOpen(false);
+    createMutation.mutate(data);
   };
 
-  //todo: remove mock functionality
-  const handleEpiClick = (epi: typeof initialMockEpis[0]) => {
+  const handleEpiClick = (epi: Epi) => {
     setSelectedEpi(epi);
     setIsDetailDialogOpen(true);
   };
 
-  //todo: remove mock functionality
-  const filteredEpis = epis
+  // Combinar EPIs con datos de trabajadores
+  const episWithWorkers = epis.map(epi => {
+    const trabajador = trabajadores.find(t => t.id === epi.trabajadorId);
+    return {
+      ...epi,
+      trabajador: trabajador?.nombreCompleto || "Desconocido",
+      trabajadorDni: trabajador?.dni || ""
+    };
+  });
+
+  const filteredEpis = episWithWorkers
     .filter((epi) => {
       const searchLower = searchTerm.toLowerCase();
       return (
@@ -131,17 +92,22 @@ export default function Epis() {
         (epi.modelo && epi.modelo.toLowerCase().includes(searchLower))
       );
     })
-    .sort((a, b) => {
-      // Ordenar por fecha de entrega descendente (más reciente primero)
-      const fechaA = new Date(a.fechaEntrega);
-      const fechaB = new Date(b.fechaEntrega);
-      return fechaB.getTime() - fechaA.getTime();
-    });
+    .sort((a, b) => new Date(b.fechaEntrega).getTime() - new Date(a.fechaEntrega).getTime());
+
+  if (episLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">Cargando EPIs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-3xl font-bold">EPIs Entregados</h1>
+        <h1 className="text-3xl font-bold">EPIs</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-epi">
@@ -151,24 +117,22 @@ export default function Epis() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Registrar Nueva Entrega de EPI</DialogTitle>
+              <DialogTitle>Registrar Entrega de EPI</DialogTitle>
             </DialogHeader>
-            <EpiForm onSubmit={handleCreateEpi} trabajadores={mockWorkers} />
+            <EpiForm onSubmit={handleCreateEpi} trabajadores={trabajadores} />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por trabajador, tipo de equipo, marca o modelo..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-            data-testid="input-search-epis"
-          />
-        </div>
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por trabajador, equipo, marca o modelo..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9"
+          data-testid="input-search-epis"
+        />
       </div>
 
       <Card>
@@ -220,8 +184,15 @@ export default function Epis() {
           open={isDetailDialogOpen}
           onOpenChange={setIsDetailDialogOpen}
           epi={{
-            ...selectedEpi,
-            trabajadorDni: mockWorkers.find(w => w.id === selectedEpi.trabajadorId)?.dni || ""
+            id: selectedEpi.id,
+            tipoEquipo: selectedEpi.tipoEquipo,
+            marca: selectedEpi.marca || undefined,
+            modelo: selectedEpi.modelo || undefined,
+            fechaEntrega: selectedEpi.fechaEntrega,
+            fechaCaducidad: selectedEpi.fechaCaducidad || undefined,
+            observaciones: selectedEpi.observaciones || undefined,
+            trabajador: episWithWorkers.find(e => e.id === selectedEpi.id)?.trabajador || "Desconocido",
+            trabajadorDni: episWithWorkers.find(e => e.id === selectedEpi.id)?.trabajadorDni || ""
           }}
         />
       )}
