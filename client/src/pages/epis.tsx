@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Search } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -83,6 +84,7 @@ const initialMockEpis = [
 export default function Epis() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [epis, setEpis] = useState(initialMockEpis);
+  const [searchTerm, setSearchTerm] = useState("");
 
   //todo: remove mock functionality
   const handleCreateEpi = (data: InsertEpi) => {
@@ -109,6 +111,17 @@ export default function Epis() {
     setIsDialogOpen(false);
   };
 
+  //todo: remove mock functionality
+  const filteredEpis = epis.filter((epi) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      epi.trabajador.toLowerCase().includes(searchLower) ||
+      epi.tipoEquipo.toLowerCase().includes(searchLower) ||
+      (epi.marca && epi.marca.toLowerCase().includes(searchLower)) ||
+      (epi.modelo && epi.modelo.toLowerCase().includes(searchLower))
+    );
+  });
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -129,6 +142,19 @@ export default function Epis() {
         </Dialog>
       </div>
 
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por trabajador, tipo de equipo, marca o modelo..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+            data-testid="input-search-epis"
+          />
+        </div>
+      </div>
+
       <Card>
         <Table>
           <TableHeader>
@@ -143,7 +169,7 @@ export default function Epis() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {epis.map((epi) => (
+            {filteredEpis.map((epi) => (
               <TableRow key={epi.id} data-testid={`row-epi-${epi.id}`}>
                 <TableCell className="font-medium" data-testid={`text-worker-${epi.id}`}>
                   {epi.trabajador}
@@ -161,6 +187,12 @@ export default function Epis() {
           </TableBody>
         </Table>
       </Card>
+
+      {filteredEpis.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No se encontraron EPIs</p>
+        </div>
+      )}
     </div>
   );
 }
