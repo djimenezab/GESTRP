@@ -112,15 +112,22 @@ export default function Epis() {
   };
 
   //todo: remove mock functionality
-  const filteredEpis = epis.filter((epi) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      epi.trabajador.toLowerCase().includes(searchLower) ||
-      epi.tipoEquipo.toLowerCase().includes(searchLower) ||
-      (epi.marca && epi.marca.toLowerCase().includes(searchLower)) ||
-      (epi.modelo && epi.modelo.toLowerCase().includes(searchLower))
-    );
-  });
+  const filteredEpis = epis
+    .filter((epi) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        epi.trabajador.toLowerCase().includes(searchLower) ||
+        epi.tipoEquipo.toLowerCase().includes(searchLower) ||
+        (epi.marca && epi.marca.toLowerCase().includes(searchLower)) ||
+        (epi.modelo && epi.modelo.toLowerCase().includes(searchLower))
+      );
+    })
+    .sort((a, b) => {
+      // Ordenar por fecha de entrega descendente (más reciente primero)
+      const fechaA = new Date(a.fechaEntrega);
+      const fechaB = new Date(b.fechaEntrega);
+      return fechaB.getTime() - fechaA.getTime();
+    });
 
   return (
     <div className="p-6 space-y-6">
