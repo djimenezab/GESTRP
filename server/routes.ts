@@ -1,13 +1,252 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { 
+  insertTrabajadorSchema,
+  insertEpiSchema,
+  insertCursoSchema,
+  insertAccidenteSchema
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  // Trabajadores routes
+  app.get("/api/trabajadores", async (req, res) => {
+    try {
+      const trabajadores = await storage.getTrabajadores();
+      res.json(trabajadores);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener trabajadores" });
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/trabajadores/:id", async (req, res) => {
+    try {
+      const trabajador = await storage.getTrabajador(req.params.id);
+      if (!trabajador) {
+        return res.status(404).json({ error: "Trabajador no encontrado" });
+      }
+      res.json(trabajador);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener trabajador" });
+    }
+  });
+
+  app.post("/api/trabajadores", async (req, res) => {
+    try {
+      const data = insertTrabajadorSchema.parse(req.body);
+      const trabajador = await storage.createTrabajador(data);
+      res.status(201).json(trabajador);
+    } catch (error) {
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/trabajadores/:id", async (req, res) => {
+    try {
+      const trabajador = await storage.updateTrabajador(req.params.id, req.body);
+      if (!trabajador) {
+        return res.status(404).json({ error: "Trabajador no encontrado" });
+      }
+      res.json(trabajador);
+    } catch (error) {
+      res.status(400).json({ error: "Error al actualizar trabajador" });
+    }
+  });
+
+  app.delete("/api/trabajadores/:id", async (req, res) => {
+    try {
+      await storage.deleteTrabajador(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Error al eliminar trabajador" });
+    }
+  });
+
+  // EPIs routes
+  app.get("/api/epis", async (req, res) => {
+    try {
+      const epis = await storage.getEpis();
+      res.json(epis);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener EPIs" });
+    }
+  });
+
+  app.get("/api/epis/:id", async (req, res) => {
+    try {
+      const epi = await storage.getEpi(req.params.id);
+      if (!epi) {
+        return res.status(404).json({ error: "EPI no encontrado" });
+      }
+      res.json(epi);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener EPI" });
+    }
+  });
+
+  app.get("/api/trabajadores/:id/epis", async (req, res) => {
+    try {
+      const epis = await storage.getEpisByTrabajador(req.params.id);
+      res.json(epis);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener EPIs del trabajador" });
+    }
+  });
+
+  app.post("/api/epis", async (req, res) => {
+    try {
+      const data = insertEpiSchema.parse(req.body);
+      const epi = await storage.createEpi(data);
+      res.status(201).json(epi);
+    } catch (error) {
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/epis/:id", async (req, res) => {
+    try {
+      const epi = await storage.updateEpi(req.params.id, req.body);
+      if (!epi) {
+        return res.status(404).json({ error: "EPI no encontrado" });
+      }
+      res.json(epi);
+    } catch (error) {
+      res.status(400).json({ error: "Error al actualizar EPI" });
+    }
+  });
+
+  app.delete("/api/epis/:id", async (req, res) => {
+    try {
+      await storage.deleteEpi(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Error al eliminar EPI" });
+    }
+  });
+
+  // Cursos routes
+  app.get("/api/cursos", async (req, res) => {
+    try {
+      const cursos = await storage.getCursos();
+      res.json(cursos);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener cursos" });
+    }
+  });
+
+  app.get("/api/cursos/:id", async (req, res) => {
+    try {
+      const curso = await storage.getCurso(req.params.id);
+      if (!curso) {
+        return res.status(404).json({ error: "Curso no encontrado" });
+      }
+      res.json(curso);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener curso" });
+    }
+  });
+
+  app.get("/api/trabajadores/:id/cursos", async (req, res) => {
+    try {
+      const cursos = await storage.getCursosByTrabajador(req.params.id);
+      res.json(cursos);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener cursos del trabajador" });
+    }
+  });
+
+  app.post("/api/cursos", async (req, res) => {
+    try {
+      const data = insertCursoSchema.parse(req.body);
+      const curso = await storage.createCurso(data);
+      res.status(201).json(curso);
+    } catch (error) {
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/cursos/:id", async (req, res) => {
+    try {
+      const curso = await storage.updateCurso(req.params.id, req.body);
+      if (!curso) {
+        return res.status(404).json({ error: "Curso no encontrado" });
+      }
+      res.json(curso);
+    } catch (error) {
+      res.status(400).json({ error: "Error al actualizar curso" });
+    }
+  });
+
+  app.delete("/api/cursos/:id", async (req, res) => {
+    try {
+      await storage.deleteCurso(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Error al eliminar curso" });
+    }
+  });
+
+  // Accidentes routes
+  app.get("/api/accidentes", async (req, res) => {
+    try {
+      const accidentes = await storage.getAccidentes();
+      res.json(accidentes);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener accidentes" });
+    }
+  });
+
+  app.get("/api/accidentes/:id", async (req, res) => {
+    try {
+      const accidente = await storage.getAccidente(req.params.id);
+      if (!accidente) {
+        return res.status(404).json({ error: "Accidente no encontrado" });
+      }
+      res.json(accidente);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener accidente" });
+    }
+  });
+
+  app.get("/api/trabajadores/:id/accidentes", async (req, res) => {
+    try {
+      const accidentes = await storage.getAccidentesByTrabajador(req.params.id);
+      res.json(accidentes);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener accidentes del trabajador" });
+    }
+  });
+
+  app.post("/api/accidentes", async (req, res) => {
+    try {
+      const data = insertAccidenteSchema.parse(req.body);
+      const accidente = await storage.createAccidente(data);
+      res.status(201).json(accidente);
+    } catch (error) {
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/accidentes/:id", async (req, res) => {
+    try {
+      const accidente = await storage.updateAccidente(req.params.id, req.body);
+      if (!accidente) {
+        return res.status(404).json({ error: "Accidente no encontrado" });
+      }
+      res.json(accidente);
+    } catch (error) {
+      res.status(400).json({ error: "Error al actualizar accidente" });
+    }
+  });
+
+  app.delete("/api/accidentes/:id", async (req, res) => {
+    try {
+      await storage.deleteAccidente(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Error al eliminar accidente" });
+    }
+  });
 
   const httpServer = createServer(app);
 
