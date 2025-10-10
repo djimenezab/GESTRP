@@ -31,7 +31,10 @@ export const epis = pgTable("epis", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   trabajadorId: varchar("trabajador_id").notNull().references(() => trabajadores.id, { onDelete: 'cascade' }),
   tipoEquipo: text("tipo_equipo").notNull(),
+  marca: text("marca"),
+  modelo: text("modelo"),
   fechaEntrega: date("fecha_entrega").notNull(),
+  fechaCaducidad: date("fecha_caducidad"),
   observaciones: text("observaciones"),
 });
 
@@ -66,6 +69,10 @@ export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id
 export const insertEpiSchema = createInsertSchema(epis).omit({ id: true }).extend({
   tipoEquipo: z.string().min(1, "Tipo de equipo es requerido"),
   fechaEntrega: z.string().min(1, "Fecha de entrega es requerida"),
+  marca: z.string().optional(),
+  modelo: z.string().optional(),
+  fechaCaducidad: z.string().optional(),
+  observaciones: z.string().optional(),
 });
 
 export const insertCursoSchema = createInsertSchema(cursos).omit({ id: true }).extend({
