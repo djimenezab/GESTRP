@@ -3,9 +3,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -29,8 +35,10 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Epis() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEpi, setSelectedEpi] = useState<Epi | null>(null);
+  const [editingEpi, setEditingEpi] = useState<Epi | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -63,8 +71,69 @@ export default function Epis() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertEpi> }) => {
+      return await apiRequest("PATCH", `/api/epis/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/epis"] });
+      setIsEditDialogOpen(false);
+      setEditingEpi(null);
+      toast({
+        title: "EPI actualizado",
+        description: "El equipo de protección ha sido actualizado correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el EPI",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/epis/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/epis"] });
+      toast({
+        title: "EPI eliminado",
+        description: "El equipo de protección ha sido eliminado correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el EPI",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateEpi = (data: InsertEpi) => {
     createMutation.mutate(data);
+  };
+
+  const handleEditEpi = (data: InsertEpi) => {
+    if (editingEpi) {
+      updateMutation.mutate({ id: editingEpi.id, data });
+    }
+  };
+
+  const handleOpenEditDialog = (epi: Epi, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingEpi(epi);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteEpi = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("¿Estás seguro de que deseas eliminar este EPI?")) {
+      deleteMutation.mutate(id);
+    }
   };
 
   const handleEpiClick = (epi: Epi) => {
@@ -146,6 +215,7 @@ export default function Epis() {
               <TableHead>Fecha de Entrega</TableHead>
               <TableHead>Fecha de Caducidad</TableHead>
               <TableHead>Observaciones</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -167,6 +237,37 @@ export default function Epis() {
                   {epi.fechaCaducidad ? format(new Date(epi.fechaCaducidad), "dd/MM/yyyy", { locale: es }) : "-"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{epi.observaciones || "-"}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        data-testid={`button-options-${epi.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem 
+                        onClick={(e) => handleOpenEditDialog(epi, e)}
+                        data-testid={`button-edit-${epi.id}`}
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={(e) => handleDeleteEpi(epi.id, e)}
+                        className="text-destructive"
+                        data-testid={`button-delete-${epi.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -178,6 +279,29 @@ export default function Epis() {
           <p className="text-muted-foreground">No se encontraron EPIs</p>
         </div>
       )}
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar EPI</DialogTitle>
+          </DialogHeader>
+          {editingEpi && (
+            <EpiForm 
+              onSubmit={handleEditEpi}
+              trabajadores={trabajadores}
+              initialData={{
+                trabajadorId: editingEpi.trabajadorId,
+                tipoEquipo: editingEpi.tipoEquipo,
+                marca: editingEpi.marca || "",
+                modelo: editingEpi.modelo || "",
+                fechaEntrega: editingEpi.fechaEntrega,
+                fechaCaducidad: editingEpi.fechaCaducidad || "",
+                observaciones: editingEpi.observaciones || "",
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {selectedEpi && (
         <EpiDetailDialog
