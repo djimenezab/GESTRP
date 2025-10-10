@@ -79,6 +79,7 @@ export const insertCursoSchema = createInsertSchema(cursos).omit({ id: true }).e
   nombreCurso: z.string().min(1, "Nombre del curso es requerido"),
   fechaRealizacion: z.string().min(1, "Fecha de realización es requerida"),
   duracionHoras: z.number().min(1, "Duración debe ser al menos 1 hora"),
+  observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
 export const insertAccidenteSchema = createInsertSchema(accidentes).omit({ id: true }).extend({

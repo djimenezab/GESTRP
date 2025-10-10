@@ -12,19 +12,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CourseFormProps {
-  trabajadorId: string;
   onSubmit: (data: InsertCurso) => void;
+  trabajadores: Array<{ id: string; nombreCompleto: string }>;
   initialData?: Partial<InsertCurso>;
   isLoading?: boolean;
 }
 
-export function CourseForm({ trabajadorId, onSubmit, initialData, isLoading }: CourseFormProps) {
+export function CourseForm({ onSubmit, trabajadores, initialData, isLoading }: CourseFormProps) {
   const form = useForm<InsertCurso>({
     resolver: zodResolver(insertCursoSchema),
     defaultValues: {
-      trabajadorId,
+      trabajadorId: initialData?.trabajadorId || "",
       nombreCurso: initialData?.nombreCurso || "",
       fechaRealizacion: initialData?.fechaRealizacion || "",
       duracionHoras: initialData?.duracionHoras || 0,
@@ -35,6 +42,31 @@ export function CourseForm({ trabajadorId, onSubmit, initialData, isLoading }: C
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="trabajadorId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Trabajador</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-trabajador-curso">
+                    <SelectValue placeholder="Selecciona un trabajador" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {trabajadores.map((trabajador) => (
+                    <SelectItem key={trabajador.id} value={trabajador.id}>
+                      {trabajador.nombreCompleto}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="nombreCurso"
