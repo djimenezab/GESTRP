@@ -34,6 +34,21 @@ The system is built as a full-stack web application with a focus on data managem
     - Most recent deliveries appear first in the table
     - Oldest deliveries appear last
     - Sorting applies after filtering to maintain correct order
+  - **EPI Detail Dialog & Delivery Documents**:
+    - Implemented clickable EPI rows that open detail dialog
+    - Created `EpiDetailDialog` component showing complete EPI information
+    - Created `EpiDeliveryDocument` component for formal delivery documentation
+    - Document format includes:
+      - Title: "ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL"
+      - Worker name and DNI
+      - Legal reference to Ley 31/1995, art. 17
+      - Equipment name displayed in uppercase and bold
+      - Three legal obligations (a, b, c) for worker compliance
+      - Signature section for David Jiménez Minaya and worker
+    - Added print functionality with optimized print styles
+    - Dialog state management with useEffect hooks to ensure proper view reset
+    - Clicking row opens detail view, "Generar Documento de Entrega" button shows document
+    - "Volver" button returns to detail view, dialog always reopens on detail view
   - All changes tested and verified with end-to-end tests
 
 - **Worker Detail Dialog Enhancement**: Implemented a modal dialog that opens when clicking on a worker card in the Trabajadores page
