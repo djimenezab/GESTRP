@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { WorkerCard } from "@/components/worker-card";
+import { WorkerDetailDialog } from "@/components/worker-detail-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
@@ -60,15 +61,69 @@ const mockWorkers = [
   },
 ];
 
+//todo: remove mock data
+const mockEpisByWorker: Record<string, Array<{ id: string; tipoEquipo: string; fechaEntrega: string; observaciones?: string }>> = {
+  "1": [
+    { id: "1", tipoEquipo: "Casco de seguridad", fechaEntrega: "2024-01-15", observaciones: "Talla M" },
+    { id: "2", tipoEquipo: "Guantes anticorte", fechaEntrega: "2024-02-20", observaciones: "" },
+    { id: "3", tipoEquipo: "Botas de seguridad", fechaEntrega: "2024-03-10", observaciones: "Talla 42" },
+  ],
+  "2": [
+    { id: "4", tipoEquipo: "Chaleco reflectante", fechaEntrega: "2024-03-25", observaciones: "Talla L" },
+    { id: "5", tipoEquipo: "Gafas de protección", fechaEntrega: "2024-01-10", observaciones: "" },
+  ],
+  "3": [
+    { id: "6", tipoEquipo: "Arnés de seguridad", fechaEntrega: "2024-02-15", observaciones: "Para trabajos en altura" },
+  ],
+  "4": [
+    { id: "7", tipoEquipo: "Protectores auditivos", fechaEntrega: "2024-03-01", observaciones: "" },
+  ],
+  "5": [],
+  "6": [
+    { id: "8", tipoEquipo: "Chaleco reflectante", fechaEntrega: "2024-02-28", observaciones: "Talla M" },
+  ],
+};
+
+//todo: remove mock data
+const mockCursosByWorker: Record<string, Array<{ id: string; nombreCurso: string; fechaRealizacion: string; duracionHoras: number }>> = {
+  "1": [
+    { id: "1", nombreCurso: "PRL Básico", fechaRealizacion: "2024-01-10", duracionHoras: 20 },
+    { id: "2", nombreCurso: "Trabajos en Altura", fechaRealizacion: "2024-03-15", duracionHoras: 8 },
+  ],
+  "2": [
+    { id: "3", nombreCurso: "Primeros Auxilios", fechaRealizacion: "2024-02-20", duracionHoras: 12 },
+    { id: "4", nombreCurso: "Gestión de Equipos", fechaRealizacion: "2024-03-05", duracionHoras: 16 },
+  ],
+  "3": [
+    { id: "5", nombreCurso: "Manejo de Maquinaria", fechaRealizacion: "2024-03-05", duracionHoras: 16 },
+  ],
+  "4": [
+    { id: "6", nombreCurso: "PRL Básico", fechaRealizacion: "2024-01-20", duracionHoras: 20 },
+  ],
+  "5": [
+    { id: "7", nombreCurso: "PRL Básico", fechaRealizacion: "2024-01-15", duracionHoras: 20 },
+    { id: "8", nombreCurso: "Liderazgo", fechaRealizacion: "2024-02-10", duracionHoras: 24 },
+  ],
+  "6": [],
+};
+
 export default function Trabajadores() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("all");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedWorker, setSelectedWorker] = useState<typeof mockWorkers[0] | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   //todo: remove mock functionality
   const handleCreateWorker = (data: InsertTrabajador) => {
     console.log("Crear trabajador:", data);
-    setIsDialogOpen(false);
+    setIsCreateDialogOpen(false);
+  };
+
+  //todo: remove mock functionality
+  const handleWorkerClick = (worker: typeof mockWorkers[0]) => {
+    setSelectedWorker(worker);
+    setIsDetailDialogOpen(true);
   };
 
   //todo: remove mock functionality
@@ -84,7 +139,7 @@ export default function Trabajadores() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-3xl font-bold">Trabajadores</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-worker">
               <Plus className="h-4 w-4 mr-2" />
@@ -133,7 +188,7 @@ export default function Trabajadores() {
             {...worker}
             onEdit={() => console.log("Editar", worker.id)}
             onDelete={() => console.log("Eliminar", worker.id)}
-            onClick={() => console.log("Ver detalles", worker.id)}
+            onClick={() => handleWorkerClick(worker)}
           />
         ))}
       </div>
@@ -142,6 +197,17 @@ export default function Trabajadores() {
         <div className="text-center py-12">
           <p className="text-muted-foreground">No se encontraron trabajadores</p>
         </div>
+      )}
+
+      {/* Diálogo de detalle del trabajador */}
+      {selectedWorker && (
+        <WorkerDetailDialog
+          open={isDetailDialogOpen}
+          onOpenChange={setIsDetailDialogOpen}
+          worker={selectedWorker}
+          epis={mockEpisByWorker[selectedWorker.id] || []}
+          cursos={mockCursosByWorker[selectedWorker.id] || []}
+        />
       )}
     </div>
   );
