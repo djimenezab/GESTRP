@@ -21,16 +21,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { EpiForm } from "@/components/epi-form";
+import { EpiDetailDialog } from "@/components/epi-detail-dialog";
 import { type InsertEpi } from "@shared/schema";
 
 //todo: remove mock data
 const mockWorkers = [
-  { id: "1", nombreCompleto: "Juan Pérez García" },
-  { id: "2", nombreCompleto: "María López Fernández" },
-  { id: "3", nombreCompleto: "Carlos Martínez Ruiz" },
-  { id: "4", nombreCompleto: "Ana Sánchez Torres" },
-  { id: "5", nombreCompleto: "Pedro González Vega" },
-  { id: "6", nombreCompleto: "Laura Jiménez Morales" },
+  { id: "1", nombreCompleto: "Juan Pérez García", dni: "12345678A" },
+  { id: "2", nombreCompleto: "María López Fernández", dni: "87654321B" },
+  { id: "3", nombreCompleto: "Carlos Martínez Ruiz", dni: "11223344C" },
+  { id: "4", nombreCompleto: "Ana Sánchez Torres", dni: "55667788D" },
+  { id: "5", nombreCompleto: "Pedro González Vega", dni: "99887766E" },
+  { id: "6", nombreCompleto: "Laura Jiménez Morales", dni: "44332211F" },
 ];
 
 //todo: remove mock data
@@ -85,6 +86,8 @@ export default function Epis() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [epis, setEpis] = useState(initialMockEpis);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedEpi, setSelectedEpi] = useState<typeof initialMockEpis[0] | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   //todo: remove mock functionality
   const handleCreateEpi = (data: InsertEpi) => {
@@ -109,6 +112,12 @@ export default function Epis() {
     // Add to state
     setEpis([...epis, newEpi]);
     setIsDialogOpen(false);
+  };
+
+  //todo: remove mock functionality
+  const handleEpiClick = (epi: typeof initialMockEpis[0]) => {
+    setSelectedEpi(epi);
+    setIsDetailDialogOpen(true);
   };
 
   //todo: remove mock functionality
@@ -177,7 +186,12 @@ export default function Epis() {
           </TableHeader>
           <TableBody>
             {filteredEpis.map((epi) => (
-              <TableRow key={epi.id} data-testid={`row-epi-${epi.id}`}>
+              <TableRow 
+                key={epi.id} 
+                data-testid={`row-epi-${epi.id}`}
+                className="cursor-pointer hover-elevate"
+                onClick={() => handleEpiClick(epi)}
+              >
                 <TableCell className="font-medium" data-testid={`text-worker-${epi.id}`}>
                   {epi.trabajador}
                 </TableCell>
@@ -199,6 +213,17 @@ export default function Epis() {
         <div className="text-center py-12">
           <p className="text-muted-foreground">No se encontraron EPIs</p>
         </div>
+      )}
+
+      {selectedEpi && (
+        <EpiDetailDialog
+          open={isDetailDialogOpen}
+          onOpenChange={setIsDetailDialogOpen}
+          epi={{
+            ...selectedEpi,
+            trabajadorDni: mockWorkers.find(w => w.id === selectedEpi.trabajadorId)?.dni || ""
+          }}
+        />
       )}
     </div>
   );

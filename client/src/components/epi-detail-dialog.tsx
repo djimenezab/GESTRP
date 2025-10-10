@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,17 @@ interface EpiDetailDialogProps {
 
 export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProps) {
   const [showDocument, setShowDocument] = useState(false);
+
+  // Reset document view when dialog closes or EPI changes
+  useEffect(() => {
+    if (!open) {
+      setShowDocument(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    setShowDocument(false);
+  }, [epi.id]);
 
   const handlePrint = () => {
     window.print();
