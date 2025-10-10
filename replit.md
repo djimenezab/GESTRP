@@ -8,7 +8,24 @@ The system is built as a full-stack web application with a focus on data managem
 
 ## Recent Changes
 
-### October 10, 2025
+### October 10, 2025 (Latest)
+- **EPIs Section Enhancement**: Major improvements to the EPIs management functionality
+  - **Database Schema Updates**:
+    - Added `marca` (brand) field to track equipment manufacturer
+    - Added `modelo` (model) field to track specific equipment model
+    - Added `fechaCaducidad` (expiration date) field to track equipment validity
+  - **EPI Form Improvements**:
+    - Added worker selector dropdown to choose recipient from database
+    - Added brand and model input fields (optional)
+    - Added expiration date picker (optional)
+    - Reorganized form layout with grid for better space utilization
+  - **EPIs Page Updates**:
+    - Added "Nueva Entrega EPI" button to register new equipment deliveries
+    - Implemented dialog-based form for new EPI registration
+    - Updated table to display new columns: Marca, Modelo, Fecha de Caducidad
+    - Implemented local state management for real-time table updates
+  - All changes tested and verified with end-to-end tests
+
 - **Worker Detail Dialog Enhancement**: Implemented a modal dialog that opens when clicking on a worker card in the Trabajadores page
   - Displays complete worker information (name, category, DNI, birth date)
   - Shows EPIs (Personal Protective Equipment) delivered to the worker, sorted by delivery date (most recent first)
