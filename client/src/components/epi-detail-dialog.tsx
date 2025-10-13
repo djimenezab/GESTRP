@@ -42,6 +42,16 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
     setShowDocument(false);
   }, [epi.id]);
 
+  // Scroll to top when document is shown
+  useEffect(() => {
+    if (showDocument) {
+      const dialogContent = document.querySelector('[role="dialog"]');
+      if (dialogContent) {
+        dialogContent.scrollTop = 0;
+      }
+    }
+  }, [showDocument]);
+
   const handlePrint = () => {
     window.print();
   };
