@@ -352,7 +352,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 0.3cm 1.5cm 1cm 1.5cm;
+    margin: 1cm 1.5cm 1cm 1.5cm;
   }
 
   body {
@@ -368,5 +368,6 @@
   /* Ensure proper page breaks */
   [data-testid="documento-entrega"] {
     page-break-inside: avoid;
+    padding-top: 3cm !important;
   }
 }
