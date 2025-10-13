@@ -29,7 +29,7 @@ export function EpiDeliveryDocument({
         <img
           src={logoPath}
           alt="Castilla-La Mancha"
-          className="h-16 w-auto print:h-14"
+          className="h-16 w-auto print:h-16"
           data-testid="logo-membrete"
         />
       </div>
