@@ -347,3 +347,26 @@
     inset: -1px;
   }
 }
+
+/* Print styles for A4 format */
+@media print {
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide scrollbars in print */
+  * {
+    overflow: visible !important;
+  }
+
+  /* Ensure proper page breaks */
+  [data-testid="documento-entrega"] {
+    page-break-inside: avoid;
+  }
+}

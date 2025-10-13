@@ -49,11 +49,11 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
   if (showDocument) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print:shadow-none">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible print:shadow-none print:border-0">
           <DialogHeader className="print:hidden">
             <DialogTitle>Documento de Entrega</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 print:space-y-0">
             <EpiDeliveryDocument
               trabajadorNombre={epi.trabajador}
               trabajadorDni={epi.trabajadorDni || ""}
