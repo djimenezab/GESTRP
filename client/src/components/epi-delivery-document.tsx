@@ -18,19 +18,19 @@ export function EpiDeliveryDocument({
   const fechaFormateada = format(new Date(fechaEntrega), "dd/MM/yyyy", { locale: es });
 
   return (
-    <div className="space-y-3 p-8 bg-background print:bg-white print:py-8 print:px-12 print:space-y-2" data-testid="documento-entrega">
+    <div className="space-y-3 p-8 bg-background print:bg-white print:py-4 print:px-12 print:space-y-2" data-testid="documento-entrega">
       {/* Membrete con logo */}
-      <div className="mb-3 print:mb-2">
+      <div className="mb-3 print:mb-1">
         <img 
           src={logoPath} 
           alt="Castilla-La Mancha" 
-          className="h-20 w-auto print:h-14"
+          className="h-20 w-auto print:h-12"
           data-testid="logo-membrete"
         />
       </div>
 
       {/* Título */}
-      <h1 className="text-2xl font-bold text-center mb-4 print:text-lg print:mb-3">
+      <h1 className="text-2xl font-bold text-center mb-4 print:text-lg print:mb-2">
         ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL
       </h1>
 
@@ -45,7 +45,7 @@ export function EpiDeliveryDocument({
       </div>
 
       {/* Saludo */}
-      <p className="mt-3 print:mt-2">Muy señor/a nuestro/a:</p>
+      <p className="mt-3 print:mt-1.5">Muy señor/a nuestro/a:</p>
 
       {/* Cuerpo del documento */}
       <div className="space-y-3 print:space-y-1.5">
@@ -54,7 +54,7 @@ export function EpiDeliveryDocument({
           Laborales, se hace entrega del siguiente equipo de protección individual:
         </p>
 
-        <p className="text-center my-4 print:my-2">
+        <p className="text-center my-6 print:my-4 print:py-3">
           <strong className="text-lg print:text-base uppercase">{tipoEquipo}</strong>
         </p>
 
@@ -76,8 +76,8 @@ export function EpiDeliveryDocument({
 
         <p className="mt-3 print:mt-2">Atentamente,</p>
 
-        <div className="mt-4 print:mt-3">
-          <p>
+        <div className="mt-4 print:mt-3 print:mb-12">
+          <p className="print:mb-16">
             <strong>Firmado:</strong> David Jiménez Minaya
           </p>
         </div>
