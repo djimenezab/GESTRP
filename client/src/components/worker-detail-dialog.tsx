@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -7,7 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, FileText, HardHat, GraduationCap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Printer } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -18,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EvaluacionRiesgosDocument } from "./evaluacion-riesgos-document";
 import type { Epi, Curso } from "@shared/schema";
 
 interface WorkerDetailDialogProps {
@@ -29,6 +32,8 @@ interface WorkerDetailDialogProps {
     categoria: string;
     dni: string;
     fechaNacimiento: string;
+    recibeEvaluacionRiesgos: boolean;
+    fechaEntregaEvaluacion: string | null;
   };
 }
 
@@ -37,6 +42,8 @@ export function WorkerDetailDialog({
   onOpenChange,
   worker,
 }: WorkerDetailDialogProps) {
+  const [showDocument, setShowDocument] = useState(false);
+
   const { data: epis = [] } = useQuery<Epi[]>({
     queryKey: ["/api/trabajadores", worker.id, "epis"],
     enabled: open,
@@ -94,6 +101,51 @@ export function WorkerDetailDialog({
                     </div>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Evaluación de Riesgos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Evaluación de Riesgos Laborales
+                </span>
+                {worker.recibeEvaluacionRiesgos && worker.fechaEntregaEvaluacion && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDocument(true)}
+                    data-testid="button-print-evaluacion"
+                  >
+                    <Printer className="h-4 w-4 mr-2" />
+                    Ver Acreditación
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  {worker.recibeEvaluacionRiesgos ? (
+                    <>
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <span className="font-medium">Recibe copia de evaluación de riesgos</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-muted-foreground">No recibe copia de evaluación de riesgos</span>
+                    </>
+                  )}
+                </div>
+                {worker.recibeEvaluacionRiesgos && worker.fechaEntregaEvaluacion && (
+                  <div className="pl-7 text-sm text-muted-foreground">
+                    Fecha de entrega: {format(new Date(worker.fechaEntregaEvaluacion), "dd/MM/yyyy", { locale: es })}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -171,6 +223,36 @@ export function WorkerDetailDialog({
           </Card>
         </div>
       </DialogContent>
+
+      {/* Diálogo para mostrar el documento */}
+      <Dialog open={showDocument} onOpenChange={setShowDocument}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Acreditación de Recepción - Evaluación de Riesgos</span>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => window.print()}
+                data-testid="button-do-print"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Imprimir
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          {worker.fechaEntregaEvaluacion && (
+            <EvaluacionRiesgosDocument
+              worker={{
+                nombreCompleto: worker.nombreCompleto,
+                dni: worker.dni,
+                categoria: worker.categoria,
+                fechaEntregaEvaluacion: worker.fechaEntregaEvaluacion,
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, date, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, date, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -24,6 +24,8 @@ export const trabajadores = pgTable("trabajadores", {
   categoria: text("categoria").notNull(),
   fechaNacimiento: date("fecha_nacimiento").notNull(),
   dni: varchar("dni", { length: 20 }).notNull().unique(),
+  recibeEvaluacionRiesgos: boolean("recibe_evaluacion_riesgos").default(false).notNull(),
+  fechaEntregaEvaluacion: date("fecha_entrega_evaluacion"),
 });
 
 // EPIs entregados
@@ -64,7 +66,21 @@ export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id
   dni: z.string().min(1, "DNI es requerido"),
   nombreCompleto: z.string().min(1, "Nombre completo es requerido"),
   fechaNacimiento: z.string().min(1, "Fecha de nacimiento es requerida"),
-});
+  recibeEvaluacionRiesgos: z.boolean().default(false),
+  fechaEntregaEvaluacion: z.preprocess(
+    val => (val === "" || val === null) ? undefined : val, 
+    z.string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha debe tener formato YYYY-MM-DD")
+      .refine(val => !Number.isNaN(Date.parse(val)), "Fecha inválida")
+      .optional()
+  ),
+}).refine(
+  data => !data.recibeEvaluacionRiesgos || (data.recibeEvaluacionRiesgos && data.fechaEntregaEvaluacion),
+  {
+    message: "La fecha de entrega es requerida cuando se marca que recibe evaluación de riesgos",
+    path: ["fechaEntregaEvaluacion"],
+  }
+);
 
 export const insertEpiSchema = createInsertSchema(epis).omit({ id: true }).extend({
   tipoEquipo: z.string().min(1, "Tipo de equipo es requerido"),

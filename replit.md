@@ -8,7 +8,41 @@ The system is built as a full-stack web application with a focus on data managem
 
 ## Recent Changes
 
-### October 10, 2025 (Latest)
+### October 13, 2025 (Latest)
+- **Risk Evaluation Tracking Enhancement**: Complete implementation of comprehensive validation for worker risk evaluation delivery
+  - **Schema Updates**:
+    - Added `recibeEvaluacionRiesgos` (boolean) field to track if worker receives risk evaluation copy
+    - Added `fechaEntregaEvaluacion` (varchar/date) field to track delivery date
+    - Implemented preprocessing to normalize null and empty strings to undefined
+    - Added calendar-aware date validation (regex + Date.parse refine) to reject invalid dates like "2024-02-31"
+  - **Backend Validation** (PATCH endpoint):
+    - Implemented bidirectional invariant enforcement:
+      - Cannot have `recibeEvaluacionRiesgos=true` without valid `fechaEntregaEvaluacion`
+      - Cannot have `fechaEntregaEvaluacion` when `recibeEvaluacionRiesgos=false`
+    - State-merge approach: loads existing worker, merges with payload, validates final state
+    - Contemporaneous requirement: setting flag to true requires fresh date in payload
+    - Auto-clear: setting flag to false automatically clears the date (sets to null)
+    - Post-mutation validation: validates final state after applying all mutations
+    - Treats null as absence in final state calculations to handle all edge cases
+  - **Frontend Form Updates**:
+    - Added toggle switch for risk evaluation reception
+    - Conditional date picker (only shown when toggle is enabled)
+    - Auto-clears date when toggle is disabled
+    - Form validation prevents submission when toggle is enabled but date is missing
+  - **Printable Document**:
+    - Created `EvaluacionRiesgosDocument` component for formal accreditation
+    - Document shows worker data, acknowledgment text, delivery date, and signature section
+    - Format: "DD de MMMM de YYYY" in Spanish (e.g., "20 de enero de 2025")
+    - Integrated into WorkerDetailDialog with "Ver Acreditación" button
+    - Print functionality with optimized print styles
+  - **Testing & Verification**:
+    - Frontend validation blocks invalid calendar dates before submission
+    - Backend validation rejects all invalid states (tested with invalid dates)
+    - Document formatter guaranteed to receive only valid ISO dates or null
+    - No "Invalid Date" errors possible
+  - All business rules enforced at all layers (schema, frontend, POST, PATCH)
+
+### October 10, 2025
 - **PostgreSQL Database Integration Complete**: Successfully migrated from in-memory storage to persistent PostgreSQL database
   - **Backend Migration**:
     - Replaced `MemStorage` with `DbStorage` class using Drizzle ORM

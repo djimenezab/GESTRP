@@ -5,8 +5,12 @@ import {
   insertTrabajadorSchema,
   insertEpiSchema,
   insertCursoSchema,
-  insertAccidenteSchema
+  insertAccidenteSchema,
+  trabajadores,
+  CATEGORIAS
 } from "@shared/schema";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Trabajadores routes
@@ -43,8 +47,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/trabajadores/:id", async (req, res) => {
     try {
-      const partialSchema = insertTrabajadorSchema.partial();
-      const data = partialSchema.parse(req.body);
+      // For partial updates, we need to validate without the refine constraint
+      // since we might not have all fields. We'll validate individual fields that are present.
+      const baseSchema = createInsertSchema(trabajadores).omit({ id: true }).extend({
+        categoria: z.enum(CATEGORIAS).optional(),
+        dni: z.string().min(1, "DNI es requerido").optional(),
+        nombreCompleto: z.string().min(1, "Nombre completo es requerido").optional(),
+        fechaNacimiento: z.string().min(1, "Fecha de nacimiento es requerida").optional(),
+        recibeEvaluacionRiesgos: z.boolean().optional(),
+        fechaEntregaEvaluacion: z.preprocess(
+          val => (val === "" || val === null) ? undefined : val, 
+          z.string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha debe tener formato YYYY-MM-DD")
+            .refine(val => !Number.isNaN(Date.parse(val)), "Fecha inválida")
+            .optional()
+        ).optional(),
+      }).partial();
+      
+      const data = baseSchema.parse(req.body);
+      
+      // Load existing worker to validate final state
+      const existing = await storage.getTrabajador(req.params.id);
+      if (!existing) {
+        return res.status(404).json({ error: "Trabajador no encontrado" });
+      }
+      
+      // Special case: when explicitly setting flag to true, require contemporaneous date in payload
+      if (data.recibeEvaluacionRiesgos === true && data.fechaEntregaEvaluacion === undefined) {
+        return res.status(400).json({ 
+          error: "Debe proporcionar la fecha de entrega al marcar que recibe evaluación de riesgos" 
+        });
+      }
+      
+      // Apply auto-clear: when flag is explicitly set to false, clear the date
+      if (data.recibeEvaluacionRiesgos === false) {
+        (data as any).fechaEntregaEvaluacion = null;
+      }
+      
+      // Calculate final state AFTER mutations (treat null as absence/undefined)
+      const finalFlag = data.recibeEvaluacionRiesgos !== undefined 
+        ? data.recibeEvaluacionRiesgos 
+        : existing.recibeEvaluacionRiesgos;
+      const finalDate = (data.fechaEntregaEvaluacion !== undefined && data.fechaEntregaEvaluacion !== null)
+        ? data.fechaEntregaEvaluacion 
+        : existing.fechaEntregaEvaluacion;
+      
+      // Validate final state invariant (bidirectional)
+      if (finalFlag && !finalDate) {
+        return res.status(400).json({ 
+          error: "La fecha de entrega es requerida cuando se marca que recibe evaluación de riesgos" 
+        });
+      }
+      if (!finalFlag && finalDate) {
+        // If final flag is false but date exists, clear it
+        (data as any).fechaEntregaEvaluacion = null;
+      }
+      
       const trabajador = await storage.updateTrabajador(req.params.id, data);
       if (!trabajador) {
         return res.status(404).json({ error: "Trabajador no encontrado" });

@@ -8,9 +8,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -33,8 +35,19 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
       categoria: initialData?.categoria || undefined,
       dni: initialData?.dni || "",
       fechaNacimiento: initialData?.fechaNacimiento || "",
+      recibeEvaluacionRiesgos: initialData?.recibeEvaluacionRiesgos || false,
+      fechaEntregaEvaluacion: initialData?.fechaEntregaEvaluacion || "",
     },
   });
+
+  const recibeEvaluacion = form.watch("recibeEvaluacionRiesgos");
+
+  const handleSwitchChange = (checked: boolean) => {
+    form.setValue("recibeEvaluacionRiesgos", checked);
+    if (!checked) {
+      form.setValue("fechaEntregaEvaluacion", "");
+    }
+  };
 
   return (
     <Form {...form}>
@@ -118,6 +131,54 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="border-t pt-6 space-y-4">
+          <h3 className="text-lg font-semibold">Evaluación de Riesgos Laborales</h3>
+          
+          <FormField
+            control={form.control}
+            name="recibeEvaluacionRiesgos"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">
+                    Recibe Copia de Evaluación de Riesgos
+                  </FormLabel>
+                  <FormDescription>
+                    ¿El trabajador ha recibido copia de la evaluación de riesgos?
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={handleSwitchChange}
+                    data-testid="switch-recibe-evaluacion"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          {recibeEvaluacion && (
+            <FormField
+              control={form.control}
+              name="fechaEntregaEvaluacion"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fecha de Entrega</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      data-testid="input-fecha-entrega-evaluacion"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-worker">

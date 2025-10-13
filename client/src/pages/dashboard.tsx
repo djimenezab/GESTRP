@@ -1,57 +1,59 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { StatsCard } from "@/components/stats-card";
 import { WorkerCard } from "@/components/worker-card";
+import { WorkerDetailDialog } from "@/components/worker-detail-dialog";
 import { Users, HardHat, GraduationCap, AlertTriangle, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { WorkerForm } from "@/components/worker-form";
-import type { InsertTrabajador } from "@shared/schema";
-
-//todo: remove mock data
-const mockWorkers = [
-  {
-    id: "1",
-    nombreCompleto: "Juan Pérez García",
-    categoria: "OFICIAL",
-    dni: "12345678A",
-    fechaNacimiento: "1985-03-15",
-  },
-  {
-    id: "2",
-    nombreCompleto: "María López Fernández",
-    categoria: "ENCARGADO",
-    dni: "87654321B",
-    fechaNacimiento: "1990-07-22",
-  },
-  {
-    id: "3",
-    nombreCompleto: "Carlos Martínez Ruiz",
-    categoria: "OPERADOR M.P.",
-    dni: "11223344C",
-    fechaNacimiento: "1988-11-30",
-  },
-  {
-    id: "4",
-    nombreCompleto: "Ana Sánchez Torres",
-    categoria: "PEON ESP.",
-    dni: "55667788D",
-    fechaNacimiento: "1992-05-18",
-  },
-];
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { InsertTrabajador, Trabajador } from "@shared/schema";
 
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedWorker, setSelectedWorker] = useState<Trabajador | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  //todo: remove mock functionality
+  const { data: trabajadores = [], isLoading } = useQuery<Trabajador[]>({
+    queryKey: ["/api/trabajadores"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertTrabajador) => {
+      return await apiRequest("POST", "/api/trabajadores", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/trabajadores"] });
+      setIsDialogOpen(false);
+      toast({
+        title: "Trabajador creado",
+        description: "El trabajador ha sido añadido correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo crear el trabajador",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateWorker = (data: InsertTrabajador) => {
-    console.log("Crear trabajador:", data);
-    setIsDialogOpen(false);
+    createMutation.mutate(data);
   };
 
-  //todo: remove mock functionality
-  const filteredWorkers = mockWorkers.filter((worker) =>
+  const handleWorkerClick = (worker: Trabajador) => {
+    setSelectedWorker(worker);
+    setIsDetailDialogOpen(true);
+  };
+
+  const filteredWorkers = trabajadores.filter((worker) =>
     worker.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
     worker.dni.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -122,9 +124,7 @@ export default function Dashboard() {
             <WorkerCard
               key={worker.id}
               {...worker}
-              onEdit={() => console.log("Editar", worker.id)}
-              onDelete={() => console.log("Eliminar", worker.id)}
-              onClick={() => console.log("Ver detalles", worker.id)}
+              onClick={() => handleWorkerClick(worker)}
             />
           ))}
         </div>
@@ -135,6 +135,14 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {selectedWorker && (
+        <WorkerDetailDialog
+          open={isDetailDialogOpen}
+          onOpenChange={setIsDetailDialogOpen}
+          worker={selectedWorker}
+        />
+      )}
     </div>
   );
 }
