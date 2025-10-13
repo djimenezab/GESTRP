@@ -18,7 +18,7 @@ export function EpiDeliveryDocument({
   const fechaFormateada = format(new Date(fechaEntrega), "dd/MM/yyyy", { locale: es });
 
   return (
-    <div className="space-y-3 p-8 bg-background print:bg-white print:py-4 print:px-12 print:space-y-2" data-testid="documento-entrega">
+    <div className="space-y-3 p-8 bg-background print:bg-white print:py-2 print:px-12 print:space-y-2" data-testid="documento-entrega">
       {/* Membrete con logo */}
       <div className="mb-3 print:mb-1">
         <img 
