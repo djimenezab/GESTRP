@@ -17,6 +17,9 @@ export const CATEGORIAS = [
 // Niveles de gravedad de accidentes
 export const GRAVEDAD_ACCIDENTE = ["LEVE", "MODERADO", "GRAVE"] as const;
 
+// Tipos de accidentes
+export const TIPO_ACCIDENTE = ["ACCIDENTE_SERVICIO", "ENFERMEDAD_PROFESIONAL"] as const;
+
 // Trabajadores
 export const trabajadores = pgTable("trabajadores", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -54,10 +57,15 @@ export const cursos = pgTable("cursos", {
 export const accidentes = pgTable("accidentes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   trabajadorId: varchar("trabajador_id").notNull().references(() => trabajadores.id, { onDelete: 'cascade' }),
+  centroTrabajo: text("centro_trabajo").notNull(),
+  tipoAccidente: text("tipo_accidente").notNull(),
+  lugarAccidente: text("lugar_accidente").notNull(),
   fecha: date("fecha").notNull(),
+  horaAccidente: varchar("hora_accidente").notNull(),
   descripcion: text("descripcion").notNull(),
   gravedad: text("gravedad").notNull(),
   observaciones: text("observaciones"),
+  trabajadorParteId: varchar("trabajador_parte_id").references(() => trabajadores.id),
 });
 
 // Insert schemas
@@ -99,9 +107,15 @@ export const insertCursoSchema = createInsertSchema(cursos).omit({ id: true }).e
 });
 
 export const insertAccidenteSchema = createInsertSchema(accidentes).omit({ id: true }).extend({
+  centroTrabajo: z.string().min(1, "Centro de trabajo es requerido"),
+  tipoAccidente: z.enum(TIPO_ACCIDENTE),
+  lugarAccidente: z.string().min(1, "Lugar del accidente es requerido"),
   fecha: z.string().min(1, "Fecha es requerida"),
+  horaAccidente: z.string().min(1, "Hora del accidente es requerida"),
   descripcion: z.string().min(1, "Descripción es requerida"),
   gravedad: z.enum(GRAVEDAD_ACCIDENTE),
+  observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  trabajadorParteId: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
 // Types
