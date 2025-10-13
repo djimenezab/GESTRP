@@ -2,123 +2,7 @@
 
 ## Overview
 
-This is an **Occupational Safety Management System** designed to help organizations manage worker information, safety equipment (EPIs), training courses, and workplace accidents. The application provides a comprehensive solution for tracking employee safety compliance, equipment distribution, training records, and incident reporting.
-
-The system is built as a full-stack web application with a focus on data management, professional UI, and efficient workflows for safety officers and administrators.
-
-## Recent Changes
-
-### October 13, 2025 (Latest)
-- **Risk Evaluation Tracking Enhancement**: Complete implementation of comprehensive validation for worker risk evaluation delivery
-  - **Schema Updates**:
-    - Added `recibeEvaluacionRiesgos` (boolean) field to track if worker receives risk evaluation copy
-    - Added `fechaEntregaEvaluacion` (varchar/date) field to track delivery date
-    - Implemented preprocessing to normalize null and empty strings to undefined
-    - Added calendar-aware date validation (regex + Date.parse refine) to reject invalid dates like "2024-02-31"
-  - **Backend Validation** (PATCH endpoint):
-    - Implemented bidirectional invariant enforcement:
-      - Cannot have `recibeEvaluacionRiesgos=true` without valid `fechaEntregaEvaluacion`
-      - Cannot have `fechaEntregaEvaluacion` when `recibeEvaluacionRiesgos=false`
-    - State-merge approach: loads existing worker, merges with payload, validates final state
-    - Contemporaneous requirement: setting flag to true requires fresh date in payload
-    - Auto-clear: setting flag to false automatically clears the date (sets to null)
-    - Post-mutation validation: validates final state after applying all mutations
-    - Treats null as absence in final state calculations to handle all edge cases
-  - **Frontend Form Updates**:
-    - Added toggle switch for risk evaluation reception
-    - Conditional date picker (only shown when toggle is enabled)
-    - Auto-clears date when toggle is disabled
-    - Form validation prevents submission when toggle is enabled but date is missing
-  - **Printable Document**:
-    - Created `EvaluacionRiesgosDocument` component for formal accreditation
-    - Document shows worker data, acknowledgment text, delivery date, and signature section
-    - Format: "DD de MMMM de YYYY" in Spanish (e.g., "20 de enero de 2025")
-    - Integrated into WorkerDetailDialog with "Ver Acreditación" button
-    - Print functionality with optimized print styles
-  - **Testing & Verification**:
-    - Frontend validation blocks invalid calendar dates before submission
-    - Backend validation rejects all invalid states (tested with invalid dates)
-    - Document formatter guaranteed to receive only valid ISO dates or null
-    - No "Invalid Date" errors possible
-  - All business rules enforced at all layers (schema, frontend, POST, PATCH)
-
-### October 10, 2025
-- **PostgreSQL Database Integration Complete**: Successfully migrated from in-memory storage to persistent PostgreSQL database
-  - **Backend Migration**:
-    - Replaced `MemStorage` with `DbStorage` class using Drizzle ORM
-    - Connected to Neon serverless PostgreSQL via `DATABASE_URL`
-    - Executed database migrations with `npm run db:push`
-    - Created all tables: `trabajadores`, `epis`, `cursos`, `accidentes`
-    - Implemented full CRUD operations with proper error handling
-  - **API Enhancement**:
-    - All endpoints now interact with PostgreSQL database
-    - Added Zod schema validation for POST requests (create operations)
-    - Added Zod partial schema validation for PATCH requests (update operations)
-    - Proper error handling with 400 (invalid data) and 404 (not found) responses
-    - Fixed optional fields handling: empty strings ("") automatically converted to `undefined`
-  - **Frontend Updates**:
-    - Removed all mock data from components
-    - React Query now fetches real data from API endpoints
-    - Mutations invalidate cache and trigger re-fetching
-    - Toast notifications for success/error feedback
-    - Loading states displayed during API operations
-  - **Testing & Verification**:
-    - End-to-end tests pass successfully
-    - Workers and EPIs persist correctly in database
-    - Worker detail dialog fetches related EPIs and courses from API
-    - All CRUD operations tested and working
-  - Database now handles all data persistence with automatic UUID generation
-
-- **EPIs Section Enhancement**: Major improvements to the EPIs management functionality
-  - **Database Schema Updates**:
-    - Added `marca` (brand) field to track equipment manufacturer
-    - Added `modelo` (model) field to track specific equipment model
-    - Added `fechaCaducidad` (expiration date) field to track equipment validity
-  - **EPI Form Improvements**:
-    - Added worker selector dropdown to choose recipient from database
-    - Added brand and model input fields (optional)
-    - Added expiration date picker (optional)
-    - Reorganized form layout with grid for better space utilization
-  - **EPIs Page Updates**:
-    - Added "Nueva Entrega EPI" button to register new equipment deliveries
-    - Implemented dialog-based form for new EPI registration
-    - Updated table to display new columns: Marca, Modelo, Fecha de Caducidad
-    - Implemented local state management for real-time table updates
-  - **Search and Filter Functionality**:
-    - Added search input field with search icon
-    - Implemented real-time filtering by worker name, equipment type, brand, or model
-    - Case-insensitive search across all searchable fields
-    - Display "No se encontraron EPIs" message when no results match search criteria
-  - **Sorting by Date**:
-    - EPIs are automatically sorted by delivery date in descending order
-    - Most recent deliveries appear first in the table
-    - Oldest deliveries appear last
-    - Sorting applies after filtering to maintain correct order
-  - **EPI Detail Dialog & Delivery Documents**:
-    - Implemented clickable EPI rows that open detail dialog
-    - Created `EpiDetailDialog` component showing complete EPI information
-    - Created `EpiDeliveryDocument` component for formal delivery documentation
-    - Document format includes:
-      - Title: "ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL"
-      - Worker name and DNI
-      - Legal reference to Ley 31/1995, art. 17
-      - Equipment name displayed in uppercase and bold
-      - Three legal obligations (a, b, c) for worker compliance
-      - Signature section for David Jiménez Minaya and worker
-    - Added print functionality with optimized print styles
-    - Dialog state management with useEffect hooks to ensure proper view reset
-    - Clicking row opens detail view, "Generar Documento de Entrega" button shows document
-    - "Volver" button returns to detail view, dialog always reopens on detail view
-  - All changes tested and verified with end-to-end tests
-
-- **Worker Detail Dialog Enhancement**: Implemented a modal dialog that opens when clicking on a worker card in the Trabajadores page
-  - Displays complete worker information (name, category, DNI, birth date)
-  - Shows EPIs (Personal Protective Equipment) delivered to the worker, sorted by delivery date (most recent first)
-  - Shows training courses completed by the worker, sorted by completion date (most recent first)
-  - Provides a clean, organized view of all worker-related data in one place
-- Created `WorkerDetailDialog` component for reusable worker detail display
-- Updated Trabajadores page to integrate the detail dialog functionality
-- All changes tested and verified with end-to-end tests
+This Occupational Safety Management System is a full-stack web application designed to help organizations manage worker information, safety equipment (EPIs), training courses, and workplace accidents. Its purpose is to provide a comprehensive solution for tracking employee safety compliance, equipment distribution, training records, and incident reporting, thereby enhancing workplace safety and regulatory adherence. The system focuses on robust data management, a professional user interface, and efficient workflows for safety officers and administrators.
 
 ## User Preferences
 
@@ -128,168 +12,62 @@ Preferred communication style: Simple, everyday language (Spanish).
 
 ### Frontend Architecture
 
-**Framework & Build System:**
-- **React** with TypeScript for type-safe component development
-- **Vite** as the build tool and development server
-- **Wouter** for lightweight client-side routing
-- **TanStack Query (React Query)** for server state management and data fetching
-
-**UI Component Library:**
-- **shadcn/ui** components built on Radix UI primitives
-- **Tailwind CSS** for styling with custom design system
-- **Material Design-inspired** professional theme with light/dark mode support
-- Custom component variants using `class-variance-authority`
-
-**Design System:**
-- Professional enterprise color palette with semantic colors (success, warning, danger)
-- Custom border radius values and elevation system (hover/active states)
-- Typography using Inter font family via Google Fonts
-- Responsive design with mobile-first approach
-
-**Form Handling:**
-- **React Hook Form** for form state management
-- **Zod** schemas for validation (integrated with Drizzle ORM)
-- **@hookform/resolvers** for validation integration
-
-**Key UI Patterns:**
-- Sidebar navigation with collapsible state
-- Card-based layouts for data display
-- Modal dialogs for CRUD operations and detail views
-- Tabbed interfaces for worker detail views
-- Data tables with filtering, sorting, and search capabilities
-- Worker detail dialog showing comprehensive information
+The frontend is built with **React** and **TypeScript**, utilizing **Vite** for tooling. **Wouter** handles client-side routing, and **TanStack Query (React Query)** manages server state. The UI leverages **shadcn/ui** components, built on Radix UI primitives, styled with **Tailwind CSS** to achieve a professional, Material Design-inspired theme with light/dark mode support. Forms are managed with **React Hook Form** and validated using **Zod** schemas. Key UI patterns include a sidebar navigation, card-based layouts, modal dialogs for CRUD operations, tabbed interfaces, and data tables with extensive filtering, sorting, and search capabilities.
 
 ### Backend Architecture
 
-**Server Framework:**
-- **Express.js** running on Node.js
-- TypeScript for type safety across the stack
-- Custom middleware for request logging and error handling
-
-**Development vs Production:**
-- Development mode uses Vite middleware for HMR (Hot Module Replacement)
-- Production serves pre-built static assets
-- Environment-based configuration via `NODE_ENV`
-
-**API Structure:**
-- RESTful API design with `/api` prefix for all endpoints
-- Storage abstraction layer with `IStorage` interface
-- **PostgreSQL database** implementation via `DbStorage` class
-- UUID-based identifiers generated by PostgreSQL
-
-**Storage Implementation:**
-- Abstract `IStorage` interface defines CRUD operations
-- `DbStorage` implementation using Drizzle ORM
-- Connected to Neon serverless PostgreSQL database
-- Full CRUD operations for all entities (trabajadores, epis, cursos, accidentes)
-- Automatic sorting by dates (descending order for recent-first display)
+The backend uses **Express.js** with **Node.js** and **TypeScript**. It follows a RESTful API design with a `/api` prefix and includes custom middleware for logging and error handling. A storage abstraction layer (`IStorage` interface) is implemented, with `DbStorage` handling persistence using **Drizzle ORM** connected to a **PostgreSQL database**. UUIDs are used for primary keys, and full CRUD operations are supported for all entities (trabajadores, epis, cursos, accidentes).
 
 ### Data Storage Solutions
 
-**Database Schema (Drizzle ORM):**
+The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, connected via **Neon serverless PostgreSQL**. The database schema includes core tables for:
+- **trabajadores**: Worker personal information, categories, and UUID primary keys.
+- **epis**: Tracks equipment deliveries, linked to workers, including equipment type, delivery date, observations, brand, model, and expiration date.
+- **cursos**: Records worker training and certifications, linked to workers, storing course name, completion date, and duration.
+- **accidentes**: Documents workplace incidents, linked to workers, including severity levels (LEVE, MODERADO, GRAVE), date, description, and observations.
+Type safety is enforced through Zod schemas generated from Drizzle schemas, ensuring shared types across the stack.
 
-The application uses **Drizzle ORM** with **PostgreSQL** dialect for database operations:
+### System Design Choices
 
-**Core Tables:**
-1. **trabajadores** (Workers)
-   - Worker personal information (name, DNI, birth date, category)
-   - Categories include: ENC. GRAL. O.P., ENCARGADO, OPERADOR M.P., PEON ESP., OFICIAL, VIGILANTE CRTAS., CONDUCTOR
-   - UUID primary keys with cascade deletion for related records
+- **Risk Evaluation Tracking**: Comprehensive validation for worker risk evaluation delivery, including fields for `recibeEvaluacionRiesgos` (boolean) and `fechaEntregaEvaluacion` (date). Implements bidirectional invariant enforcement, state-merge approach for updates, and auto-clearing logic. Includes a printable `EvaluacionRiesgosDocument`.
+- **EPIs Section**: Enhanced EPI management with database fields for `marca` (brand), `modelo` (model), and `fechaCaducidad` (expiration date). Features an improved EPI form with worker selection, brand/model inputs, and an expiration date picker. Includes search, filter, and date-based sorting functionality, along with an `EpiDeliveryDocument` for formal documentation.
+- **Worker Detail Dialog**: A modal dialog displaying comprehensive worker information, including associated EPIs and training courses, sorted by delivery/completion date.
+- **Data Persistence**: All data is persisted in a PostgreSQL database, with `DbStorage` handling CRUD operations via Drizzle ORM. Frontend components fetch real-time data from REST API endpoints.
 
-2. **epis** (Personal Protective Equipment)
-   - Tracks equipment delivery to workers
-   - Links to workers via foreign key with cascade delete
-   - Records equipment type, delivery date, and observations
+## External Dependencies
 
-3. **cursos** (Training Courses)
-   - Training/certification records for workers
-   - Links to workers via foreign key with cascade delete
-   - Stores course name, completion date, duration in hours
+### Database & ORM
 
-4. **accidentes** (Workplace Accidents)
-   - Incident tracking and reporting
-   - Links to workers via foreign key with cascade delete
-   - Severity levels: LEVE (minor), MODERADO (moderate), GRAVE (severe)
-   - Includes date, description, severity, and observations
+- **@neondatabase/serverless**: Client for Neon serverless PostgreSQL.
+- **drizzle-orm**: Type-safe ORM.
+- **drizzle-kit**: CLI for schema migrations.
+- **ws**: WebSocket library for Neon connections.
 
-**Database Configuration:**
-- Connection via Neon serverless PostgreSQL
-- WebSocket support for serverless operations
-- Environment-based configuration via `DATABASE_URL`
-- Migration management through `drizzle-kit`
+### UI Component Libraries
 
-**Type Safety:**
-- Zod schemas auto-generated from Drizzle schema
-- Shared types between frontend and backend via `@shared` path alias
-- Insert schemas for form validation
+- **@radix-ui/**: Headless UI primitives.
+- **lucide-react**: Icon library.
+- **cmdk**: Command menu component.
+- **embla-carousel-react**: Carousel/slider functionality.
+- **react-day-picker**: Date picker component.
 
-### External Dependencies
+### Data Management
 
-**Database & ORM:**
-- **@neondatabase/serverless** - Serverless PostgreSQL client for Neon database
-- **drizzle-orm** - Type-safe ORM for database operations
-- **drizzle-kit** - CLI tool for schema migrations and database management
-- **ws** - WebSocket library for Neon serverless connections
+- **@tanstack/react-query**: Server state management and caching.
+- **react-hook-form**: Form state and validation.
+- **zod**: Schema validation.
+- **drizzle-zod**: Zod schema generation from Drizzle.
 
-**UI Component Libraries:**
-- **@radix-ui/** (multiple packages) - Headless UI primitives for accessible components
-- **lucide-react** - Icon library
-- **cmdk** - Command menu component
-- **embla-carousel-react** - Carousel/slider functionality
-- **react-day-picker** - Date picker component
+### Utilities
 
-**Data Management:**
-- **@tanstack/react-query** - Server state management and caching
-- **react-hook-form** - Form state and validation
-- **zod** - Schema validation library
-- **drizzle-zod** - Zod schema generation from Drizzle schemas
+- **date-fns**: Date formatting and manipulation.
+- **class-variance-authority**: Type-safe component variants.
+- **clsx** & **tailwind-merge**: Conditional className utilities.
+- **nanoid**: Unique ID generation.
 
-**Utilities:**
-- **date-fns** - Date formatting and manipulation (with Spanish locale support)
-- **class-variance-authority** - Type-safe component variants
-- **clsx** & **tailwind-merge** - Conditional className utilities
-- **nanoid** - Unique ID generation
+### Build & Development Tools
 
-**Build & Development Tools:**
-- **vite** - Build tool and dev server
-- **tsx** - TypeScript execution for development
-- **esbuild** - Fast JavaScript bundler for production builds
-- **@replit/** plugins - Replit-specific development enhancements
-
-**Session Management:**
-- **connect-pg-simple** - PostgreSQL session store (configured but not yet implemented)
-
-**Current State:**
-- ✅ **Production-ready database integration complete**
-- PostgreSQL database actively storing all application data
-- `DbStorage` class handles all CRUD operations via Drizzle ORM
-- Frontend components fetch real data from REST API endpoints
-- Full validation pipeline: Zod schemas → API → Database
-- Worker detail dialog displays live data from database queries
-- All features tested and working with persistent storage
-
-## Key Features
-
-### Worker Management
-- Create, view, edit, and delete workers
-- Worker detail dialog showing comprehensive information
-- Search and filter workers by name, DNI, or category
-- View worker-specific EPIs and courses in an organized dialog
-
-### EPIs Management
-- Track Personal Protective Equipment deliveries
-- Link EPIs to specific workers
-- Record delivery dates and observations
-- View EPIs sorted by delivery date
-
-### Training Courses
-- Record employee training and certifications
-- Track course completion dates and duration
-- Link courses to workers
-- View courses sorted by completion date
-
-### Accident Reporting
-- Document workplace incidents
-- Track severity levels (LEVE, MODERADO, GRAVE)
-- Associate accidents with workers
-- Store detailed descriptions and observations
+- **vite**: Build tool and dev server.
+- **tsx**: TypeScript execution for development.
+- **esbuild**: Fast JavaScript bundler.
+- **@replit/** plugins: Replit-specific enhancements.
