@@ -19,8 +19,8 @@ export function EpiDeliveryDocument({
 
   return (
     <div className="space-y-4 p-8 bg-background print:bg-white print:p-16 print:space-y-3" data-testid="documento-entrega">
-      {/* Membrete con logo */}
-      <div className="mb-6 print:mb-4">
+      {/* Membrete con logo centrado */}
+      <div className="mb-6 print:mb-4 flex justify-center">
         <img 
           src={logoPath} 
           alt="Castilla-La Mancha" 
