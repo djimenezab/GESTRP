@@ -25,10 +25,11 @@ export function EpiDeliveryDocument({
       data-testid="documento-entrega"
     >
       {/* Membrete con logo */}
-      <div className="mb-3 print:mb-0.5">
+      <div className="mb-1 print:mb-0.5">
         <img
           src={logoPath}
           alt="Castilla-La Mancha"
+          className="h-16 w-auto print:h-14"
           data-testid="logo-membrete"
         />
       </div>
