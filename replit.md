@@ -8,6 +8,40 @@ This Occupational Safety Management System is a full-stack web application desig
 
 Preferred communication style: Simple, everyday language (Spanish).
 
+## Recent Changes
+
+### October 13, 2025 (Latest)
+- **Accidentes Laborales Section Enhancement**: Complete redesign of the workplace accidents management system
+  - **Schema Updates**:
+    - Added `centroTrabajo` (work center) field to track where accident occurred
+    - Added `tipoAccidente` enum field with two types:
+      - "ACCIDENTE_SERVICIO" (Accident in act of service)
+      - "ENFERMEDAD_PROFESIONAL" (Professional illness)
+    - Added `lugarAccidente` (accident location) field for specific location details
+    - Added `horaAccidente` (accident time) field to record exact time
+    - Added `trabajadorParteId` (optional FK) to track who files the accident report
+  - **Form Enhancements**:
+    - Changed from fixed trabajadorId prop to dynamic worker selector dropdown
+    - Added automatic category display (readonly) based on selected worker
+    - Added all new required fields with proper validation
+    - Added filtered selector for "Persona que hace el parte" (only Encargado or Enc. gral. o.p.)
+    - Comprehensive Zod validation for all fields
+  - **Page Improvements**:
+    - Replaced mock data with real API integration
+    - Added search filter by worker name with real-time filtering
+    - Added "Nuevo Accidente" button with dialog-based form
+    - Updated table to display new columns: Type, Time, Location
+    - Automatic sorting by date (most recent first)
+    - Proper mutation handling with cache invalidation
+  - **Database Migration**:
+    - Successfully executed `npm run db:push` to add new columns
+    - All data persisted correctly in PostgreSQL
+  - **Testing & Verification**:
+    - End-to-end tests pass successfully
+    - Accident creation works correctly with all new fields
+    - Search and filtering functionality verified
+    - All CRUD operations tested and working
+
 ## System Architecture
 
 ### Frontend Architecture
