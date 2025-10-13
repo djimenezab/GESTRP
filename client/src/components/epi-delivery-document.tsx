@@ -15,16 +15,21 @@ export function EpiDeliveryDocument({
   fechaEntrega,
   tipoEquipo,
 }: EpiDeliveryDocumentProps) {
-  const fechaFormateada = format(new Date(fechaEntrega), "dd/MM/yyyy", { locale: es });
+  const fechaFormateada = format(new Date(fechaEntrega), "dd/MM/yyyy", {
+    locale: es,
+  });
 
   return (
-    <div className="space-y-3 p-8 bg-background print:bg-white print:pt-0 print:pb-2 print:px-12 print:space-y-2" data-testid="documento-entrega">
+    <div
+      className="space-y-3 p-8 bg-background print:bg-white print:pt-0 print:pb-2 print:px-12 print:space-y-2"
+      data-testid="documento-entrega"
+    >
       {/* Membrete con logo */}
       <div className="mb-3 print:mb-0.5">
-        <img 
-          src={logoPath} 
-          alt="Castilla-La Mancha" 
-          className="h-20 w-auto print:h-12"
+        <img
+          src={logoPath}
+          alt="Castilla-La Mancha"
+          className="h-20 w-auto print:h-20"
           data-testid="logo-membrete"
         />
       </div>
@@ -50,27 +55,32 @@ export function EpiDeliveryDocument({
       {/* Cuerpo del documento */}
       <div className="space-y-3 print:space-y-1.5">
         <p>
-          En cumplimiento del art. 17 de la Ley 31/1995 de 8 de noviembre, de Prevención de Riesgos 
-          Laborales, se hace entrega del siguiente equipo de protección individual:
+          En cumplimiento del art. 17 de la Ley 31/1995 de 8 de noviembre, de
+          Prevención de Riesgos Laborales, se hace entrega del siguiente equipo
+          de protección individual:
         </p>
 
         <p className="text-center my-6 print:my-4 print:py-3">
-          <strong className="text-lg print:text-base uppercase">{tipoEquipo}</strong>
+          <strong className="text-lg print:text-base uppercase">
+            {tipoEquipo}
+          </strong>
         </p>
 
         <p>Asimismo, se le comunica la obligatoriedad de:</p>
 
         <div className="ml-6 space-y-1.5 print:space-y-0.5 print:ml-4">
           <p>
-            <strong>a)</strong> Utilizar estos equipos durante la jornada de trabajo, en las áreas 
-            cuya obligatoriedad de uso se encuentra señalizada.
+            <strong>a)</strong> Utilizar estos equipos durante la jornada de
+            trabajo, en las áreas cuya obligatoriedad de uso se encuentra
+            señalizada.
           </p>
           <p>
-            <strong>b)</strong> Consultar cualquier duda sobre su correcta utilización, cuidando su 
-            perfecto estado y conservación.
+            <strong>b)</strong> Consultar cualquier duda sobre su correcta
+            utilización, cuidando su perfecto estado y conservación.
           </p>
           <p>
-            <strong>c)</strong> Solicitar un nuevo equipo en el caso de pérdida o deterioro del mismo.
+            <strong>c)</strong> Solicitar un nuevo equipo en el caso de pérdida
+            o deterioro del mismo.
           </p>
         </div>
 
@@ -89,10 +99,11 @@ export function EpiDeliveryDocument({
       {/* Sección de reconocimiento del trabajador */}
       <div className="space-y-3 print:space-y-1.5">
         <p>
-          D./Dª <strong>{trabajadorNombre}</strong> con D.N.I. nº <strong>{trabajadorDni}</strong> reconoce 
-          haber recibido el Equipo de Protección Individual anteriormente citado y haber sido informado 
-          de los trabajos y zonas en los que deberá utilizar dichos equipos, así como haber recibido las 
-          instrucciones para su correcto uso.
+          D./Dª <strong>{trabajadorNombre}</strong> con D.N.I. nº{" "}
+          <strong>{trabajadorDni}</strong> reconoce haber recibido el Equipo de
+          Protección Individual anteriormente citado y haber sido informado de
+          los trabajos y zonas en los que deberá utilizar dichos equipos, así
+          como haber recibido las instrucciones para su correcto uso.
         </p>
 
         <div className="mt-8 print:mt-5">
