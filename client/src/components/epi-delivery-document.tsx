@@ -35,7 +35,7 @@ export function EpiDeliveryDocument({
       </div>
 
       {/* Título */}
-      <h1 className="text-2xl font-bold text-center my-8 print:text-lg print:my-6">
+      <h1 className="text-2xl font-bold text-center my-10 print:text-lg print:my-50">
         ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL
       </h1>
 
@@ -110,7 +110,7 @@ export function EpiDeliveryDocument({
           <p>
             <strong>Firmado:</strong> {trabajadorNombre}
           </p>
-          <div className="border-b border-border w-64 mt-2 print:mt-1"></div>
+          <div className="border-b border-border w-64 mt-2 print:mt-3"></div>
         </div>
       </div>
     </div>
