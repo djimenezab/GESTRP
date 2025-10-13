@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import logoPath from "@assets/logonuevoazul_1_1760345384948.png";
 
 interface EpiDeliveryDocumentProps {
   trabajadorNombre: string;
@@ -18,6 +19,16 @@ export function EpiDeliveryDocument({
 
   return (
     <div className="space-y-6 p-8 bg-background print:p-12" data-testid="documento-entrega">
+      {/* Membrete con logo */}
+      <div className="mb-8">
+        <img 
+          src={logoPath} 
+          alt="Castilla-La Mancha" 
+          className="h-20 w-auto"
+          data-testid="logo-membrete"
+        />
+      </div>
+
       {/* Título */}
       <h1 className="text-2xl font-bold text-center mb-8">
         ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL
