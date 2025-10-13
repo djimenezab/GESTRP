@@ -58,6 +58,25 @@ export function AccidentForm({ onSubmit, initialData, isLoading }: AccidentFormP
     },
   });
 
+  // Reset form when initialData changes (for editing)
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        trabajadorId: initialData.trabajadorId || "",
+        centroTrabajo: initialData.centroTrabajo || "",
+        tipoAccidente: initialData.tipoAccidente || undefined,
+        lugarAccidente: initialData.lugarAccidente || "",
+        fecha: initialData.fecha || "",
+        horaAccidente: initialData.horaAccidente || "",
+        descripcion: initialData.descripcion || "",
+        gravedad: initialData.gravedad || undefined,
+        observaciones: initialData.observaciones || "",
+        trabajadorParteId: initialData.trabajadorParteId || "",
+      });
+      setSelectedTrabajadorId(initialData.trabajadorId || "");
+    }
+  }, [initialData, form]);
+
   // Update category when worker is selected
   useEffect(() => {
     if (selectedTrabajadorId) {

@@ -36,9 +36,17 @@ Preferred communication style: Simple, everyday language (Spanish).
   - **Database Migration**:
     - Successfully executed `npm run db:push` to add new columns
     - All data persisted correctly in PostgreSQL
+  - **Edit and Delete Functionality**:
+    - Added three-dot menu (MoreVertical icon) in each table row
+    - Edit option opens pre-filled form dialog with all existing data
+    - Delete option shows confirmation dialog before removal
+    - Both operations properly invalidate React Query cache
+    - Mutations handle success/error states with toast notifications
   - **Testing & Verification**:
     - End-to-end tests pass successfully
     - Accident creation works correctly with all new fields
+    - Edit functionality tested and working (updates data correctly)
+    - Delete functionality tested and working (removes records with confirmation)
     - Search and filtering functionality verified
     - All CRUD operations tested and working
 

@@ -4,9 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -35,6 +41,8 @@ const tipoAccidenteLabels = {
 export default function Accidentes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingAccidente, setEditingAccidente] = useState<Accidente | null>(null);
   const { toast } = useToast();
 
   // Fetch accidents
@@ -68,6 +76,69 @@ export default function Accidentes() {
       });
     },
   });
+
+  // Update accident mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertAccidente> }) => {
+      return await apiRequest("PATCH", `/api/accidentes/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/accidentes'] });
+      setEditDialogOpen(false);
+      setEditingAccidente(null);
+      toast({
+        title: "Accidente actualizado",
+        description: "El accidente ha sido actualizado correctamente.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "No se pudo actualizar el accidente.",
+      });
+    },
+  });
+
+  // Delete accident mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/accidentes/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/accidentes'] });
+      toast({
+        title: "Accidente eliminado",
+        description: "El accidente ha sido eliminado correctamente.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "No se pudo eliminar el accidente.",
+      });
+    },
+  });
+
+  const handleOpenEditDialog = (accidente: Accidente, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingAccidente(accidente);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteAccidente = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("¿Estás seguro de que deseas eliminar este accidente?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleEditAccidente = (data: InsertAccidente) => {
+    if (editingAccidente) {
+      updateMutation.mutate({ id: editingAccidente.id, data });
+    }
+  };
 
   // Create a map of trabajador IDs to names
   const trabajadorMap = new Map(trabajadores.map(t => [t.id, t.nombreCompleto]));
@@ -142,6 +213,7 @@ export default function Accidentes() {
                 <TableHead>Hora</TableHead>
                 <TableHead>Lugar</TableHead>
                 <TableHead>Gravedad</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -161,12 +233,64 @@ export default function Accidentes() {
                       {accidente.gravedad}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          data-testid={`button-options-${accidente.id}`}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          onClick={(e) => handleOpenEditDialog(accidente, e)}
+                          data-testid={`button-edit-${accidente.id}`}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={(e) => handleDeleteAccidente(accidente.id, e)}
+                          className="text-destructive"
+                          data-testid={`button-delete-${accidente.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Accidente</DialogTitle>
+          </DialogHeader>
+          {editingAccidente && (
+            <AccidentForm
+              onSubmit={handleEditAccidente}
+              initialData={{
+                ...editingAccidente,
+                tipoAccidente: editingAccidente.tipoAccidente as "ACCIDENTE_SERVICIO" | "ENFERMEDAD_PROFESIONAL",
+                gravedad: editingAccidente.gravedad as "LEVE" | "MODERADO" | "GRAVE",
+                observaciones: editingAccidente.observaciones || "",
+                trabajadorParteId: editingAccidente.trabajadorParteId || ""
+              }}
+              isLoading={updateMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
