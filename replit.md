@@ -11,6 +11,12 @@ Preferred communication style: Simple, everyday language (Spanish).
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **ObjectUploader Bug Fix**:
+  - Fixed critical bug where upload buttons in forms triggered form submission instead of opening file upload modal
+  - Added `type="button"` attribute to ObjectUploader button to prevent unintended form submission
+  - Upload modals now open correctly for imagen, ficha evaluación, and manual in edit forms
+  - End-to-end testing confirms upload functionality works as expected
+
 - **Equipos Section - Fields Added**:
   - Added two new required fields to Equipos:
     - **Nombre del Equipo**: First field in forms, first column in table
