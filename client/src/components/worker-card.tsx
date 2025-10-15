@@ -1,15 +1,8 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { User, Calendar, FileText, MoreVertical } from "lucide-react";
+import { User, Calendar, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface WorkerCardProps {
   id: string;
@@ -17,8 +10,6 @@ interface WorkerCardProps {
   categoria: string;
   dni: string;
   fechaNacimiento: string;
-  onEdit?: () => void;
-  onDelete?: () => void;
   onClick?: () => void;
 }
 
@@ -28,8 +19,6 @@ export function WorkerCard({
   categoria,
   dni,
   fechaNacimiento,
-  onEdit,
-  onDelete,
   onClick,
 }: WorkerCardProps) {
   return (
@@ -46,34 +35,6 @@ export function WorkerCard({
             </Badge>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="icon" data-testid={`button-worker-menu-${id}`}>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit?.();
-              }}
-              data-testid={`button-edit-worker-${id}`}
-            >
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete?.();
-              }}
-              className="text-destructive"
-              data-testid={`button-delete-worker-${id}`}
-            >
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
