@@ -53,7 +53,7 @@ import {
   type ZonaTrabajo,
   insertUsuarioSchema,
   type InsertUsuario,
-  type Usuario,
+  type UsuarioSinPassword,
   TIPOS_ACCESO
 } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -76,7 +76,7 @@ export default function Configuracion() {
   const [isUsuarioDialogOpen, setIsUsuarioDialogOpen] = useState(false);
   const [isEditUsuarioDialogOpen, setIsEditUsuarioDialogOpen] = useState(false);
   const [searchUsuarioTerm, setSearchUsuarioTerm] = useState("");
-  const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
+  const [editingUsuario, setEditingUsuario] = useState<UsuarioSinPassword | null>(null);
   
   const { toast } = useToast();
 
@@ -91,7 +91,7 @@ export default function Configuracion() {
   });
 
   // Usuarios queries
-  const { data: usuarios = [], isLoading: isLoadingUsuarios } = useQuery<Usuario[]>({
+  const { data: usuarios = [], isLoading: isLoadingUsuarios } = useQuery<UsuarioSinPassword[]>({
     queryKey: ["/api/usuarios"],
   });
 
@@ -403,7 +403,7 @@ export default function Configuracion() {
     }
   };
 
-  const handleOpenEditUsuarioDialog = (usuario: Usuario) => {
+  const handleOpenEditUsuarioDialog = (usuario: UsuarioSinPassword) => {
     setEditingUsuario(usuario);
     editUsuarioForm.reset({
       nombreUsuario: usuario.nombreUsuario,

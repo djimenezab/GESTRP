@@ -17,6 +17,7 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import bcrypt from "bcrypt";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Trabajadores routes
@@ -516,7 +517,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/usuarios", async (req, res) => {
     try {
       const usuarios = await storage.getUsuarios();
-      res.json(usuarios);
+      // Remove password from response
+      const usuariosSinPassword = usuarios.map(({ password, ...usuario }) => usuario);
+      res.json(usuariosSinPassword);
     } catch (error) {
       console.error("Error getting usuarios:", error);
       res.status(500).json({ error: "Error al obtener usuarios" });
@@ -529,7 +532,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!usuario) {
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
-      res.json(usuario);
+      // Remove password from response
+      const { password, ...usuarioSinPassword } = usuario;
+      res.json(usuarioSinPassword);
     } catch (error) {
       console.error("Error getting usuario:", error);
       res.status(500).json({ error: "Error al obtener usuario" });
@@ -539,8 +544,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/usuarios", async (req, res) => {
     try {
       const data = insertUsuarioSchema.parse(req.body);
-      const usuario = await storage.createUsuario(data);
-      res.status(201).json(usuario);
+      // Hash password before storing
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const usuario = await storage.createUsuario({
+        ...data,
+        password: hashedPassword,
+      });
+      // Remove password from response
+      const { password, ...usuarioSinPassword } = usuario;
+      res.status(201).json(usuarioSinPassword);
     } catch (error) {
       console.error("Error creating usuario:", error);
       res.status(400).json({ error: "Datos inválidos" });
@@ -550,11 +562,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/usuarios/:id", async (req, res) => {
     try {
       const data = insertUsuarioSchema.partial().parse(req.body);
-      const usuario = await storage.updateUsuario(req.params.id, data);
+      // Hash password if it's being updated
+      let updateData = { ...data };
+      if (data.password && data.password.trim() !== "") {
+        updateData.password = await bcrypt.hash(data.password, 10);
+      } else {
+        // Remove password from update if it's empty (don't update it)
+        delete updateData.password;
+      }
+      const usuario = await storage.updateUsuario(req.params.id, updateData);
       if (!usuario) {
         return res.status(404).json({ error: "Usuario no encontrado" });
       }
-      res.json(usuario);
+      // Remove password from response
+      const { password, ...usuarioSinPassword } = usuario;
+      res.json(usuarioSinPassword);
     } catch (error) {
       console.error("Error updating usuario:", error);
       res.status(400).json({ error: "Datos inválidos" });

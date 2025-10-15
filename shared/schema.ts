@@ -234,6 +234,7 @@ export type ZonaTrabajo = typeof zonasTrabajo.$inferSelect;
 
 export type InsertUsuario = z.infer<typeof insertUsuarioSchema>;
 export type Usuario = typeof usuarios.$inferSelect;
+export type UsuarioSinPassword = Omit<Usuario, 'password'>;
 
 export type InsertEquipo = z.infer<typeof insertEquipoSchema>;
 export type Equipo = typeof equipos.$inferSelect;
