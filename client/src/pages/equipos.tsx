@@ -231,13 +231,9 @@ export default function Equipos() {
 
   const handleFileUpload = (form: any, fieldName: string) => {
     return async () => {
-      const response = await fetch("/api/objects/upload-url", {
+      const response = await fetch("/api/objects/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          filename: `equipo_${fieldName}_${Date.now()}`,
-          directory: ".private" 
-        }),
       });
       
       if (!response.ok) {
@@ -247,7 +243,7 @@ export default function Equipos() {
       const data = await response.json();
       return {
         method: "PUT" as const,
-        url: data.url,
+        url: data.uploadURL,
       };
     };
   };
