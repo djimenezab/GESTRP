@@ -8,6 +8,7 @@ import {
   insertAccidenteSchema,
   insertEpiDocumentoSchema,
   insertEpiFichaEvSchema,
+  insertEquipoSchema,
   trabajadores,
   CATEGORIAS
 } from "@shared/schema";
@@ -445,6 +446,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting EPI ficha EV:", error);
       res.status(500).json({ error: "Error al eliminar ficha de EPI" });
+    }
+  });
+
+  // Equipos routes
+  app.get("/api/equipos", async (req, res) => {
+    try {
+      const equipos = await storage.getEquipos();
+      res.json(equipos);
+    } catch (error) {
+      console.error("Error getting equipos:", error);
+      res.status(500).json({ error: "Error al obtener equipos" });
+    }
+  });
+
+  app.get("/api/equipos/:id", async (req, res) => {
+    try {
+      const equipo = await storage.getEquipo(req.params.id);
+      if (!equipo) {
+        return res.status(404).json({ error: "Equipo no encontrado" });
+      }
+      res.json(equipo);
+    } catch (error) {
+      console.error("Error getting equipo:", error);
+      res.status(500).json({ error: "Error al obtener equipo" });
+    }
+  });
+
+  app.post("/api/equipos", async (req, res) => {
+    try {
+      const data = insertEquipoSchema.parse(req.body);
+      const equipo = await storage.createEquipo(data);
+      res.status(201).json(equipo);
+    } catch (error) {
+      console.error("Error creating equipo:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/equipos/:id", async (req, res) => {
+    try {
+      const data = insertEquipoSchema.partial().parse(req.body);
+      const equipo = await storage.updateEquipo(req.params.id, data);
+      if (!equipo) {
+        return res.status(404).json({ error: "Equipo no encontrado" });
+      }
+      res.json(equipo);
+    } catch (error) {
+      console.error("Error updating equipo:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/equipos/:id", async (req, res) => {
+    try {
+      await storage.deleteEquipo(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting equipo:", error);
+      res.status(500).json({ error: "Error al eliminar equipo" });
+    }
+  });
+
+  // Equipos EPIs Obligatorios routes
+  app.get("/api/equipos/:equipoId/epis-obligatorios", async (req, res) => {
+    try {
+      const epis = await storage.getEquipoEpisObligatorios(req.params.equipoId);
+      res.json(epis);
+    } catch (error) {
+      console.error("Error getting equipo EPIs obligatorios:", error);
+      res.status(500).json({ error: "Error al obtener EPIs obligatorios del equipo" });
+    }
+  });
+
+  app.post("/api/equipos/:equipoId/epis-obligatorios", async (req, res) => {
+    try {
+      const { epiIds } = req.body;
+      if (!Array.isArray(epiIds)) {
+        return res.status(400).json({ error: "epiIds debe ser un array" });
+      }
+      await storage.setEquipoEpisObligatorios(req.params.equipoId, epiIds);
+      res.status(200).json({ message: "EPIs obligatorios actualizados" });
+    } catch (error) {
+      console.error("Error setting equipo EPIs obligatorios:", error);
+      res.status(400).json({ error: "Error al actualizar EPIs obligatorios" });
     }
   });
 
