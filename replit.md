@@ -11,6 +11,20 @@ Preferred communication style: Simple, everyday language (Spanish).
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **New Configuration Section - EPIS Fichas EV**:
+  - Created new "Configuración" section accessible from sidebar (Sistema > Configuración)
+  - Implemented "EPIS Fichas EV" catalog subsection for managing EPI names
+  - This is a separate catalog from EPIs delivery tracking system
+  - Features:
+    - Create, read, update, delete EPI names
+    - Search/filter functionality
+    - Alphabetically sorted list
+    - Unique constraint on EPI names
+    - Full CRUD operations with validation
+  - Database: New table `epis_fichas_ev` with UUID primary key
+  - API: Complete REST endpoints at `/api/epis-fichas-ev`
+  - UI: Clean interface with forms, table, and search
+
 - **Worker Detail Dialog Enhancement**:
   - Added "Accidentes Laborales" section to worker detail view
   - Shows table with accident information: Fecha, Tipo, Gravedad, Descripción
