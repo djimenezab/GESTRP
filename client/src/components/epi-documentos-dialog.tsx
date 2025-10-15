@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -119,6 +120,9 @@ export function EpiDocumentosDialog({
           <DialogTitle>
             Documentación Digitalizada {numeroCorrelativo && `- ${numeroCorrelativo}`}
           </DialogTitle>
+          <DialogDescription>
+            Gestiona los documentos digitalizados asociados a esta entrega de EPI
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

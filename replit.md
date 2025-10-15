@@ -10,7 +10,34 @@ Preferred communication style: Simple, everyday language (Spanish).
 
 ## Recent Changes
 
-### October 13, 2025 (Latest)
+### October 15, 2025 (Latest)
+- **EPI Documentation System - Digitized Storage with Replit App Storage**:
+  - **Object Storage Integration**:
+    - Integrated Replit App Storage ($0.03/GB/month) for cloud-based document storage
+    - Created `server/objectStorage.ts` for Google Cloud Storage integration via Replit sidecar
+    - Created `server/objectAcl.ts` for public document access control
+    - Documents stored in `.private/epi-docs/` directory within bucket
+  - **Database Schema Updates**:
+    - Added `numeroCorrelativo` field to `epis` table (unique, format: EPI[YEAR]_[###])
+    - Created `epiDocumentos` table to track uploaded documents with metadata
+    - Automatic correlative number generation for new EPIs (starts at 001 per year)
+  - **Backend Routes**:
+    - `POST /api/upload-url` - Generates signed upload URLs for Uppy file uploader
+    - `POST /api/epi-documentos` - Creates document records after upload
+    - `GET /api/epi-documentos/:epiId` - Retrieves documents for specific EPI
+    - `GET /api/epi-documentos/download/:id` - Generates signed download URLs
+    - `DELETE /api/epi-documentos/:id` - Removes documents from storage and database
+  - **Frontend Components**:
+    - Created `ObjectUploader` component using Uppy Dashboard for file uploads
+    - Created `EpiDocumentosDialog` for document management UI
+    - Added "Ver Documentos" button in EPIs table for each delivery record
+    - Document list with download and delete functionality
+  - **Cost & Performance**:
+    - Estimated <$0.03/month for typical use (500 workers, minimal document storage)
+    - Public access URLs for easy document sharing without authentication barriers
+    - Cloud-based storage replaces local filesystem requirement (C:\PREVENCION\EPIS\)
+
+### October 13, 2025
 - **Accidentes Laborales Section Enhancement**: Complete redesign of the workplace accidents management system
   - **Schema Updates**:
     - Added `centroTrabajo` (work center) field to track where accident occurred

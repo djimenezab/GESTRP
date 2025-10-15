@@ -217,6 +217,7 @@ export default function Epis() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>N° Correlativo</TableHead>
               <TableHead>Trabajador</TableHead>
               <TableHead>Tipo de Equipo</TableHead>
               <TableHead>Marca</TableHead>
@@ -235,6 +236,9 @@ export default function Epis() {
                 className="cursor-pointer hover-elevate"
                 onClick={() => handleEpiClick(epi)}
               >
+                <TableCell className="font-mono text-sm" data-testid={`text-correlativo-${epi.id}`}>
+                  {epi.numeroCorrelativo || "-"}
+                </TableCell>
                 <TableCell className="font-medium" data-testid={`text-worker-${epi.id}`}>
                   {epi.trabajador}
                 </TableCell>
