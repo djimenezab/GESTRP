@@ -80,6 +80,13 @@ export const accidentes = pgTable("accidentes", {
   trabajadorParteId: varchar("trabajador_parte_id").references(() => trabajadores.id),
 });
 
+// Catálogo de EPIs (Fichas EV) - para selección en otros módulos
+export const episFichasEv = pgTable("epis_fichas_ev", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nombreEpi: text("nombre_epi").notNull().unique(),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id: true }).extend({
   categoria: z.enum(CATEGORIAS),
@@ -132,6 +139,10 @@ export const insertAccidenteSchema = createInsertSchema(accidentes).omit({ id: t
   trabajadorParteId: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
+export const insertEpiFichaEvSchema = createInsertSchema(episFichasEv).omit({ id: true, fechaCreacion: true }).extend({
+  nombreEpi: z.string().min(1, "Nombre del EPI es requerido"),
+});
+
 // Types
 export type InsertTrabajador = z.infer<typeof insertTrabajadorSchema>;
 export type Trabajador = typeof trabajadores.$inferSelect;
@@ -147,3 +158,6 @@ export type Curso = typeof cursos.$inferSelect;
 
 export type InsertAccidente = z.infer<typeof insertAccidenteSchema>;
 export type Accidente = typeof accidentes.$inferSelect;
+
+export type InsertEpiFichaEv = z.infer<typeof insertEpiFichaEvSchema>;
+export type EpiFichaEv = typeof episFichasEv.$inferSelect;
