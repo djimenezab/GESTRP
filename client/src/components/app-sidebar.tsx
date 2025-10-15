@@ -4,6 +4,7 @@ import {
   HardHat,
   GraduationCap,
   AlertTriangle,
+  Settings,
 } from "lucide-react";
 import {
   Sidebar,
@@ -73,6 +74,25 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={location === "/configuracion"}
+                  data-testid="link-configuracion"
+                >
+                  <a href="/configuracion">
+                    <Settings className="h-4 w-4" />
+                    <span>Configuración</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
