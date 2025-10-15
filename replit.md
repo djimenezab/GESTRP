@@ -11,6 +11,14 @@ Preferred communication style: Simple, everyday language (Spanish).
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Equipos Section - Fields Added**:
+  - Added two new required fields to Equipos:
+    - **Nombre del Equipo**: First field in forms, first column in table
+    - **Nº Serie**: After Modelo field, displayed in table
+  - Updated database schema with `nombre` and `numero_serie` columns
+  - Updated search functionality to filter by nombre, marca, modelo, AND número de serie
+  - All CRUD operations working correctly with new fields
+
 - **New Section: Equipos (Equipment Management)**:
   - Created new "Equipos" section in sidebar under Gestión
   - Complete equipment and machinery management system
@@ -18,10 +26,11 @@ Preferred communication style: Simple, everyday language (Spanish).
     - CRUD operations for equipment
     - File uploads for: Equipment image, Evaluation sheet (Ficha evaluación), Manual
     - Multi-select EPIs obligatorios from EPIS Fichas EV catalog
-    - Search/filter by brand (marca) or model (modelo)
+    - Search/filter by nombre, marca, modelo, or número de serie
     - Visual indicators for uploaded documents
   - Database: 
     - New table `equipos` with UUID primary key
+    - Fields: nombre, marca, modelo, numeroSerie, fechaAdquisicion, file URLs
     - New table `equipos_epis_obligatorios` for many-to-many relationship with EPIS Fichas EV
   - API: Complete REST endpoints at `/api/equipos` and `/api/equipos/:id/epis-obligatorios`
   - File Storage: Integration with Replit Object Storage for documents and images
