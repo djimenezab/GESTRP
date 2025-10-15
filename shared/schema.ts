@@ -90,8 +90,10 @@ export const episFichasEv = pgTable("epis_fichas_ev", {
 // Equipos
 export const equipos = pgTable("equipos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nombre: text("nombre").notNull(),
   marca: text("marca").notNull(),
   modelo: text("modelo").notNull(),
+  numeroSerie: text("numero_serie").notNull(),
   fechaAdquisicion: date("fecha_adquisicion").notNull(),
   fichaEvaluacionUrl: text("ficha_evaluacion_url"),
   manualUrl: text("manual_url"),
@@ -163,8 +165,10 @@ export const insertEpiFichaEvSchema = createInsertSchema(episFichasEv).omit({ id
 });
 
 export const insertEquipoSchema = createInsertSchema(equipos).omit({ id: true, fechaCreacion: true }).extend({
+  nombre: z.string().min(1, "Nombre del equipo es requerido"),
   marca: z.string().min(1, "Marca es requerida"),
   modelo: z.string().min(1, "Modelo es requerido"),
+  numeroSerie: z.string().min(1, "Número de serie es requerido"),
   fechaAdquisicion: z.string().min(1, "Fecha de adquisición es requerida"),
   fichaEvaluacionUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
   manualUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
