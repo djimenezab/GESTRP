@@ -225,7 +225,8 @@ export default function Equipos() {
   const filteredEquipos = equipos.filter(equipo =>
     equipo.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     equipo.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    equipo.modelo.toLowerCase().includes(searchTerm.toLowerCase())
+    equipo.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    equipo.numeroSerie.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleFileUpload = (form: any, fieldName: string) => {
@@ -289,7 +290,7 @@ export default function Equipos() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nombre, marca o modelo..."
+              placeholder="Buscar por nombre, marca, modelo o nº serie..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
