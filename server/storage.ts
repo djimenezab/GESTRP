@@ -5,6 +5,7 @@ import {
   cursos, 
   accidentes,
   epiDocumentos,
+  episFichasEv,
   type Trabajador,
   type InsertTrabajador,
   type Epi,
@@ -14,7 +15,9 @@ import {
   type Accidente,
   type InsertAccidente,
   type EpiDocumento,
-  type InsertEpiDocumento
+  type InsertEpiDocumento,
+  type EpiFichaEv,
+  type InsertEpiFichaEv
 } from "@shared/schema";
 import { eq, desc, or, ilike } from "drizzle-orm";
 
@@ -54,6 +57,13 @@ export interface IStorage {
   getEpiDocumentos(epiId: string): Promise<EpiDocumento[]>;
   createEpiDocumento(data: InsertEpiDocumento): Promise<EpiDocumento>;
   deleteEpiDocumento(id: string): Promise<void>;
+
+  // EPIs Fichas EV (Catálogo)
+  getEpisFichasEv(): Promise<EpiFichaEv[]>;
+  getEpiFichaEv(id: string): Promise<EpiFichaEv | undefined>;
+  createEpiFichaEv(data: InsertEpiFichaEv): Promise<EpiFichaEv>;
+  updateEpiFichaEv(id: string, data: Partial<InsertEpiFichaEv>): Promise<EpiFichaEv | undefined>;
+  deleteEpiFichaEv(id: string): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -204,6 +214,30 @@ export class DbStorage implements IStorage {
 
   async deleteEpiDocumento(id: string): Promise<void> {
     await db.delete(epiDocumentos).where(eq(epiDocumentos.id, id));
+  }
+
+  // EPIs Fichas EV (Catálogo)
+  async getEpisFichasEv(): Promise<EpiFichaEv[]> {
+    return await db.select().from(episFichasEv).orderBy(episFichasEv.nombreEpi);
+  }
+
+  async getEpiFichaEv(id: string): Promise<EpiFichaEv | undefined> {
+    const result = await db.select().from(episFichasEv).where(eq(episFichasEv.id, id));
+    return result[0];
+  }
+
+  async createEpiFichaEv(data: InsertEpiFichaEv): Promise<EpiFichaEv> {
+    const result = await db.insert(episFichasEv).values(data).returning();
+    return result[0];
+  }
+
+  async updateEpiFichaEv(id: string, data: Partial<InsertEpiFichaEv>): Promise<EpiFichaEv | undefined> {
+    const result = await db.update(episFichasEv).set(data).where(eq(episFichasEv.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteEpiFichaEv(id: string): Promise<void> {
+    await db.delete(episFichasEv).where(eq(episFichasEv.id, id));
   }
 }
 
