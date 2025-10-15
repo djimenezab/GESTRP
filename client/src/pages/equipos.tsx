@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Pencil, Trash2, Search, FileText, File, Image as ImageIcon, AlertCircle } from "lucide-react";
+import { z } from "zod";
 import {
   Table,
   TableBody,
@@ -71,9 +72,16 @@ export default function Equipos() {
     enabled: !!editingEquipo?.id,
   });
 
+  // Actualizar formulario de edición cuando se cargan los EPIs obligatorios
+  useEffect(() => {
+    if (episObligatoriosSeleccionados.length > 0 && editingEquipo) {
+      editForm.setValue("episObligatorios", episObligatoriosSeleccionados.map(e => e.id));
+    }
+  }, [episObligatoriosSeleccionados, editingEquipo]);
+
   const createForm = useForm<InsertEquipo & { episObligatorios: string[] }>({
     resolver: zodResolver(insertEquipoSchema.extend({
-      episObligatorios: insertEquipoSchema.shape.fichaEvaluacionUrl.optional(),
+      episObligatorios: z.array(z.string()).optional(),
     })),
     defaultValues: {
       marca: "",
@@ -88,7 +96,7 @@ export default function Equipos() {
 
   const editForm = useForm<InsertEquipo & { episObligatorios: string[] }>({
     resolver: zodResolver(insertEquipoSchema.extend({
-      episObligatorios: insertEquipoSchema.shape.fichaEvaluacionUrl.optional(),
+      episObligatorios: z.array(z.string()).optional(),
     })),
     defaultValues: {
       marca: "",

@@ -11,6 +11,22 @@ Preferred communication style: Simple, everyday language (Spanish).
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **New Section: Equipos (Equipment Management)**:
+  - Created new "Equipos" section in sidebar under Gestión
+  - Complete equipment and machinery management system
+  - Features:
+    - CRUD operations for equipment
+    - File uploads for: Equipment image, Evaluation sheet (Ficha evaluación), Manual
+    - Multi-select EPIs obligatorios from EPIS Fichas EV catalog
+    - Search/filter by brand (marca) or model (modelo)
+    - Visual indicators for uploaded documents
+  - Database: 
+    - New table `equipos` with UUID primary key
+    - New table `equipos_epis_obligatorios` for many-to-many relationship with EPIS Fichas EV
+  - API: Complete REST endpoints at `/api/equipos` and `/api/equipos/:id/epis-obligatorios`
+  - File Storage: Integration with Replit Object Storage for documents and images
+  - UI: Full-featured page with create/edit dialogs, file upload integration, and multi-select checkboxes
+
 - **New Configuration Section - EPIS Fichas EV**:
   - Created new "Configuración" section accessible from sidebar (Sistema > Configuración)
   - Implemented "EPIS Fichas EV" catalog subsection for managing EPI names
