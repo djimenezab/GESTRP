@@ -11,6 +11,14 @@ Preferred communication style: Simple, everyday language (Spanish).
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Worker Detail Dialog Enhancement**:
+  - Added "Accidentes Laborales" section to worker detail view
+  - Shows table with accident information: Fecha, Tipo, Gravedad, Descripción
+  - Accidents sorted by date (most recent first)
+  - Color-coded severity badges: GRAVE (red), MODERADO (blue), LEVE (gray)
+  - Type badges: "Accidente en servicio" or "Enfermedad profesional"
+  - Empty state message when worker has no accidents
+
 - **Dashboard Statistics Updated**:
   - Changed static mock data to real-time database queries
   - Total Trabajadores: Shows actual count from database

@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Printer } from "lucide-react";
+import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Printer, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EvaluacionRiesgosDocument } from "./evaluacion-riesgos-document";
-import type { Epi, Curso } from "@shared/schema";
+import type { Epi, Curso, Accidente } from "@shared/schema";
 
 interface WorkerDetailDialogProps {
   open: boolean;
@@ -54,6 +54,11 @@ export function WorkerDetailDialog({
     enabled: open,
   });
 
+  const { data: accidentes = [] } = useQuery<Accidente[]>({
+    queryKey: ["/api/trabajadores", worker.id, "accidentes"],
+    enabled: open,
+  });
+
   // Ordenar EPIs por fecha (más recientes primero)
   const sortedEpis = [...epis].sort(
     (a, b) => new Date(b.fechaEntrega).getTime() - new Date(a.fechaEntrega).getTime()
@@ -62,6 +67,11 @@ export function WorkerDetailDialog({
   // Ordenar cursos por fecha (más recientes primero)
   const sortedCursos = [...cursos].sort(
     (a, b) => new Date(b.fechaRealizacion).getTime() - new Date(a.fechaRealizacion).getTime()
+  );
+
+  // Ordenar accidentes por fecha (más recientes primero)
+  const sortedAccidentes = [...accidentes].sort(
+    (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
   );
 
   return (
@@ -217,6 +227,62 @@ export function WorkerDetailDialog({
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No hay cursos registrados para este trabajador
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Accidentes laborales */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Accidentes Laborales
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {sortedAccidentes.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Gravedad</TableHead>
+                      <TableHead>Descripción</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedAccidentes.map((accidente) => (
+                      <TableRow key={accidente.id} data-testid={`row-accidente-dialog-${accidente.id}`}>
+                        <TableCell className="font-medium">
+                          {format(new Date(accidente.fecha), "dd/MM/yyyy", { locale: es })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={accidente.tipoAccidente === "ACCIDENTE_SERVICIO" ? "default" : "secondary"}>
+                            {accidente.tipoAccidente === "ACCIDENTE_SERVICIO" ? "Accidente en servicio" : "Enfermedad profesional"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={
+                              accidente.gravedad === "GRAVE" ? "destructive" : 
+                              accidente.gravedad === "MODERADO" ? "default" : 
+                              "secondary"
+                            }
+                          >
+                            {accidente.gravedad}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground max-w-xs truncate">
+                          {accidente.descripcion}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No hay accidentes registrados para este trabajador
                 </p>
               )}
             </CardContent>
