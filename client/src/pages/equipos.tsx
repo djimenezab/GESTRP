@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Pencil, Trash2, Search, FileText, File, Image as ImageIcon, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Search, FileText, File, Image as ImageIcon, AlertCircle } from "lucide-react";
 import { z } from "zod";
 import {
   Table,
@@ -322,7 +322,12 @@ export default function Equipos() {
               </TableHeader>
               <TableBody>
                 {filteredEquipos.map((equipo) => (
-                  <TableRow key={equipo.id} data-testid={`row-equipo-${equipo.id}`}>
+                  <TableRow 
+                    key={equipo.id} 
+                    data-testid={`row-equipo-${equipo.id}`}
+                    onClick={() => handleEdit(equipo)}
+                    className="cursor-pointer hover-elevate"
+                  >
                     <TableCell className="font-medium" data-testid={`text-nombre-${equipo.id}`}>
                       {equipo.nombre}
                     </TableCell>
@@ -342,24 +347,17 @@ export default function Equipos() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(equipo)}
-                          data-testid={`button-edit-equipo-${equipo.id}`}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(equipo)}
-                          data-testid={`button-delete-equipo-${equipo.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(equipo);
+                        }}
+                        data-testid={`button-delete-equipo-${equipo.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -11,6 +11,13 @@ Preferred communication style: Simple, everyday language (Spanish).
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Equipos Table - UX Improvement**:
+  - Click anywhere on equipo row to open edit dialog (no need to click pencil icon)
+  - Removed pencil/edit icon from table for cleaner interface
+  - Maintained trash/delete icon with proper event handling (stopPropagation)
+  - Added hover-elevate effect on rows for visual feedback
+  - Improved user experience with faster access to editing
+
 - **ObjectUploader Bug Fix**:
   - Fixed critical bug where upload buttons in forms triggered form submission instead of opening file upload modal
   - Added `type="button"` attribute to ObjectUploader button to prevent unintended form submission
