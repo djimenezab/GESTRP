@@ -78,6 +78,15 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Configuración - Zonas de Trabajo Catalog**:
+  - New "Zonas de Trabajo" subsection in Configuration
+  - Manages work zones that can be assigned to workers and equipment
+  - CRUD operations: Create, Read, Update, Delete work zones
+  - Search/filter functionality
+  - Accordion UI pattern matching EPIS Fichas EV
+  - Database table created with unique zone names
+  - Full API routes and storage implementation
+
 - **Equipos - Clickeable Document Icons in Table**:
   - Document icons (imagen, ficha, manual) in table are now clickeable
   - Click any document icon to open it directly in a new tab
