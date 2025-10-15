@@ -28,6 +28,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Form,
   FormControl,
   FormField,
@@ -43,7 +50,11 @@ import {
   type EpiFichaEv,
   insertZonaTrabajoSchema,
   type InsertZonaTrabajo,
-  type ZonaTrabajo
+  type ZonaTrabajo,
+  insertUsuarioSchema,
+  type InsertUsuario,
+  type Usuario,
+  TIPOS_ACCESO
 } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +72,12 @@ export default function Configuracion() {
   const [searchZonaTerm, setSearchZonaTerm] = useState("");
   const [editingZona, setEditingZona] = useState<ZonaTrabajo | null>(null);
   
+  // Usuarios state
+  const [isUsuarioDialogOpen, setIsUsuarioDialogOpen] = useState(false);
+  const [isEditUsuarioDialogOpen, setIsEditUsuarioDialogOpen] = useState(false);
+  const [searchUsuarioTerm, setSearchUsuarioTerm] = useState("");
+  const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
+  
   const { toast } = useToast();
 
   // EPIS Fichas EV queries
@@ -71,6 +88,11 @@ export default function Configuracion() {
   // Zonas de Trabajo queries
   const { data: zonas = [], isLoading: isLoadingZonas } = useQuery<ZonaTrabajo[]>({
     queryKey: ["/api/zonas-trabajo"],
+  });
+
+  // Usuarios queries
+  const { data: usuarios = [], isLoading: isLoadingUsuarios } = useQuery<Usuario[]>({
+    queryKey: ["/api/usuarios"],
   });
 
   // EPIS Fichas EV forms
@@ -100,6 +122,25 @@ export default function Configuracion() {
     resolver: zodResolver(insertZonaTrabajoSchema),
     defaultValues: {
       zona: "",
+    },
+  });
+
+  // Usuarios forms
+  const createUsuarioForm = useForm<InsertUsuario>({
+    resolver: zodResolver(insertUsuarioSchema),
+    defaultValues: {
+      nombreUsuario: "",
+      password: "",
+      tipoAcceso: "Usuario",
+    },
+  });
+
+  const editUsuarioForm = useForm<InsertUsuario>({
+    resolver: zodResolver(insertUsuarioSchema),
+    defaultValues: {
+      nombreUsuario: "",
+      password: "",
+      tipoAcceso: "Usuario",
     },
   });
 
@@ -235,6 +276,72 @@ export default function Configuracion() {
     },
   });
 
+  // Usuarios mutations
+  const createUsuarioMutation = useMutation({
+    mutationFn: async (data: InsertUsuario) => {
+      return await apiRequest("POST", "/api/usuarios", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/usuarios"] });
+      setIsUsuarioDialogOpen(false);
+      createUsuarioForm.reset();
+      toast({
+        title: "Usuario creado",
+        description: "El usuario ha sido creado correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo crear el usuario",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateUsuarioMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertUsuario> }) => {
+      return await apiRequest("PATCH", `/api/usuarios/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/usuarios"] });
+      setIsEditUsuarioDialogOpen(false);
+      setEditingUsuario(null);
+      editUsuarioForm.reset();
+      toast({
+        title: "Usuario actualizado",
+        description: "El usuario ha sido actualizado correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el usuario",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUsuarioMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/usuarios/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/usuarios"] });
+      toast({
+        title: "Usuario eliminado",
+        description: "El usuario ha sido eliminado correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el usuario",
+        variant: "destructive",
+      });
+    },
+  });
+
   // EPIS Fichas EV handlers
   const handleCreate = (data: InsertEpiFichaEv) => {
     createMutation.mutate(data);
@@ -285,6 +392,33 @@ export default function Configuracion() {
     }
   };
 
+  // Usuarios handlers
+  const handleCreateUsuario = (data: InsertUsuario) => {
+    createUsuarioMutation.mutate(data);
+  };
+
+  const handleEditUsuario = (data: InsertUsuario) => {
+    if (editingUsuario) {
+      updateUsuarioMutation.mutate({ id: editingUsuario.id, data });
+    }
+  };
+
+  const handleOpenEditUsuarioDialog = (usuario: Usuario) => {
+    setEditingUsuario(usuario);
+    editUsuarioForm.reset({
+      nombreUsuario: usuario.nombreUsuario,
+      password: "",
+      tipoAcceso: usuario.tipoAcceso as typeof TIPOS_ACCESO[number],
+    });
+    setIsEditUsuarioDialogOpen(true);
+  };
+
+  const handleDeleteUsuario = (id: string) => {
+    if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+      deleteUsuarioMutation.mutate(id);
+    }
+  };
+
   const filteredFichas = fichas.filter((ficha) => {
     const searchLower = searchTerm.toLowerCase();
     return ficha.nombreEpi.toLowerCase().includes(searchLower);
@@ -293,6 +427,12 @@ export default function Configuracion() {
   const filteredZonas = zonas.filter((zona) => {
     const searchLower = searchZonaTerm.toLowerCase();
     return zona.zona.toLowerCase().includes(searchLower);
+  });
+
+  const filteredUsuarios = usuarios.filter((usuario) => {
+    const searchLower = searchUsuarioTerm.toLowerCase();
+    return usuario.nombreUsuario.toLowerCase().includes(searchLower) ||
+           usuario.tipoAcceso.toLowerCase().includes(searchLower);
   });
 
   return (
@@ -582,6 +722,189 @@ export default function Configuracion() {
         </Accordion>
       </Card>
 
+      {/* Usuarios Section */}
+      <Card>
+        <Accordion type="single" collapsible className="border-0">
+          <AccordionItem value="usuarios" className="border-0">
+            <CardHeader className="pb-0">
+              <AccordionTrigger className="hover:no-underline py-4" data-testid="accordion-trigger-usuarios">
+                <div className="text-left">
+                  <CardTitle>Usuarios</CardTitle>
+                  <CardDescription className="mt-1.5">
+                    Gestión de usuarios del sistema
+                  </CardDescription>
+                </div>
+              </AccordionTrigger>
+            </CardHeader>
+            <AccordionContent>
+              <CardContent className="pt-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="relative max-w-sm flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar usuario..."
+                        value={searchUsuarioTerm}
+                        onChange={(e) => setSearchUsuarioTerm(e.target.value)}
+                        className="pl-10"
+                        data-testid="input-search-usuario"
+                      />
+                    </div>
+                    <Dialog open={isUsuarioDialogOpen} onOpenChange={setIsUsuarioDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button data-testid="button-add-usuario">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Nuevo Usuario
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Crear Usuario</DialogTitle>
+                          <DialogDescription>
+                            Agrega un nuevo usuario al sistema
+                          </DialogDescription>
+                        </DialogHeader>
+                        <Form {...createUsuarioForm}>
+                          <form onSubmit={createUsuarioForm.handleSubmit(handleCreateUsuario)} className="space-y-4">
+                            <FormField
+                              control={createUsuarioForm.control}
+                              name="nombreUsuario"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nombre de Usuario</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Ej: juan.perez"
+                                      data-testid="input-nombre-usuario"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={createUsuarioForm.control}
+                              name="password"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Contraseña</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="password"
+                                      placeholder="Mínimo 6 caracteres"
+                                      data-testid="input-password"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={createUsuarioForm.control}
+                              name="tipoAcceso"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Tipo de Acceso</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-tipo-acceso">
+                                        <SelectValue placeholder="Seleccionar tipo" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {TIPOS_ACCESO.map((tipo) => (
+                                        <SelectItem key={tipo} value={tipo}>
+                                          {tipo}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <DialogFooter>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsUsuarioDialogOpen(false)}
+                                data-testid="button-cancel-usuario"
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                type="submit"
+                                disabled={createUsuarioMutation.isPending}
+                                data-testid="button-submit-usuario"
+                              >
+                                {createUsuarioMutation.isPending ? "Guardando..." : "Guardar"}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  {/* Table */}
+                  {isLoadingUsuarios ? (
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-muted-foreground">Cargando usuarios...</p>
+                    </div>
+                  ) : filteredUsuarios.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">
+                        {searchUsuarioTerm ? "No se encontraron resultados" : "No hay usuarios registrados"}
+                      </p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nombre de Usuario</TableHead>
+                          <TableHead>Tipo de Acceso</TableHead>
+                          <TableHead className="w-[100px]">Acciones</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredUsuarios.map((usuario) => (
+                          <TableRow key={usuario.id} data-testid={`row-usuario-${usuario.id}`}>
+                            <TableCell className="font-medium">{usuario.nombreUsuario}</TableCell>
+                            <TableCell>{usuario.tipoAcceso}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleOpenEditUsuarioDialog(usuario)}
+                                  data-testid={`button-edit-usuario-${usuario.id}`}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteUsuario(usuario.id)}
+                                  data-testid={`button-delete-usuario-${usuario.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+              </CardContent>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </Card>
+
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
@@ -683,6 +1006,102 @@ export default function Configuracion() {
                   data-testid="button-submit-edit-zona"
                 >
                   {updateZonaMutation.isPending ? "Guardando..." : "Guardar"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Usuario Dialog */}
+      <Dialog open={isEditUsuarioDialogOpen} onOpenChange={setIsEditUsuarioDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuario</DialogTitle>
+            <DialogDescription>
+              Modifica los datos del usuario
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editUsuarioForm}>
+            <form onSubmit={editUsuarioForm.handleSubmit(handleEditUsuario)} className="space-y-4">
+              <FormField
+                control={editUsuarioForm.control}
+                name="nombreUsuario"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre de Usuario</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: juan.perez"
+                        data-testid="input-edit-nombre-usuario"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editUsuarioForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contraseña (dejar en blanco para no cambiar)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Nueva contraseña"
+                        data-testid="input-edit-password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editUsuarioForm.control}
+                name="tipoAcceso"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Acceso</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-edit-tipo-acceso">
+                          <SelectValue placeholder="Seleccionar tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TIPOS_ACCESO.map((tipo) => (
+                          <SelectItem key={tipo} value={tipo}>
+                            {tipo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditUsuarioDialogOpen(false);
+                    setEditingUsuario(null);
+                    editUsuarioForm.reset();
+                  }}
+                  data-testid="button-cancel-edit-usuario"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateUsuarioMutation.isPending}
+                  data-testid="button-submit-edit-usuario"
+                >
+                  {updateUsuarioMutation.isPending ? "Guardando..." : "Guardar"}
                 </Button>
               </DialogFooter>
             </form>
