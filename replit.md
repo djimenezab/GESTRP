@@ -80,6 +80,17 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Equipos - Zona Field Implementation**:
+  - Added "Zona" field to equipment management
+  - Zona selector positioned after "Fecha de Adquisición" in create/edit forms
+  - Optional field with placeholder "Ninguna (opcional)"
+  - Loads zones from zonas_trabajo catalog
+  - Database: zonaId column (varchar, nullable) references zonas_trabajo.id
+  - Table displays zone name in "Zona" column or "-" when unassigned
+  - Enables future role-based filtering by Administrador/Usuario access level
+  - End-to-end testing completed with zone selection
+  - Bug fix: Removed empty string value from SelectItem (Radix UI requirement)
+
 - **Configuración - Usuarios Management**:
   - New "Usuarios" subsection in Configuration with full user management
   - Three user access types: AdminGral, Administrador, Usuario
