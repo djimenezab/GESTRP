@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, MoreVertical, Pencil, Trash2, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { EpiForm } from "@/components/epi-form";
 import { EpiDetailDialog } from "@/components/epi-detail-dialog";
+import { EpiDocumentosDialog } from "@/components/epi-documentos-dialog";
 import { type InsertEpi, type Epi, type Trabajador } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -40,6 +41,8 @@ export default function Epis() {
   const [selectedEpi, setSelectedEpi] = useState<Epi | null>(null);
   const [editingEpi, setEditingEpi] = useState<Epi | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isDocumentosDialogOpen, setIsDocumentosDialogOpen] = useState(false);
+  const [selectedEpiForDocs, setSelectedEpiForDocs] = useState<Epi | null>(null);
   const { toast } = useToast();
 
   const { data: epis = [], isLoading: episLoading } = useQuery<Epi[]>({
@@ -139,6 +142,12 @@ export default function Epis() {
   const handleEpiClick = (epi: Epi) => {
     setSelectedEpi(epi);
     setIsDetailDialogOpen(true);
+  };
+
+  const handleOpenDocumentosDialog = (epi: Epi, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedEpiForDocs(epi);
+    setIsDocumentosDialogOpen(true);
   };
 
   // Combinar EPIs con datos de trabajadores
@@ -251,6 +260,13 @@ export default function Epis() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem 
+                        onClick={(e) => handleOpenDocumentosDialog(epi, e)}
+                        data-testid={`button-documentos-${epi.id}`}
+                      >
+                        <FolderOpen className="h-4 w-4 mr-2" />
+                        Ver Documentación
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
                         onClick={(e) => handleOpenEditDialog(epi, e)}
                         data-testid={`button-edit-${epi.id}`}
                       >
@@ -318,6 +334,15 @@ export default function Epis() {
             trabajador: episWithWorkers.find(e => e.id === selectedEpi.id)?.trabajador || "Desconocido",
             trabajadorDni: episWithWorkers.find(e => e.id === selectedEpi.id)?.trabajadorDni || ""
           }}
+        />
+      )}
+
+      {selectedEpiForDocs && (
+        <EpiDocumentosDialog
+          open={isDocumentosDialogOpen}
+          onOpenChange={setIsDocumentosDialogOpen}
+          epiId={selectedEpiForDocs.id}
+          numeroCorrelativo={selectedEpiForDocs.numeroCorrelativo}
         />
       )}
     </div>
