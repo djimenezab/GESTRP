@@ -87,6 +87,13 @@ export const episFichasEv = pgTable("epis_fichas_ev", {
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
 });
 
+// Catálogo de Zonas de Trabajo - para asignación a trabajadores y equipos
+export const zonasTrabajo = pgTable("zonas_trabajo", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  zona: text("zona").notNull().unique(),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
 // Equipos
 export const equipos = pgTable("equipos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -164,6 +171,10 @@ export const insertEpiFichaEvSchema = createInsertSchema(episFichasEv).omit({ id
   nombreEpi: z.string().min(1, "Nombre del EPI es requerido"),
 });
 
+export const insertZonaTrabajoSchema = createInsertSchema(zonasTrabajo).omit({ id: true, fechaCreacion: true }).extend({
+  zona: z.string().min(1, "Nombre de la zona es requerido"),
+});
+
 export const insertEquipoSchema = createInsertSchema(equipos).omit({ id: true, fechaCreacion: true }).extend({
   nombre: z.string().min(1, "Nombre del equipo es requerido"),
   marca: z.string().min(1, "Marca es requerida"),
@@ -195,6 +206,9 @@ export type Accidente = typeof accidentes.$inferSelect;
 
 export type InsertEpiFichaEv = z.infer<typeof insertEpiFichaEvSchema>;
 export type EpiFichaEv = typeof episFichasEv.$inferSelect;
+
+export type InsertZonaTrabajo = z.infer<typeof insertZonaTrabajoSchema>;
+export type ZonaTrabajo = typeof zonasTrabajo.$inferSelect;
 
 export type InsertEquipo = z.infer<typeof insertEquipoSchema>;
 export type Equipo = typeof equipos.$inferSelect;
