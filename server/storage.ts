@@ -96,7 +96,34 @@ export class DbStorage implements IStorage {
   }
 
   async createEpi(data: InsertEpi): Promise<Epi> {
-    const result = await db.insert(epis).values(data).returning();
+    // Generar número correlativo automático si no se proporciona
+    let numeroCorrelativo = data.numeroCorrelativo;
+    
+    if (!numeroCorrelativo) {
+      const currentYear = new Date().getFullYear();
+      const prefix = `EPI${currentYear}_`;
+      
+      // Buscar el último número correlativo del año actual
+      const lastEpi = await db
+        .select()
+        .from(epis)
+        .where(ilike(epis.numeroCorrelativo, `${prefix}%`))
+        .orderBy(desc(epis.numeroCorrelativo))
+        .limit(1);
+      
+      let nextNumber = 1;
+      if (lastEpi.length > 0 && lastEpi[0].numeroCorrelativo) {
+        const lastNumber = parseInt(lastEpi[0].numeroCorrelativo.split('_')[1]);
+        nextNumber = lastNumber + 1;
+      }
+      
+      numeroCorrelativo = `${prefix}${String(nextNumber).padStart(3, '0')}`;
+    }
+    
+    const result = await db.insert(epis).values({
+      ...data,
+      numeroCorrelativo
+    }).returning();
     return result[0];
   }
 
