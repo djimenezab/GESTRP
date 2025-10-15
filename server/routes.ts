@@ -8,6 +8,7 @@ import {
   insertAccidenteSchema,
   insertEpiDocumentoSchema,
   insertEpiFichaEvSchema,
+  insertZonaTrabajoSchema,
   insertEquipoSchema,
   trabajadores,
   CATEGORIAS
@@ -446,6 +447,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting EPI ficha EV:", error);
       res.status(500).json({ error: "Error al eliminar ficha de EPI" });
+    }
+  });
+
+  // Zonas de Trabajo (Catálogo) routes
+  app.get("/api/zonas-trabajo", async (req, res) => {
+    try {
+      const zonas = await storage.getZonasTrabajo();
+      res.json(zonas);
+    } catch (error) {
+      console.error("Error getting zonas de trabajo:", error);
+      res.status(500).json({ error: "Error al obtener zonas de trabajo" });
+    }
+  });
+
+  app.get("/api/zonas-trabajo/:id", async (req, res) => {
+    try {
+      const zona = await storage.getZonaTrabajo(req.params.id);
+      if (!zona) {
+        return res.status(404).json({ error: "Zona de trabajo no encontrada" });
+      }
+      res.json(zona);
+    } catch (error) {
+      console.error("Error getting zona de trabajo:", error);
+      res.status(500).json({ error: "Error al obtener zona de trabajo" });
+    }
+  });
+
+  app.post("/api/zonas-trabajo", async (req, res) => {
+    try {
+      const data = insertZonaTrabajoSchema.parse(req.body);
+      const zona = await storage.createZonaTrabajo(data);
+      res.status(201).json(zona);
+    } catch (error) {
+      console.error("Error creating zona de trabajo:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/zonas-trabajo/:id", async (req, res) => {
+    try {
+      const data = insertZonaTrabajoSchema.partial().parse(req.body);
+      const zona = await storage.updateZonaTrabajo(req.params.id, data);
+      if (!zona) {
+        return res.status(404).json({ error: "Zona de trabajo no encontrada" });
+      }
+      res.json(zona);
+    } catch (error) {
+      console.error("Error updating zona de trabajo:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/zonas-trabajo/:id", async (req, res) => {
+    try {
+      await storage.deleteZonaTrabajo(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting zona de trabajo:", error);
+      res.status(500).json({ error: "Error al eliminar zona de trabajo" });
     }
   });
 
