@@ -26,6 +26,10 @@ Preferred communication style: Simple, everyday language (Spanish).
   - API: Complete REST endpoints at `/api/equipos` and `/api/equipos/:id/epis-obligatorios`
   - File Storage: Integration with Replit Object Storage for documents and images
   - UI: Full-featured page with create/edit dialogs, file upload integration, and multi-select checkboxes
+  - Technical fixes:
+    - Corrected form validation schema to use `z.array(z.string()).optional()` for episObligatorios
+    - Added useEffect to synchronize existing EPIs into edit form, preventing data loss during edits
+    - End-to-end testing confirms EPIs are preserved when editing without modifying selections
 
 - **New Configuration Section - EPIS Fichas EV**:
   - Created new "Configuración" section accessible from sidebar (Sistema > Configuración)
