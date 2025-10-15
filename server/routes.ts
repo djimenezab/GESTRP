@@ -59,6 +59,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dni: z.string().min(1, "DNI es requerido").optional(),
         nombreCompleto: z.string().min(1, "Nombre completo es requerido").optional(),
         fechaNacimiento: z.string().min(1, "Fecha de nacimiento es requerida").optional(),
+        email: z.preprocess(val => val === "" ? undefined : val, z.string().email("Email inválido").optional()).optional(),
+        zonaId: z.preprocess(val => val === "" ? undefined : val, z.string().optional()).optional(),
         recibeEvaluacionRiesgos: z.boolean().optional(),
         fechaEntregaEvaluacion: z.preprocess(
           val => (val === "" || val === null) ? undefined : val, 

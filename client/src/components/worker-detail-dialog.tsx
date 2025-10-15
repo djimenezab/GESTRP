@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Printer, AlertTriangle } from "lucide-react";
+import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Printer, AlertTriangle, Mail, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EvaluacionRiesgosDocument } from "./evaluacion-riesgos-document";
-import type { Epi, Curso, Accidente } from "@shared/schema";
+import type { Epi, Curso, Accidente, ZonaTrabajo } from "@shared/schema";
 
 interface WorkerDetailDialogProps {
   open: boolean;
@@ -32,6 +32,8 @@ interface WorkerDetailDialogProps {
     categoria: string;
     dni: string;
     fechaNacimiento: string;
+    email?: string | null;
+    zonaId?: string | null;
     recibeEvaluacionRiesgos: boolean;
     fechaEntregaEvaluacion: string | null;
   };
@@ -43,6 +45,11 @@ export function WorkerDetailDialog({
   worker,
 }: WorkerDetailDialogProps) {
   const [showDocument, setShowDocument] = useState(false);
+
+  const { data: zona } = useQuery<ZonaTrabajo>({
+    queryKey: ["/api/zonas-trabajo", worker.zonaId],
+    enabled: open && !!worker.zonaId,
+  });
 
   const { data: epis = [] } = useQuery<Epi[]>({
     queryKey: ["/api/trabajadores", worker.id, "epis"],
@@ -109,6 +116,18 @@ export function WorkerDetailDialog({
                         Nacimiento: {format(new Date(worker.fechaNacimiento), "dd/MM/yyyy", { locale: es })}
                       </span>
                     </div>
+                    {worker.email && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Mail className="h-4 w-4" />
+                        <span data-testid="text-email-dialog">{worker.email}</span>
+                      </div>
+                    )}
+                    {zona && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin className="h-4 w-4" />
+                        <span data-testid="text-zona-dialog">Zona: {zona.zona}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertTrabajadorSchema, CATEGORIAS, type InsertTrabajador } from "@shared/schema";
+import { insertTrabajadorSchema, CATEGORIAS, type InsertTrabajador, type ZonaTrabajo } from "@shared/schema";
 import {
   Form,
   FormControl,
@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
 
 interface WorkerFormProps {
   onSubmit: (data: InsertTrabajador) => void;
@@ -28,12 +29,18 @@ interface WorkerFormProps {
 }
 
 export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps) {
+  const { data: zonas = [] } = useQuery<ZonaTrabajo[]>({
+    queryKey: ['/api/zonas-trabajo'],
+  });
+
   const form = useForm<InsertTrabajador>({
     resolver: zodResolver(insertTrabajadorSchema),
     defaultValues: {
       nombreCompleto: initialData?.nombreCompleto || "",
       categoria: initialData?.categoria || undefined,
       dni: initialData?.dni || "",
+      email: initialData?.email || "",
+      zonaId: initialData?.zonaId || "",
       fechaNacimiento: initialData?.fechaNacimiento || "",
       recibeEvaluacionRiesgos: initialData?.recibeEvaluacionRiesgos || false,
       fechaEntregaEvaluacion: initialData?.fechaEntregaEvaluacion || "",
@@ -95,6 +102,31 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="zonaId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Zona de Trabajo (opcional)</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-zona">
+                    <SelectValue placeholder="Sin zona asignada" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {zonas.map((zona) => (
+                    <SelectItem key={zona.id} value={zona.id} data-testid={`option-zona-${zona.id}`}>
+                      {zona.zona}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -132,6 +164,28 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="correo@ejemplo.com"
+                  {...field}
+                  data-testid="input-email"
+                />
+              </FormControl>
+              <FormDescription>
+                El email será utilizado para acceso al sistema en el futuro
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="border-t pt-6 space-y-4">
           <h3 className="text-lg font-semibold">Evaluación de Riesgos Laborales</h3>
