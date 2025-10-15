@@ -11,6 +11,19 @@ Preferred communication style: Simple, everyday language (Spanish).
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Configuración - Collapsible EPIS Fichas EV Section**:
+  - Implemented Shadcn Accordion for EPIS Fichas EV subsection
+  - Section starts collapsed (minimized) by default for cleaner interface
+  - Click header to expand/collapse content (search, Nuevo EPI button, table)
+  - Smooth animation when expanding/collapsing
+  - Title and description always visible for easy navigation
+
+- **Object Storage Upload Fix**:
+  - Fixed file upload endpoint URL: changed from `/api/objects/upload-url` to `/api/objects/upload`
+  - Fixed response property mapping: changed from `data.url` to `data.uploadURL`
+  - File uploads now work correctly in Equipos section (imagen, ficha, manual)
+  - No more "Upload failed" errors when selecting files
+
 - **Equipos Table - UX Improvement**:
   - Click anywhere on equipo row to open edit dialog (no need to click pencil icon)
   - Removed pencil/edit icon from table for cleaner interface

@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Table,
   TableBody,
   TableCell,
@@ -165,134 +171,141 @@ export default function Configuracion() {
 
       {/* EPIS Fichas EV Section */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <CardTitle>EPIS Fichas EV</CardTitle>
-              <CardDescription className="mt-1.5">
-                Catálogo de nombres de EPIs para usar en otros módulos
-              </CardDescription>
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button data-testid="button-add-epi-ficha">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nuevo EPI
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Crear Ficha de EPI</DialogTitle>
-                  <DialogDescription>
-                    Agrega un nuevo nombre de EPI al catálogo
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...createForm}>
-                  <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
-                    <FormField
-                      control={createForm.control}
-                      name="nombreEpi"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nombre del EPI</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Ej: Casco de seguridad"
-                              data-testid="input-nombre-epi"
-                              {...field}
+        <Accordion type="single" collapsible className="border-0">
+          <AccordionItem value="epis-fichas" className="border-0">
+            <CardHeader className="pb-0">
+              <AccordionTrigger className="hover:no-underline py-4" data-testid="accordion-trigger-epis">
+                <div className="text-left">
+                  <CardTitle>EPIS Fichas EV</CardTitle>
+                  <CardDescription className="mt-1.5">
+                    Catálogo de nombres de EPIs para usar en otros módulos
+                  </CardDescription>
+                </div>
+              </AccordionTrigger>
+            </CardHeader>
+            <AccordionContent>
+              <CardContent className="pt-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="relative max-w-sm flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar EPI..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                        data-testid="input-search-epi-ficha"
+                      />
+                    </div>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button data-testid="button-add-epi-ficha">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Nuevo EPI
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Crear Ficha de EPI</DialogTitle>
+                          <DialogDescription>
+                            Agrega un nuevo nombre de EPI al catálogo
+                          </DialogDescription>
+                        </DialogHeader>
+                        <Form {...createForm}>
+                          <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
+                            <FormField
+                              control={createForm.control}
+                              name="nombreEpi"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nombre del EPI</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Ej: Casco de seguridad"
+                                      data-testid="input-nombre-epi"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsDialogOpen(false)}
-                        data-testid="button-cancel-epi-ficha"
-                      >
-                        Cancelar
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={createMutation.isPending}
-                        data-testid="button-submit-epi-ficha"
-                      >
-                        {createMutation.isPending ? "Guardando..." : "Guardar"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Search */}
-            <div className="relative max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar EPI..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                data-testid="input-search-epi-ficha"
-              />
-            </div>
+                            <DialogFooter>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsDialogOpen(false)}
+                                data-testid="button-cancel-epi-ficha"
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                type="submit"
+                                disabled={createMutation.isPending}
+                                data-testid="button-submit-epi-ficha"
+                              >
+                                {createMutation.isPending ? "Guardando..." : "Guardar"}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
 
-            {/* Table */}
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-muted-foreground">Cargando fichas...</p>
-              </div>
-            ) : filteredFichas.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
-                  {searchTerm ? "No se encontraron resultados" : "No hay fichas de EPIs registradas"}
-                </p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nombre del EPI</TableHead>
-                    <TableHead className="w-[100px]">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFichas.map((ficha) => (
-                    <TableRow key={ficha.id} data-testid={`row-epi-ficha-${ficha.id}`}>
-                      <TableCell className="font-medium">{ficha.nombreEpi}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenEditDialog(ficha)}
-                            data-testid={`button-edit-epi-ficha-${ficha.id}`}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(ficha.id)}
-                            data-testid={`button-delete-epi-ficha-${ficha.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-        </CardContent>
+                  {/* Table */}
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-muted-foreground">Cargando fichas...</p>
+                    </div>
+                  ) : filteredFichas.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">
+                        {searchTerm ? "No se encontraron resultados" : "No hay fichas de EPIs registradas"}
+                      </p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nombre del EPI</TableHead>
+                          <TableHead className="w-[100px]">Acciones</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredFichas.map((ficha) => (
+                          <TableRow key={ficha.id} data-testid={`row-epi-ficha-${ficha.id}`}>
+                            <TableCell className="font-medium">{ficha.nombreEpi}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleOpenEditDialog(ficha)}
+                                  data-testid={`button-edit-epi-ficha-${ficha.id}`}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDelete(ficha.id)}
+                                  data-testid={`button-delete-epi-ficha-${ficha.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+              </CardContent>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </Card>
 
       {/* Edit Dialog */}
