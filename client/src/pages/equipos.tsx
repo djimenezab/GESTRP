@@ -115,7 +115,9 @@ export default function Equipos() {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertEquipo & { episObligatorios: string[] }) => {
+      console.log('[Create] Form data before mutation:', data);
       const { episObligatorios, ...equipoData } = data;
+      console.log('[Create] Equipo data to send:', equipoData);
       const response = await fetch("/api/equipos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,6 +126,7 @@ export default function Equipos() {
       
       if (!response.ok) throw new Error("Error al crear equipo");
       const equipo = await response.json();
+      console.log('[Create] Created equipo response:', equipo);
       
       if (episObligatorios.length > 0) {
         await apiRequest("POST", `/api/equipos/${equipo.id}/epis-obligatorios`, { epiIds: episObligatorios });
@@ -260,7 +263,9 @@ export default function Equipos() {
           if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
             const objectId = urlParts[uploadsIndex + 1];
             const objectPath = `/objects/uploads/${objectId}`;
-            form.setValue(fieldName, objectPath);
+            console.log(`[Upload] Setting ${fieldName} to ${objectPath}`);
+            form.setValue(fieldName, objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+            console.log(`[Upload] Field value after setValue:`, form.getValues(fieldName));
             toast({
               title: "Archivo subido",
               description: "El archivo ha sido subido correctamente",
@@ -347,7 +352,19 @@ export default function Equipos() {
                     <TableCell>
                       <div className="flex gap-1">
                         {equipo.imagenUrl && <Badge variant="outline"><ImageIcon className="h-3 w-3" /></Badge>}
-                        {equipo.fichaEvaluacionUrl && <Badge variant="outline"><FileText className="h-3 w-3" /></Badge>}
+                        {equipo.fichaEvaluacionUrl && (
+                          <Badge 
+                            variant="outline" 
+                            className="cursor-pointer hover-elevate"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(equipo.fichaEvaluacionUrl!, '_blank');
+                            }}
+                            data-testid={`button-view-ficha-${equipo.id}`}
+                          >
+                            <FileText className="h-3 w-3" />
+                          </Badge>
+                        )}
                         {equipo.manualUrl && <Badge variant="outline"><File className="h-3 w-3" /></Badge>}
                       </div>
                     </TableCell>
@@ -519,6 +536,7 @@ export default function Equipos() {
                     <FormLabel>Ficha de Evaluación</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
+                        <input type="hidden" {...field} value={field.value || ""} />
                         <div className="flex gap-2">
                           <ObjectUploader
                             maxNumberOfFiles={1}
