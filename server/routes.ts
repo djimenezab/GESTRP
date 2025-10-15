@@ -7,6 +7,7 @@ import {
   insertCursoSchema,
   insertAccidenteSchema,
   insertEpiDocumentoSchema,
+  insertEpiFichaEvSchema,
   trabajadores,
   CATEGORIAS
 } from "@shared/schema";
@@ -385,6 +386,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting EPI document:", error);
       res.status(500).json({ error: "Error al eliminar documento" });
+    }
+  });
+
+  // EPIs Fichas EV (Catálogo) routes
+  app.get("/api/epis-fichas-ev", async (req, res) => {
+    try {
+      const fichas = await storage.getEpisFichasEv();
+      res.json(fichas);
+    } catch (error) {
+      console.error("Error getting EPIs fichas EV:", error);
+      res.status(500).json({ error: "Error al obtener fichas de EPIs" });
+    }
+  });
+
+  app.get("/api/epis-fichas-ev/:id", async (req, res) => {
+    try {
+      const ficha = await storage.getEpiFichaEv(req.params.id);
+      if (!ficha) {
+        return res.status(404).json({ error: "Ficha de EPI no encontrada" });
+      }
+      res.json(ficha);
+    } catch (error) {
+      console.error("Error getting EPI ficha EV:", error);
+      res.status(500).json({ error: "Error al obtener ficha de EPI" });
+    }
+  });
+
+  app.post("/api/epis-fichas-ev", async (req, res) => {
+    try {
+      const data = insertEpiFichaEvSchema.parse(req.body);
+      const ficha = await storage.createEpiFichaEv(data);
+      res.status(201).json(ficha);
+    } catch (error) {
+      console.error("Error creating EPI ficha EV:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/epis-fichas-ev/:id", async (req, res) => {
+    try {
+      const data = insertEpiFichaEvSchema.partial().parse(req.body);
+      const ficha = await storage.updateEpiFichaEv(req.params.id, data);
+      if (!ficha) {
+        return res.status(404).json({ error: "Ficha de EPI no encontrada" });
+      }
+      res.json(ficha);
+    } catch (error) {
+      console.error("Error updating EPI ficha EV:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/epis-fichas-ev/:id", async (req, res) => {
+    try {
+      await storage.deleteEpiFichaEv(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting EPI ficha EV:", error);
+      res.status(500).json({ error: "Error al eliminar ficha de EPI" });
     }
   });
 
