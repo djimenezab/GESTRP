@@ -20,10 +20,22 @@ export const GRAVEDAD_ACCIDENTE = ["LEVE", "MODERADO", "GRAVE"] as const;
 // Tipos de accidentes
 export const TIPO_ACCIDENTE = ["ACCIDENTE_SERVICIO", "ENFERMEDAD_PROFESIONAL"] as const;
 
+// Tipos de acceso de usuarios
+export const TIPOS_ACCESO = ["AdminGral", "Administrador", "Usuario"] as const;
+
 // Catálogo de Zonas de Trabajo - para asignación a trabajadores y equipos
 export const zonasTrabajo = pgTable("zonas_trabajo", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   zona: text("zona").notNull().unique(),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
+// Usuarios del sistema
+export const usuarios = pgTable("usuarios", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nombreUsuario: text("nombre_usuario").notNull().unique(),
+  password: text("password").notNull(),
+  tipoAcceso: text("tipo_acceso").notNull(),
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
 });
 
@@ -179,6 +191,12 @@ export const insertZonaTrabajoSchema = createInsertSchema(zonasTrabajo).omit({ i
   zona: z.string().min(1, "Nombre de la zona es requerido"),
 });
 
+export const insertUsuarioSchema = createInsertSchema(usuarios).omit({ id: true, fechaCreacion: true }).extend({
+  nombreUsuario: z.string().min(3, "Nombre de usuario debe tener al menos 3 caracteres"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  tipoAcceso: z.enum(TIPOS_ACCESO),
+});
+
 export const insertEquipoSchema = createInsertSchema(equipos).omit({ id: true, fechaCreacion: true }).extend({
   nombre: z.string().min(1, "Nombre del equipo es requerido"),
   marca: z.string().min(1, "Marca es requerida"),
@@ -213,6 +231,9 @@ export type EpiFichaEv = typeof episFichasEv.$inferSelect;
 
 export type InsertZonaTrabajo = z.infer<typeof insertZonaTrabajoSchema>;
 export type ZonaTrabajo = typeof zonasTrabajo.$inferSelect;
+
+export type InsertUsuario = z.infer<typeof insertUsuarioSchema>;
+export type Usuario = typeof usuarios.$inferSelect;
 
 export type InsertEquipo = z.infer<typeof insertEquipoSchema>;
 export type Equipo = typeof equipos.$inferSelect;
