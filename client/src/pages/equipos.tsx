@@ -41,9 +41,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertEquipoSchema, type InsertEquipo, type Equipo, type EpiFichaEv } from "@shared/schema";
+import { insertEquipoSchema, type InsertEquipo, type Equipo, type EpiFichaEv, type ZonaTrabajo } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ObjectUploader } from "@/components/ObjectUploader";
@@ -65,6 +72,10 @@ export default function Equipos() {
 
   const { data: fichasEpis = [] } = useQuery<EpiFichaEv[]>({
     queryKey: ["/api/epis-fichas-ev"],
+  });
+
+  const { data: zonasTrabajo = [] } = useQuery<ZonaTrabajo[]>({
+    queryKey: ["/api/zonas-trabajo"],
   });
 
   const { data: episObligatoriosSeleccionados = [] } = useQuery<EpiFichaEv[]>({
@@ -89,6 +100,7 @@ export default function Equipos() {
       modelo: "",
       numeroSerie: "",
       fechaAdquisicion: "",
+      zonaId: "",
       fichaEvaluacionUrl: "",
       manualUrl: "",
       imagenUrl: "",
@@ -106,6 +118,7 @@ export default function Equipos() {
       modelo: "",
       numeroSerie: "",
       fechaAdquisicion: "",
+      zonaId: "",
       fichaEvaluacionUrl: "",
       manualUrl: "",
       imagenUrl: "",
@@ -209,6 +222,7 @@ export default function Equipos() {
       modelo: equipo.modelo,
       numeroSerie: equipo.numeroSerie,
       fechaAdquisicion: equipo.fechaAdquisicion,
+      zonaId: equipo.zonaId || "",
       fichaEvaluacionUrl: equipo.fichaEvaluacionUrl || "",
       manualUrl: equipo.manualUrl || "",
       imagenUrl: equipo.imagenUrl || "",
@@ -321,87 +335,94 @@ export default function Equipos() {
                   <TableHead>Modelo</TableHead>
                   <TableHead>Nº Serie</TableHead>
                   <TableHead>Fecha Adquisición</TableHead>
+                  <TableHead>Zona</TableHead>
                   <TableHead>Documentos</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEquipos.map((equipo) => (
-                  <TableRow 
-                    key={equipo.id} 
-                    data-testid={`row-equipo-${equipo.id}`}
-                    onClick={() => handleEdit(equipo)}
-                    className="cursor-pointer hover-elevate"
-                  >
-                    <TableCell className="font-medium" data-testid={`text-nombre-${equipo.id}`}>
-                      {equipo.nombre}
-                    </TableCell>
-                    <TableCell data-testid={`text-marca-${equipo.id}`}>
-                      {equipo.marca}
-                    </TableCell>
-                    <TableCell data-testid={`text-modelo-${equipo.id}`}>{equipo.modelo}</TableCell>
-                    <TableCell data-testid={`text-numero-serie-${equipo.id}`}>{equipo.numeroSerie}</TableCell>
-                    <TableCell data-testid={`text-fecha-${equipo.id}`}>
-                      {format(new Date(equipo.fechaAdquisicion), "dd/MM/yyyy", { locale: es })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {equipo.imagenUrl && (
-                          <Badge 
-                            variant="outline" 
-                            className="cursor-pointer hover-elevate"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(equipo.imagenUrl!, '_blank');
-                            }}
-                            data-testid={`button-view-imagen-${equipo.id}`}
-                          >
-                            <ImageIcon className="h-3 w-3" />
-                          </Badge>
-                        )}
-                        {equipo.fichaEvaluacionUrl && (
-                          <Badge 
-                            variant="outline" 
-                            className="cursor-pointer hover-elevate"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(equipo.fichaEvaluacionUrl!, '_blank');
-                            }}
-                            data-testid={`button-view-ficha-${equipo.id}`}
-                          >
-                            <FileText className="h-3 w-3" />
-                          </Badge>
-                        )}
-                        {equipo.manualUrl && (
-                          <Badge 
-                            variant="outline" 
-                            className="cursor-pointer hover-elevate"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(equipo.manualUrl!, '_blank');
-                            }}
-                            data-testid={`button-view-manual-${equipo.id}`}
-                          >
-                            <File className="h-3 w-3" />
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(equipo);
-                        }}
-                        data-testid={`button-delete-equipo-${equipo.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredEquipos.map((equipo) => {
+                  const zona = zonasTrabajo.find(z => z.id === equipo.zonaId);
+                  return (
+                    <TableRow 
+                      key={equipo.id} 
+                      data-testid={`row-equipo-${equipo.id}`}
+                      onClick={() => handleEdit(equipo)}
+                      className="cursor-pointer hover-elevate"
+                    >
+                      <TableCell className="font-medium" data-testid={`text-nombre-${equipo.id}`}>
+                        {equipo.nombre}
+                      </TableCell>
+                      <TableCell data-testid={`text-marca-${equipo.id}`}>
+                        {equipo.marca}
+                      </TableCell>
+                      <TableCell data-testid={`text-modelo-${equipo.id}`}>{equipo.modelo}</TableCell>
+                      <TableCell data-testid={`text-numero-serie-${equipo.id}`}>{equipo.numeroSerie}</TableCell>
+                      <TableCell data-testid={`text-fecha-${equipo.id}`}>
+                        {format(new Date(equipo.fechaAdquisicion), "dd/MM/yyyy", { locale: es })}
+                      </TableCell>
+                      <TableCell data-testid={`text-zona-${equipo.id}`}>
+                        {zona?.zona || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {equipo.imagenUrl && (
+                            <Badge 
+                              variant="outline" 
+                              className="cursor-pointer hover-elevate"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(equipo.imagenUrl!, '_blank');
+                              }}
+                              data-testid={`button-view-imagen-${equipo.id}`}
+                            >
+                              <ImageIcon className="h-3 w-3" />
+                            </Badge>
+                          )}
+                          {equipo.fichaEvaluacionUrl && (
+                            <Badge 
+                              variant="outline" 
+                              className="cursor-pointer hover-elevate"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(equipo.fichaEvaluacionUrl!, '_blank');
+                              }}
+                              data-testid={`button-view-ficha-${equipo.id}`}
+                            >
+                              <FileText className="h-3 w-3" />
+                            </Badge>
+                          )}
+                          {equipo.manualUrl && (
+                            <Badge 
+                              variant="outline" 
+                              className="cursor-pointer hover-elevate"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(equipo.manualUrl!, '_blank');
+                              }}
+                              data-testid={`button-view-manual-${equipo.id}`}
+                            >
+                              <File className="h-3 w-3" />
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(equipo);
+                          }}
+                          data-testid={`button-delete-equipo-${equipo.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
@@ -484,6 +505,35 @@ export default function Equipos() {
                     <FormControl>
                       <Input type="date" {...field} data-testid="input-fecha-adquisicion" />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="zonaId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zona</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-zona">
+                          <SelectValue placeholder="Ninguna (opcional)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {zonasTrabajo.map((zona) => (
+                          <SelectItem 
+                            key={zona.id} 
+                            value={zona.id}
+                            data-testid={`select-option-${zona.id}`}
+                          >
+                            {zona.zona}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -800,6 +850,35 @@ export default function Equipos() {
                     <FormControl>
                       <Input type="date" {...field} data-testid="input-edit-fecha-adquisicion" />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="zonaId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zona</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-edit-zona">
+                          <SelectValue placeholder="Ninguna (opcional)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {zonasTrabajo.map((zona) => (
+                          <SelectItem 
+                            key={zona.id} 
+                            value={zona.id}
+                            data-testid={`select-edit-option-${zona.id}`}
+                          >
+                            {zona.zona}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
