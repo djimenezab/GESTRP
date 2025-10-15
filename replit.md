@@ -26,6 +26,8 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - **cursos**: Records worker training and certifications.
 - **accidentes**: Documents workplace incidents, including severity, type, date, time, and location.
 - **epis_fichas_ev**: Manages a catalog of EPI names for evaluation sheets.
+- **zonas_trabajo**: Manages work zones that can be assigned to workers and equipment.
+- **usuarios**: System users with hashed passwords and three access levels (AdminGral, Administrador, Usuario).
 - **equipos**: Manages equipment and machinery with associated files and mandatory EPIs.
 - **epiDocumentos**: Tracks uploaded documentation for EPIs.
 Type safety is enforced through Zod schemas generated from Drizzle schemas.
@@ -78,6 +80,23 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Configuración - Usuarios Management**:
+  - New "Usuarios" subsection in Configuration with full user management
+  - Three user access types: AdminGral, Administrador, Usuario
+  - CRUD operations: Create, Read, Update, Delete users
+  - Fields: nombre usuario, password (hashed with bcrypt), tipo acceso
+  - **Security Implementation**:
+    - Passwords hashed with bcrypt (10 salt rounds) before storage
+    - Passwords never returned in API responses
+    - Optional password updates (empty = no change)
+    - UsuarioSinPassword type for frontend responses
+  - Search/filter functionality by username and access type
+  - Accordion UI pattern matching other Configuration sections
+  - Database table `usuarios` with UUID primary keys
+  - Full API routes with validation and security
+  - Toast notifications in Spanish for all operations
+  - Comprehensive end-to-end testing completed
+
 - **Configuración - Zonas de Trabajo Catalog**:
   - New "Zonas de Trabajo" subsection in Configuration
   - Manages work zones that can be assigned to workers and equipment
