@@ -4,6 +4,7 @@ import {
   epis, 
   cursos, 
   accidentes,
+  epiDocumentos,
   type Trabajador,
   type InsertTrabajador,
   type Epi,
@@ -11,7 +12,9 @@ import {
   type Curso,
   type InsertCurso,
   type Accidente,
-  type InsertAccidente
+  type InsertAccidente,
+  type EpiDocumento,
+  type InsertEpiDocumento
 } from "@shared/schema";
 import { eq, desc, or, ilike } from "drizzle-orm";
 
@@ -46,6 +49,11 @@ export interface IStorage {
   createAccidente(data: InsertAccidente): Promise<Accidente>;
   updateAccidente(id: string, data: Partial<InsertAccidente>): Promise<Accidente | undefined>;
   deleteAccidente(id: string): Promise<void>;
+
+  // EPI Documentos
+  getEpiDocumentos(epiId: string): Promise<EpiDocumento[]>;
+  createEpiDocumento(data: InsertEpiDocumento): Promise<EpiDocumento>;
+  deleteEpiDocumento(id: string): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -155,6 +163,20 @@ export class DbStorage implements IStorage {
 
   async deleteAccidente(id: string): Promise<void> {
     await db.delete(accidentes).where(eq(accidentes.id, id));
+  }
+
+  // EPI Documentos
+  async getEpiDocumentos(epiId: string): Promise<EpiDocumento[]> {
+    return await db.select().from(epiDocumentos).where(eq(epiDocumentos.epiId, epiId)).orderBy(desc(epiDocumentos.fechaSubida));
+  }
+
+  async createEpiDocumento(data: InsertEpiDocumento): Promise<EpiDocumento> {
+    const result = await db.insert(epiDocumentos).values(data).returning();
+    return result[0];
+  }
+
+  async deleteEpiDocumento(id: string): Promise<void> {
+    await db.delete(epiDocumentos).where(eq(epiDocumentos.id, id));
   }
 }
 

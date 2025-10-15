@@ -6,11 +6,13 @@ import {
   insertEpiSchema,
   insertCursoSchema,
   insertAccidenteSchema,
+  insertEpiDocumentoSchema,
   trabajadores,
   CATEGORIAS
 } from "@shared/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Trabajadores routes
@@ -311,6 +313,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Error al eliminar accidente" });
+    }
+  });
+
+  // Object Storage routes (Reference: blueprint:javascript_object_storage)
+  // Sirve objetos/documentos almacenados (público para simplificar acceso)
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Obtiene URL de subida para un nuevo documento
+  app.post("/api/objects/upload", async (req, res) => {
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Error al obtener URL de subida" });
+    }
+  });
+
+  // EPI Documentos routes
+  // Crea un registro de documento después de subirlo al object storage
+  app.post("/api/epi-documentos", async (req, res) => {
+    try {
+      const data = insertEpiDocumentoSchema.parse(req.body);
+      const objectStorageService = new ObjectStorageService();
+      
+      // Normalizar la ruta del archivo si viene como URL completa
+      const rutaNormalizada = objectStorageService.normalizeObjectEntityPath(data.rutaArchivo);
+      
+      const documento = await storage.createEpiDocumento({
+        ...data,
+        rutaArchivo: rutaNormalizada
+      });
+      
+      res.status(201).json(documento);
+    } catch (error) {
+      console.error("Error creating EPI document:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  // Obtiene todos los documentos de un EPI
+  app.get("/api/epis/:epiId/documentos", async (req, res) => {
+    try {
+      const documentos = await storage.getEpiDocumentos(req.params.epiId);
+      res.json(documentos);
+    } catch (error) {
+      console.error("Error getting EPI documents:", error);
+      res.status(500).json({ error: "Error al obtener documentos" });
+    }
+  });
+
+  // Elimina un documento
+  app.delete("/api/epi-documentos/:id", async (req, res) => {
+    try {
+      await storage.deleteEpiDocumento(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting EPI document:", error);
+      res.status(500).json({ error: "Error al eliminar documento" });
     }
   });
 
