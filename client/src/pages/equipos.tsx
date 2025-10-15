@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Search, FileText, File, Image as ImageIcon, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Search, FileText, File, Image as ImageIcon, AlertCircle, Eye, Download } from "lucide-react";
 import { z } from "zod";
 import {
   Table,
@@ -252,12 +252,21 @@ export default function Equipos() {
     return (result: any) => {
       if (result.successful && result.successful.length > 0) {
         const file = result.successful[0];
-        const objectPath = `/objects/${file.name}`;
-        form.setValue(fieldName, objectPath);
-        toast({
-          title: "Archivo subido",
-          description: "El archivo ha sido subido correctamente",
-        });
+        // Extract the object ID from the upload URL (format: https://.../bucket/uploads/UUID)
+        const uploadUrl = file.uploadURL || file.response?.uploadURL;
+        if (uploadUrl) {
+          const urlParts = new URL(uploadUrl).pathname.split('/');
+          const uploadsIndex = urlParts.indexOf('uploads');
+          if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
+            const objectId = urlParts[uploadsIndex + 1];
+            const objectPath = `/objects/uploads/${objectId}`;
+            form.setValue(fieldName, objectPath);
+            toast({
+              title: "Archivo subido",
+              description: "El archivo ha sido subido correctamente",
+            });
+          }
+        }
       }
     };
   };
@@ -452,15 +461,48 @@ export default function Equipos() {
                     <FormLabel>Imagen del Equipo</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={10485760}
-                          onGetUploadParameters={handleFileUpload(createForm, "imagenUrl")}
-                          onComplete={handleUploadComplete(createForm, "imagenUrl")}
-                        >
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          Subir Imagen
-                        </ObjectUploader>
+                        <div className="flex gap-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            onGetUploadParameters={handleFileUpload(createForm, "imagenUrl")}
+                            onComplete={handleUploadComplete(createForm, "imagenUrl")}
+                          >
+                            <ImageIcon className="h-4 w-4 mr-2" />
+                            Subir Imagen
+                          </ObjectUploader>
+                          {field.value && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => field.value && window.open(field.value, '_blank')}
+                                data-testid="button-view-imagen-create"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => {
+                                  if (field.value) {
+                                    const link = document.createElement('a');
+                                    link.href = field.value;
+                                    link.download = 'imagen_equipo';
+                                    link.click();
+                                  }
+                                }}
+                                data-testid="button-download-imagen-create"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar
+                              </Button>
+                            </>
+                          )}
+                        </div>
                         {field.value && <p className="text-sm text-muted-foreground">Archivo subido</p>}
                       </div>
                     </FormControl>
@@ -477,15 +519,48 @@ export default function Equipos() {
                     <FormLabel>Ficha de Evaluación</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={10485760}
-                          onGetUploadParameters={handleFileUpload(createForm, "fichaEvaluacionUrl")}
-                          onComplete={handleUploadComplete(createForm, "fichaEvaluacionUrl")}
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Subir Ficha
-                        </ObjectUploader>
+                        <div className="flex gap-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            onGetUploadParameters={handleFileUpload(createForm, "fichaEvaluacionUrl")}
+                            onComplete={handleUploadComplete(createForm, "fichaEvaluacionUrl")}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Subir Ficha
+                          </ObjectUploader>
+                          {field.value && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => field.value && window.open(field.value, '_blank')}
+                                data-testid="button-view-ficha-create"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => {
+                                  if (field.value) {
+                                    const link = document.createElement('a');
+                                    link.href = field.value;
+                                    link.download = 'ficha_evaluacion';
+                                    link.click();
+                                  }
+                                }}
+                                data-testid="button-download-ficha-create"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar
+                              </Button>
+                            </>
+                          )}
+                        </div>
                         {field.value && <p className="text-sm text-muted-foreground">Archivo subido</p>}
                       </div>
                     </FormControl>
@@ -502,15 +577,48 @@ export default function Equipos() {
                     <FormLabel>Manual</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={10485760}
-                          onGetUploadParameters={handleFileUpload(createForm, "manualUrl")}
-                          onComplete={handleUploadComplete(createForm, "manualUrl")}
-                        >
-                          <File className="h-4 w-4 mr-2" />
-                          Subir Manual
-                        </ObjectUploader>
+                        <div className="flex gap-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            onGetUploadParameters={handleFileUpload(createForm, "manualUrl")}
+                            onComplete={handleUploadComplete(createForm, "manualUrl")}
+                          >
+                            <File className="h-4 w-4 mr-2" />
+                            Subir Manual
+                          </ObjectUploader>
+                          {field.value && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => field.value && window.open(field.value, '_blank')}
+                                data-testid="button-view-manual-create"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => {
+                                  if (field.value) {
+                                    const link = document.createElement('a');
+                                    link.href = field.value;
+                                    link.download = 'manual_equipo';
+                                    link.click();
+                                  }
+                                }}
+                                data-testid="button-download-manual-create"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar
+                              </Button>
+                            </>
+                          )}
+                        </div>
                         {field.value && <p className="text-sm text-muted-foreground">Archivo subido</p>}
                       </div>
                     </FormControl>
@@ -668,15 +776,48 @@ export default function Equipos() {
                     <FormLabel>Imagen del Equipo</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={10485760}
-                          onGetUploadParameters={handleFileUpload(editForm, "imagenUrl")}
-                          onComplete={handleUploadComplete(editForm, "imagenUrl")}
-                        >
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          {field.value ? "Cambiar Imagen" : "Subir Imagen"}
-                        </ObjectUploader>
+                        <div className="flex gap-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            onGetUploadParameters={handleFileUpload(editForm, "imagenUrl")}
+                            onComplete={handleUploadComplete(editForm, "imagenUrl")}
+                          >
+                            <ImageIcon className="h-4 w-4 mr-2" />
+                            {field.value ? "Cambiar Imagen" : "Subir Imagen"}
+                          </ObjectUploader>
+                          {field.value && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => field.value && window.open(field.value, '_blank')}
+                                data-testid="button-view-imagen"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => {
+                                  if (field.value) {
+                                    const link = document.createElement('a');
+                                    link.href = field.value;
+                                    link.download = 'imagen_equipo';
+                                    link.click();
+                                  }
+                                }}
+                                data-testid="button-download-imagen"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar
+                              </Button>
+                            </>
+                          )}
+                        </div>
                         {field.value && <p className="text-sm text-muted-foreground">Archivo disponible</p>}
                       </div>
                     </FormControl>
@@ -693,15 +834,48 @@ export default function Equipos() {
                     <FormLabel>Ficha de Evaluación</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={10485760}
-                          onGetUploadParameters={handleFileUpload(editForm, "fichaEvaluacionUrl")}
-                          onComplete={handleUploadComplete(editForm, "fichaEvaluacionUrl")}
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          {field.value ? "Cambiar Ficha" : "Subir Ficha"}
-                        </ObjectUploader>
+                        <div className="flex gap-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            onGetUploadParameters={handleFileUpload(editForm, "fichaEvaluacionUrl")}
+                            onComplete={handleUploadComplete(editForm, "fichaEvaluacionUrl")}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            {field.value ? "Cambiar Ficha" : "Subir Ficha"}
+                          </ObjectUploader>
+                          {field.value && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => field.value && window.open(field.value, '_blank')}
+                                data-testid="button-view-ficha"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => {
+                                  if (field.value) {
+                                    const link = document.createElement('a');
+                                    link.href = field.value;
+                                    link.download = 'ficha_evaluacion';
+                                    link.click();
+                                  }
+                                }}
+                                data-testid="button-download-ficha"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar
+                              </Button>
+                            </>
+                          )}
+                        </div>
                         {field.value && <p className="text-sm text-muted-foreground">Archivo disponible</p>}
                       </div>
                     </FormControl>
@@ -718,15 +892,48 @@ export default function Equipos() {
                     <FormLabel>Manual</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={10485760}
-                          onGetUploadParameters={handleFileUpload(editForm, "manualUrl")}
-                          onComplete={handleUploadComplete(editForm, "manualUrl")}
-                        >
-                          <File className="h-4 w-4 mr-2" />
-                          {field.value ? "Cambiar Manual" : "Subir Manual"}
-                        </ObjectUploader>
+                        <div className="flex gap-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            onGetUploadParameters={handleFileUpload(editForm, "manualUrl")}
+                            onComplete={handleUploadComplete(editForm, "manualUrl")}
+                          >
+                            <File className="h-4 w-4 mr-2" />
+                            {field.value ? "Cambiar Manual" : "Subir Manual"}
+                          </ObjectUploader>
+                          {field.value && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => field.value && window.open(field.value, '_blank')}
+                                data-testid="button-view-manual"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => {
+                                  if (field.value) {
+                                    const link = document.createElement('a');
+                                    link.href = field.value;
+                                    link.download = 'manual_equipo';
+                                    link.click();
+                                  }
+                                }}
+                                data-testid="button-download-manual"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar
+                              </Button>
+                            </>
+                          )}
+                        </div>
                         {field.value && <p className="text-sm text-muted-foreground">Archivo disponible</p>}
                       </div>
                     </FormControl>
