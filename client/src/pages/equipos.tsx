@@ -84,8 +84,10 @@ export default function Equipos() {
       episObligatorios: z.array(z.string()).optional(),
     })),
     defaultValues: {
+      nombre: "",
       marca: "",
       modelo: "",
+      numeroSerie: "",
       fechaAdquisicion: "",
       fichaEvaluacionUrl: "",
       manualUrl: "",
@@ -99,8 +101,10 @@ export default function Equipos() {
       episObligatorios: z.array(z.string()).optional(),
     })),
     defaultValues: {
+      nombre: "",
       marca: "",
       modelo: "",
+      numeroSerie: "",
       fechaAdquisicion: "",
       fichaEvaluacionUrl: "",
       manualUrl: "",
@@ -200,8 +204,10 @@ export default function Equipos() {
   const handleEdit = (equipo: Equipo) => {
     setEditingEquipo(equipo);
     editForm.reset({
+      nombre: equipo.nombre,
       marca: equipo.marca,
       modelo: equipo.modelo,
+      numeroSerie: equipo.numeroSerie,
       fechaAdquisicion: equipo.fechaAdquisicion,
       fichaEvaluacionUrl: equipo.fichaEvaluacionUrl || "",
       manualUrl: equipo.manualUrl || "",
@@ -217,6 +223,7 @@ export default function Equipos() {
   };
 
   const filteredEquipos = equipos.filter(equipo =>
+    equipo.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     equipo.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
     equipo.modelo.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -282,7 +289,7 @@ export default function Equipos() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por marca o modelo..."
+              placeholder="Buscar por nombre, marca o modelo..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -303,8 +310,10 @@ export default function Equipos() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Nombre</TableHead>
                   <TableHead>Marca</TableHead>
                   <TableHead>Modelo</TableHead>
+                  <TableHead>Nº Serie</TableHead>
                   <TableHead>Fecha Adquisición</TableHead>
                   <TableHead>Documentos</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -313,10 +322,14 @@ export default function Equipos() {
               <TableBody>
                 {filteredEquipos.map((equipo) => (
                   <TableRow key={equipo.id} data-testid={`row-equipo-${equipo.id}`}>
-                    <TableCell className="font-medium" data-testid={`text-marca-${equipo.id}`}>
+                    <TableCell className="font-medium" data-testid={`text-nombre-${equipo.id}`}>
+                      {equipo.nombre}
+                    </TableCell>
+                    <TableCell data-testid={`text-marca-${equipo.id}`}>
                       {equipo.marca}
                     </TableCell>
                     <TableCell data-testid={`text-modelo-${equipo.id}`}>{equipo.modelo}</TableCell>
+                    <TableCell data-testid={`text-numero-serie-${equipo.id}`}>{equipo.numeroSerie}</TableCell>
                     <TableCell data-testid={`text-fecha-${equipo.id}`}>
                       {format(new Date(equipo.fechaAdquisicion), "dd/MM/yyyy", { locale: es })}
                     </TableCell>
@@ -368,6 +381,20 @@ export default function Equipos() {
             <form onSubmit={createForm.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
               <FormField
                 control={createForm.control}
+                name="nombre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre del Equipo *</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-nombre" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
                 name="marca"
                 render={({ field }) => (
                   <FormItem>
@@ -388,6 +415,20 @@ export default function Equipos() {
                     <FormLabel>Modelo *</FormLabel>
                     <FormControl>
                       <Input {...field} data-testid="input-modelo" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="numeroSerie"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nº Serie *</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-numero-serie" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -556,6 +597,20 @@ export default function Equipos() {
             <form onSubmit={editForm.handleSubmit((data) => updateMutation.mutate(data))} className="space-y-4">
               <FormField
                 control={editForm.control}
+                name="nombre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre del Equipo *</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-edit-nombre" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
                 name="marca"
                 render={({ field }) => (
                   <FormItem>
@@ -576,6 +631,20 @@ export default function Equipos() {
                     <FormLabel>Modelo *</FormLabel>
                     <FormControl>
                       <Input {...field} data-testid="input-edit-modelo" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="numeroSerie"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nº Serie *</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-edit-numero-serie" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
