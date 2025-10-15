@@ -34,6 +34,7 @@ export const trabajadores = pgTable("trabajadores", {
 // EPIs entregados
 export const epis = pgTable("epis", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  numeroCorrelativo: varchar("numero_correlativo").unique(),
   trabajadorId: varchar("trabajador_id").notNull().references(() => trabajadores.id, { onDelete: 'cascade' }),
   tipoEquipo: text("tipo_equipo").notNull(),
   marca: text("marca"),
@@ -41,6 +42,17 @@ export const epis = pgTable("epis", {
   fechaEntrega: date("fecha_entrega").notNull(),
   fechaCaducidad: date("fecha_caducidad"),
   observaciones: text("observaciones"),
+});
+
+// Documentos de EPIs (almacenados en Replit App Storage)
+export const epiDocumentos = pgTable("epi_documentos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  epiId: varchar("epi_id").notNull().references(() => epis.id, { onDelete: 'cascade' }),
+  nombreArchivo: text("nombre_archivo").notNull(),
+  rutaArchivo: text("ruta_archivo").notNull(), // Path en object storage (/objects/...)
+  tipoArchivo: text("tipo_archivo"), // MIME type
+  tamanoBytes: integer("tamano_bytes"),
+  fechaSubida: timestamp("fecha_subida").defaultNow().notNull(),
 });
 
 // Cursos realizados
@@ -90,7 +102,7 @@ export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id
   }
 );
 
-export const insertEpiSchema = createInsertSchema(epis).omit({ id: true }).extend({
+export const insertEpiSchema = createInsertSchema(epis).omit({ id: true, numeroCorrelativo: true }).extend({
   tipoEquipo: z.string().min(1, "Tipo de equipo es requerido"),
   fechaEntrega: z.string().min(1, "Fecha de entrega es requerida"),
   marca: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
@@ -98,6 +110,8 @@ export const insertEpiSchema = createInsertSchema(epis).omit({ id: true }).exten
   fechaCaducidad: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
   observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
+
+export const insertEpiDocumentoSchema = createInsertSchema(epiDocumentos).omit({ id: true, fechaSubida: true });
 
 export const insertCursoSchema = createInsertSchema(cursos).omit({ id: true }).extend({
   nombreCurso: z.string().min(1, "Nombre del curso es requerido"),
@@ -124,6 +138,9 @@ export type Trabajador = typeof trabajadores.$inferSelect;
 
 export type InsertEpi = z.infer<typeof insertEpiSchema>;
 export type Epi = typeof epis.$inferSelect;
+
+export type InsertEpiDocumento = z.infer<typeof insertEpiDocumentoSchema>;
+export type EpiDocumento = typeof epiDocumentos.$inferSelect;
 
 export type InsertCurso = z.infer<typeof insertCursoSchema>;
 export type Curso = typeof cursos.$inferSelect;
