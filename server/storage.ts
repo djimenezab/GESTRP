@@ -7,6 +7,7 @@ import {
   epiDocumentos,
   episFichasEv,
   zonasTrabajo,
+  usuarios,
   equipos,
   equiposEpisObligatorios,
   type Trabajador,
@@ -23,6 +24,8 @@ import {
   type InsertEpiFichaEv,
   type ZonaTrabajo,
   type InsertZonaTrabajo,
+  type Usuario,
+  type InsertUsuario,
   type Equipo,
   type InsertEquipo,
   type EquipoEpiObligatorio,
@@ -80,6 +83,13 @@ export interface IStorage {
   createZonaTrabajo(data: InsertZonaTrabajo): Promise<ZonaTrabajo>;
   updateZonaTrabajo(id: string, data: Partial<InsertZonaTrabajo>): Promise<ZonaTrabajo | undefined>;
   deleteZonaTrabajo(id: string): Promise<void>;
+
+  // Usuarios
+  getUsuarios(): Promise<Usuario[]>;
+  getUsuario(id: string): Promise<Usuario | undefined>;
+  createUsuario(data: InsertUsuario): Promise<Usuario>;
+  updateUsuario(id: string, data: Partial<InsertUsuario>): Promise<Usuario | undefined>;
+  deleteUsuario(id: string): Promise<void>;
 
   // Equipos
   getEquipos(): Promise<Equipo[]>;
@@ -287,6 +297,30 @@ export class DbStorage implements IStorage {
 
   async deleteZonaTrabajo(id: string): Promise<void> {
     await db.delete(zonasTrabajo).where(eq(zonasTrabajo.id, id));
+  }
+
+  // Usuarios
+  async getUsuarios(): Promise<Usuario[]> {
+    return await db.select().from(usuarios).orderBy(usuarios.nombreUsuario);
+  }
+
+  async getUsuario(id: string): Promise<Usuario | undefined> {
+    const result = await db.select().from(usuarios).where(eq(usuarios.id, id));
+    return result[0];
+  }
+
+  async createUsuario(data: InsertUsuario): Promise<Usuario> {
+    const result = await db.insert(usuarios).values(data).returning();
+    return result[0];
+  }
+
+  async updateUsuario(id: string, data: Partial<InsertUsuario>): Promise<Usuario | undefined> {
+    const result = await db.update(usuarios).set(data).where(eq(usuarios.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteUsuario(id: string): Promise<void> {
+    await db.delete(usuarios).where(eq(usuarios.id, id));
   }
 
   // Equipos
