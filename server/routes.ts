@@ -9,6 +9,7 @@ import {
   insertEpiDocumentoSchema,
   insertEpiFichaEvSchema,
   insertZonaTrabajoSchema,
+  insertUsuarioSchema,
   insertEquipoSchema,
   trabajadores,
   CATEGORIAS
@@ -508,6 +509,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting zona de trabajo:", error);
       res.status(500).json({ error: "Error al eliminar zona de trabajo" });
+    }
+  });
+
+  // Usuarios routes
+  app.get("/api/usuarios", async (req, res) => {
+    try {
+      const usuarios = await storage.getUsuarios();
+      res.json(usuarios);
+    } catch (error) {
+      console.error("Error getting usuarios:", error);
+      res.status(500).json({ error: "Error al obtener usuarios" });
+    }
+  });
+
+  app.get("/api/usuarios/:id", async (req, res) => {
+    try {
+      const usuario = await storage.getUsuario(req.params.id);
+      if (!usuario) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+      res.json(usuario);
+    } catch (error) {
+      console.error("Error getting usuario:", error);
+      res.status(500).json({ error: "Error al obtener usuario" });
+    }
+  });
+
+  app.post("/api/usuarios", async (req, res) => {
+    try {
+      const data = insertUsuarioSchema.parse(req.body);
+      const usuario = await storage.createUsuario(data);
+      res.status(201).json(usuario);
+    } catch (error) {
+      console.error("Error creating usuario:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/usuarios/:id", async (req, res) => {
+    try {
+      const data = insertUsuarioSchema.partial().parse(req.body);
+      const usuario = await storage.updateUsuario(req.params.id, data);
+      if (!usuario) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+      res.json(usuario);
+    } catch (error) {
+      console.error("Error updating usuario:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/usuarios/:id", async (req, res) => {
+    try {
+      await storage.deleteUsuario(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting usuario:", error);
+      res.status(500).json({ error: "Error al eliminar usuario" });
     }
   });
 
