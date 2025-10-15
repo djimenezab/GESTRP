@@ -6,6 +6,7 @@ import {
   accidentes,
   epiDocumentos,
   episFichasEv,
+  zonasTrabajo,
   equipos,
   equiposEpisObligatorios,
   type Trabajador,
@@ -20,6 +21,8 @@ import {
   type InsertEpiDocumento,
   type EpiFichaEv,
   type InsertEpiFichaEv,
+  type ZonaTrabajo,
+  type InsertZonaTrabajo,
   type Equipo,
   type InsertEquipo,
   type EquipoEpiObligatorio,
@@ -70,6 +73,13 @@ export interface IStorage {
   createEpiFichaEv(data: InsertEpiFichaEv): Promise<EpiFichaEv>;
   updateEpiFichaEv(id: string, data: Partial<InsertEpiFichaEv>): Promise<EpiFichaEv | undefined>;
   deleteEpiFichaEv(id: string): Promise<void>;
+
+  // Zonas de Trabajo (Catálogo)
+  getZonasTrabajo(): Promise<ZonaTrabajo[]>;
+  getZonaTrabajo(id: string): Promise<ZonaTrabajo | undefined>;
+  createZonaTrabajo(data: InsertZonaTrabajo): Promise<ZonaTrabajo>;
+  updateZonaTrabajo(id: string, data: Partial<InsertZonaTrabajo>): Promise<ZonaTrabajo | undefined>;
+  deleteZonaTrabajo(id: string): Promise<void>;
 
   // Equipos
   getEquipos(): Promise<Equipo[]>;
@@ -253,6 +263,30 @@ export class DbStorage implements IStorage {
 
   async deleteEpiFichaEv(id: string): Promise<void> {
     await db.delete(episFichasEv).where(eq(episFichasEv.id, id));
+  }
+
+  // Zonas de Trabajo (Catálogo)
+  async getZonasTrabajo(): Promise<ZonaTrabajo[]> {
+    return await db.select().from(zonasTrabajo).orderBy(zonasTrabajo.zona);
+  }
+
+  async getZonaTrabajo(id: string): Promise<ZonaTrabajo | undefined> {
+    const result = await db.select().from(zonasTrabajo).where(eq(zonasTrabajo.id, id));
+    return result[0];
+  }
+
+  async createZonaTrabajo(data: InsertZonaTrabajo): Promise<ZonaTrabajo> {
+    const result = await db.insert(zonasTrabajo).values(data).returning();
+    return result[0];
+  }
+
+  async updateZonaTrabajo(id: string, data: Partial<InsertZonaTrabajo>): Promise<ZonaTrabajo | undefined> {
+    const result = await db.update(zonasTrabajo).set(data).where(eq(zonasTrabajo.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteZonaTrabajo(id: string): Promise<void> {
+    await db.delete(zonasTrabajo).where(eq(zonasTrabajo.id, id));
   }
 
   // Equipos
