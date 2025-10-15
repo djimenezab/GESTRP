@@ -5,6 +5,7 @@ import {
   GraduationCap,
   AlertTriangle,
   Settings,
+  Wrench,
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,6 +45,11 @@ const menuItems = [
     title: "Accidentes",
     url: "/accidentes",
     icon: AlertTriangle,
+  },
+  {
+    title: "Equipos",
+    url: "/equipos",
+    icon: Wrench,
   },
 ];
 
