@@ -20,6 +20,13 @@ export const GRAVEDAD_ACCIDENTE = ["LEVE", "MODERADO", "GRAVE"] as const;
 // Tipos de accidentes
 export const TIPO_ACCIDENTE = ["ACCIDENTE_SERVICIO", "ENFERMEDAD_PROFESIONAL"] as const;
 
+// Catálogo de Zonas de Trabajo - para asignación a trabajadores y equipos
+export const zonasTrabajo = pgTable("zonas_trabajo", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  zona: text("zona").notNull().unique(),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
 // Trabajadores
 export const trabajadores = pgTable("trabajadores", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -27,6 +34,8 @@ export const trabajadores = pgTable("trabajadores", {
   categoria: text("categoria").notNull(),
   fechaNacimiento: date("fecha_nacimiento").notNull(),
   dni: varchar("dni", { length: 20 }).notNull().unique(),
+  email: text("email"),
+  zonaId: varchar("zona_id").references(() => zonasTrabajo.id),
   recibeEvaluacionRiesgos: boolean("recibe_evaluacion_riesgos").default(false).notNull(),
   fechaEntregaEvaluacion: date("fecha_entrega_evaluacion"),
 });
@@ -87,13 +96,6 @@ export const episFichasEv = pgTable("epis_fichas_ev", {
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
 });
 
-// Catálogo de Zonas de Trabajo - para asignación a trabajadores y equipos
-export const zonasTrabajo = pgTable("zonas_trabajo", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  zona: text("zona").notNull().unique(),
-  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
-});
-
 // Equipos
 export const equipos = pgTable("equipos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -121,6 +123,8 @@ export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id
   dni: z.string().min(1, "DNI es requerido"),
   nombreCompleto: z.string().min(1, "Nombre completo es requerido"),
   fechaNacimiento: z.string().min(1, "Fecha de nacimiento es requerida"),
+  email: z.preprocess(val => val === "" ? undefined : val, z.string().email("Email inválido").optional()),
+  zonaId: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
   recibeEvaluacionRiesgos: z.boolean().default(false),
   fechaEntregaEvaluacion: z.preprocess(
     val => (val === "" || val === null) ? undefined : val, 
