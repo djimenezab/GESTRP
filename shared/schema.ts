@@ -87,6 +87,25 @@ export const episFichasEv = pgTable("epis_fichas_ev", {
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
 });
 
+// Equipos
+export const equipos = pgTable("equipos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  marca: text("marca").notNull(),
+  modelo: text("modelo").notNull(),
+  fechaAdquisicion: date("fecha_adquisicion").notNull(),
+  fichaEvaluacionUrl: text("ficha_evaluacion_url"),
+  manualUrl: text("manual_url"),
+  imagenUrl: text("imagen_url"),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
+// Relación many-to-many: Equipos <-> EPIs Obligatorios
+export const equiposEpisObligatorios = pgTable("equipos_epis_obligatorios", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  equipoId: varchar("equipo_id").notNull().references(() => equipos.id, { onDelete: 'cascade' }),
+  epiFichaEvId: varchar("epi_ficha_ev_id").notNull().references(() => episFichasEv.id, { onDelete: 'cascade' }),
+});
+
 // Insert schemas
 export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id: true }).extend({
   categoria: z.enum(CATEGORIAS),
@@ -143,6 +162,17 @@ export const insertEpiFichaEvSchema = createInsertSchema(episFichasEv).omit({ id
   nombreEpi: z.string().min(1, "Nombre del EPI es requerido"),
 });
 
+export const insertEquipoSchema = createInsertSchema(equipos).omit({ id: true, fechaCreacion: true }).extend({
+  marca: z.string().min(1, "Marca es requerida"),
+  modelo: z.string().min(1, "Modelo es requerido"),
+  fechaAdquisicion: z.string().min(1, "Fecha de adquisición es requerida"),
+  fichaEvaluacionUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  manualUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  imagenUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+});
+
+export const insertEquipoEpiObligatorioSchema = createInsertSchema(equiposEpisObligatorios).omit({ id: true });
+
 // Types
 export type InsertTrabajador = z.infer<typeof insertTrabajadorSchema>;
 export type Trabajador = typeof trabajadores.$inferSelect;
@@ -161,3 +191,9 @@ export type Accidente = typeof accidentes.$inferSelect;
 
 export type InsertEpiFichaEv = z.infer<typeof insertEpiFichaEvSchema>;
 export type EpiFichaEv = typeof episFichasEv.$inferSelect;
+
+export type InsertEquipo = z.infer<typeof insertEquipoSchema>;
+export type Equipo = typeof equipos.$inferSelect;
+
+export type InsertEquipoEpiObligatorio = z.infer<typeof insertEquipoEpiObligatorioSchema>;
+export type EquipoEpiObligatorio = typeof equiposEpisObligatorios.$inferSelect;

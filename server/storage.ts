@@ -6,6 +6,8 @@ import {
   accidentes,
   epiDocumentos,
   episFichasEv,
+  equipos,
+  equiposEpisObligatorios,
   type Trabajador,
   type InsertTrabajador,
   type Epi,
@@ -17,9 +19,13 @@ import {
   type EpiDocumento,
   type InsertEpiDocumento,
   type EpiFichaEv,
-  type InsertEpiFichaEv
+  type InsertEpiFichaEv,
+  type Equipo,
+  type InsertEquipo,
+  type EquipoEpiObligatorio,
+  type InsertEquipoEpiObligatorio
 } from "@shared/schema";
-import { eq, desc, or, ilike } from "drizzle-orm";
+import { eq, desc, or, ilike, asc } from "drizzle-orm";
 
 export interface IStorage {
   // Trabajadores
@@ -64,6 +70,19 @@ export interface IStorage {
   createEpiFichaEv(data: InsertEpiFichaEv): Promise<EpiFichaEv>;
   updateEpiFichaEv(id: string, data: Partial<InsertEpiFichaEv>): Promise<EpiFichaEv | undefined>;
   deleteEpiFichaEv(id: string): Promise<void>;
+
+  // Equipos
+  getEquipos(): Promise<Equipo[]>;
+  getEquipo(id: string): Promise<Equipo | undefined>;
+  createEquipo(data: InsertEquipo): Promise<Equipo>;
+  updateEquipo(id: string, data: Partial<InsertEquipo>): Promise<Equipo | undefined>;
+  deleteEquipo(id: string): Promise<void>;
+
+  // Equipos EPIs Obligatorios (relación many-to-many)
+  getEquipoEpisObligatorios(equipoId: string): Promise<EpiFichaEv[]>;
+  addEquipoEpiObligatorio(data: InsertEquipoEpiObligatorio): Promise<EquipoEpiObligatorio>;
+  removeEquipoEpiObligatorio(equipoId: string, epiFichaEvId: string): Promise<void>;
+  setEquipoEpisObligatorios(equipoId: string, epiIds: string[]): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -106,29 +125,25 @@ export class DbStorage implements IStorage {
   }
 
   async createEpi(data: InsertEpi): Promise<Epi> {
-    // Generar número correlativo automático si no se proporciona
-    let numeroCorrelativo = data.numeroCorrelativo;
+    // Generar número correlativo automático
+    const currentYear = new Date().getFullYear();
+    const prefix = `EPI${currentYear}_`;
     
-    if (!numeroCorrelativo) {
-      const currentYear = new Date().getFullYear();
-      const prefix = `EPI${currentYear}_`;
-      
-      // Buscar el último número correlativo del año actual
-      const lastEpi = await db
-        .select()
-        .from(epis)
-        .where(ilike(epis.numeroCorrelativo, `${prefix}%`))
-        .orderBy(desc(epis.numeroCorrelativo))
-        .limit(1);
-      
-      let nextNumber = 1;
-      if (lastEpi.length > 0 && lastEpi[0].numeroCorrelativo) {
-        const lastNumber = parseInt(lastEpi[0].numeroCorrelativo.split('_')[1]);
-        nextNumber = lastNumber + 1;
-      }
-      
-      numeroCorrelativo = `${prefix}${String(nextNumber).padStart(3, '0')}`;
+    // Buscar el último número correlativo del año actual
+    const lastEpi = await db
+      .select()
+      .from(epis)
+      .where(ilike(epis.numeroCorrelativo, `${prefix}%`))
+      .orderBy(desc(epis.numeroCorrelativo))
+      .limit(1);
+    
+    let nextNumber = 1;
+    if (lastEpi.length > 0 && lastEpi[0].numeroCorrelativo) {
+      const lastNumber = parseInt(lastEpi[0].numeroCorrelativo.split('_')[1]);
+      nextNumber = lastNumber + 1;
     }
+    
+    const numeroCorrelativo = `${prefix}${String(nextNumber).padStart(3, '0')}`;
     
     const result = await db.insert(epis).values({
       ...data,
@@ -238,6 +253,71 @@ export class DbStorage implements IStorage {
 
   async deleteEpiFichaEv(id: string): Promise<void> {
     await db.delete(episFichasEv).where(eq(episFichasEv.id, id));
+  }
+
+  // Equipos
+  async getEquipos(): Promise<Equipo[]> {
+    return await db.select().from(equipos).orderBy(desc(equipos.fechaCreacion));
+  }
+
+  async getEquipo(id: string): Promise<Equipo | undefined> {
+    const result = await db.select().from(equipos).where(eq(equipos.id, id));
+    return result[0];
+  }
+
+  async createEquipo(data: InsertEquipo): Promise<Equipo> {
+    const result = await db.insert(equipos).values(data).returning();
+    return result[0];
+  }
+
+  async updateEquipo(id: string, data: Partial<InsertEquipo>): Promise<Equipo | undefined> {
+    const result = await db.update(equipos).set(data).where(eq(equipos.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteEquipo(id: string): Promise<void> {
+    await db.delete(equipos).where(eq(equipos.id, id));
+  }
+
+  // Equipos EPIs Obligatorios (relación many-to-many)
+  async getEquipoEpisObligatorios(equipoId: string): Promise<EpiFichaEv[]> {
+    const result = await db
+      .select({ 
+        id: episFichasEv.id,
+        nombreEpi: episFichasEv.nombreEpi,
+        fechaCreacion: episFichasEv.fechaCreacion
+      })
+      .from(equiposEpisObligatorios)
+      .innerJoin(episFichasEv, eq(equiposEpisObligatorios.epiFichaEvId, episFichasEv.id))
+      .where(eq(equiposEpisObligatorios.equipoId, equipoId))
+      .orderBy(asc(episFichasEv.nombreEpi));
+    
+    return result;
+  }
+
+  async addEquipoEpiObligatorio(data: InsertEquipoEpiObligatorio): Promise<EquipoEpiObligatorio> {
+    const result = await db.insert(equiposEpisObligatorios).values(data).returning();
+    return result[0];
+  }
+
+  async removeEquipoEpiObligatorio(equipoId: string, epiFichaEvId: string): Promise<void> {
+    await db.delete(equiposEpisObligatorios)
+      .where(
+        eq(equiposEpisObligatorios.equipoId, equipoId) && 
+        eq(equiposEpisObligatorios.epiFichaEvId, epiFichaEvId)
+      );
+  }
+
+  async setEquipoEpisObligatorios(equipoId: string, epiIds: string[]): Promise<void> {
+    // Eliminar todos los EPIs obligatorios actuales del equipo
+    await db.delete(equiposEpisObligatorios).where(eq(equiposEpisObligatorios.equipoId, equipoId));
+    
+    // Insertar los nuevos EPIs obligatorios
+    if (epiIds.length > 0) {
+      await db.insert(equiposEpisObligatorios).values(
+        epiIds.map(epiId => ({ equipoId, epiFichaEvId: epiId }))
+      );
+    }
   }
 }
 
