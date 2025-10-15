@@ -11,6 +11,20 @@ Preferred communication style: Simple, everyday language (Spanish).
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Dashboard Statistics Updated**:
+  - Changed static mock data to real-time database queries
+  - Total Trabajadores: Shows actual count from database
+  - EPIs Entregados: Shows total registered EPIs
+  - Cursos Realizados: Shows total registered courses
+  - Accidentes: Shows total registered accidents
+  - Updated descriptions to "Total registrados" for accuracy
+
+- **UI Terminology Updates**:
+  - Changed "Nº Correlativo" to "Código EPI" throughout the interface
+  - Updated EPIs table header
+  - Updated document dialog title to show "Código EPI: [number]"
+
+### October 15, 2025
 - **EPI Documentation System - Digitized Storage with Replit App Storage**:
   - **Object Storage Integration**:
     - Integrated Replit App Storage ($0.03/GB/month) for cloud-based document storage

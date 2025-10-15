@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { WorkerForm } from "@/components/worker-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertTrabajador, Trabajador } from "@shared/schema";
+import type { InsertTrabajador, Trabajador, Epi, Curso, Accidente } from "@shared/schema";
 
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +21,18 @@ export default function Dashboard() {
 
   const { data: trabajadores = [], isLoading } = useQuery<Trabajador[]>({
     queryKey: ["/api/trabajadores"],
+  });
+
+  const { data: epis = [] } = useQuery<Epi[]>({
+    queryKey: ["/api/epis"],
+  });
+
+  const { data: cursos = [] } = useQuery<Curso[]>({
+    queryKey: ["/api/cursos"],
+  });
+
+  const { data: accidentes = [] } = useQuery<Accidente[]>({
+    queryKey: ["/api/accidentes"],
   });
 
   const createMutation = useMutation({
@@ -81,27 +93,27 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Total Trabajadores"
-          value={48}
+          value={trabajadores.length}
           icon={Users}
           description="Personal activo"
         />
         <StatsCard
           title="EPIs Entregados"
-          value={132}
+          value={epis.length}
           icon={HardHat}
-          description="Último mes"
+          description="Total registrados"
         />
         <StatsCard
           title="Cursos Realizados"
-          value={24}
+          value={cursos.length}
           icon={GraduationCap}
-          description="Este año"
+          description="Total registrados"
         />
         <StatsCard
           title="Accidentes"
-          value={3}
+          value={accidentes.length}
           icon={AlertTriangle}
-          description="Último trimestre"
+          description="Total registrados"
         />
       </div>
 
