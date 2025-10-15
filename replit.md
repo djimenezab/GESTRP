@@ -78,6 +78,13 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
 ## Recent Changes
 
 ### October 15, 2025 (Latest)
+- **Equipos - Clickeable Document Icons in Table**:
+  - Document icons (imagen, ficha, manual) in table are now clickeable
+  - Click any document icon to open it directly in a new tab
+  - Visual feedback: cursor changes to pointer and hover effect
+  - No interference with row click for editing
+  - Consistent UX with "Ver" buttons inside forms
+
 - **Equipos - View and Download Documents**:
   - Added "Ver" (View) and "Descargar" (Download) buttons for all uploaded documents (imagen, ficha, manual)
   - Click "Ver" to open document in new browser tab
@@ -86,6 +93,7 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
   - **Critical Bug Fix**: Corrected object storage path saving to use UUID instead of filename
   - Documents now properly accessible without ObjectNotFoundError
   - Path format corrected from `/objects/{filename}` to `/objects/uploads/{UUID}`
+  - Added hidden input field to ensure upload fields persist in form submission
 
 - **Configuración - Collapsible EPIS Fichas EV Section**:
   - Implemented Shadcn Accordion for EPIS Fichas EV subsection
