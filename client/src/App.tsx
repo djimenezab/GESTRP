@@ -12,6 +12,7 @@ import WorkerDetail from "@/pages/worker-detail";
 import Epis from "@/pages/epis";
 import Cursos from "@/pages/cursos";
 import Accidentes from "@/pages/accidentes";
+import Configuracion from "@/pages/configuracion";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/epis" component={Epis} />
       <Route path="/cursos" component={Cursos} />
       <Route path="/accidentes" component={Accidentes} />
+      <Route path="/configuracion" component={Configuracion} />
       <Route component={NotFound} />
     </Switch>
   );
