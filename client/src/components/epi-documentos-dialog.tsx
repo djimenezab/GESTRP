@@ -118,7 +118,7 @@ export function EpiDocumentosDialog({
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Documentación Digitalizada {numeroCorrelativo && `- ${numeroCorrelativo}`}
+            Documentación Digitalizada {numeroCorrelativo && `- Código EPI: ${numeroCorrelativo}`}
           </DialogTitle>
           <DialogDescription>
             Gestiona los documentos digitalizados asociados a esta entrega de EPI

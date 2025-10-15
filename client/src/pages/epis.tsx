@@ -217,7 +217,7 @@ export default function Epis() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° Correlativo</TableHead>
+              <TableHead>Código EPI</TableHead>
               <TableHead>Trabajador</TableHead>
               <TableHead>Tipo de Equipo</TableHead>
               <TableHead>Marca</TableHead>
