@@ -274,21 +274,25 @@ export default function Epis() {
                         <FolderOpen className="h-4 w-4 mr-2" />
                         Ver Documentación
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={(e) => handleOpenEditDialog(epi, e)}
-                        data-testid={`button-edit-${epi.id}`}
-                      >
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={(e) => handleDeleteEpi(epi.id, e)}
-                        className="text-destructive"
-                        data-testid={`button-delete-${epi.id}`}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Eliminar
-                      </DropdownMenuItem>
+                      {user?.tipoAcceso !== "Usuario" && (
+                        <>
+                          <DropdownMenuItem 
+                            onClick={(e) => handleOpenEditDialog(epi, e)}
+                            data-testid={`button-edit-${epi.id}`}
+                          >
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => handleDeleteEpi(epi.id, e)}
+                            className="text-destructive"
+                            data-testid={`button-delete-${epi.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
