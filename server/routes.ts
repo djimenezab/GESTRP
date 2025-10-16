@@ -32,7 +32,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trabajadores routes
   app.get("/api/trabajadores", async (req, res) => {
     try {
-      const trabajadores = await storage.getTrabajadores();
+      const tipoAcceso = req.session.tipoAcceso;
+      const zonasIds = req.session.zonasIds;
+      let trabajadores: any[] = [];
+      
+      if (tipoAcceso === "AdminGral") {
+        trabajadores = await storage.getTrabajadores();
+      } else if (tipoAcceso === "Administrador" && zonasIds) {
+        trabajadores = await storage.getTrabajadoresByZonas(zonasIds);
+      } else if (tipoAcceso === "Usuario") {
+        // Usuario solo ve sus propios datos (implementar después)
+        trabajadores = [];
+      }
+      
       res.json(trabajadores);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener trabajadores" });
@@ -143,7 +155,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // EPIs routes
   app.get("/api/epis", async (req, res) => {
     try {
-      const epis = await storage.getEpis();
+      const tipoAcceso = req.session.tipoAcceso;
+      const zonasIds = req.session.zonasIds;
+      let epis: any[] = [];
+      
+      if (tipoAcceso === "AdminGral") {
+        epis = await storage.getEpis();
+      } else if (tipoAcceso === "Administrador" && zonasIds) {
+        epis = await storage.getEpisByZonas(zonasIds);
+      } else if (tipoAcceso === "Usuario") {
+        // Usuario solo ve sus propios datos (implementar después)
+        epis = [];
+      }
+      
       res.json(epis);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener EPIs" });
@@ -207,7 +231,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cursos routes
   app.get("/api/cursos", async (req, res) => {
     try {
-      const cursos = await storage.getCursos();
+      const tipoAcceso = req.session.tipoAcceso;
+      const zonasIds = req.session.zonasIds;
+      let cursos: any[] = [];
+      
+      if (tipoAcceso === "AdminGral") {
+        cursos = await storage.getCursos();
+      } else if (tipoAcceso === "Administrador" && zonasIds) {
+        cursos = await storage.getCursosByZonas(zonasIds);
+      } else if (tipoAcceso === "Usuario") {
+        // Usuario solo ve sus propios datos (implementar después)
+        cursos = [];
+      }
+      
       res.json(cursos);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener cursos" });
@@ -271,7 +307,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Accidentes routes
   app.get("/api/accidentes", async (req, res) => {
     try {
-      const accidentes = await storage.getAccidentes();
+      const tipoAcceso = req.session.tipoAcceso;
+      const zonasIds = req.session.zonasIds;
+      let accidentes: any[] = [];
+      
+      if (tipoAcceso === "AdminGral") {
+        accidentes = await storage.getAccidentes();
+      } else if (tipoAcceso === "Administrador" && zonasIds) {
+        accidentes = await storage.getAccidentesByZonas(zonasIds);
+      } else if (tipoAcceso === "Usuario") {
+        // Usuario solo ve sus propios datos (implementar después)
+        accidentes = [];
+      }
+      
       res.json(accidentes);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener accidentes" });
@@ -605,7 +653,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Equipos routes
   app.get("/api/equipos", async (req, res) => {
     try {
-      const equipos = await storage.getEquipos();
+      const tipoAcceso = req.session.tipoAcceso;
+      const zonasIds = req.session.zonasIds;
+      let equipos: any[] = [];
+      
+      if (tipoAcceso === "AdminGral") {
+        equipos = await storage.getEquipos();
+      } else if (tipoAcceso === "Administrador" && zonasIds) {
+        equipos = await storage.getEquiposByZonas(zonasIds);
+      } else if (tipoAcceso === "Usuario" && zonasIds) {
+        // Usuario solo ve equipos de sus zonas
+        equipos = await storage.getEquiposByZonas(zonasIds);
+      }
+      
       res.json(equipos);
     } catch (error) {
       console.error("Error getting equipos:", error);

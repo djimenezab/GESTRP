@@ -31,11 +31,12 @@ import {
   type EquipoEpiObligatorio,
   type InsertEquipoEpiObligatorio
 } from "@shared/schema";
-import { eq, desc, or, ilike, asc } from "drizzle-orm";
+import { eq, desc, or, ilike, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Trabajadores
   getTrabajadores(): Promise<Trabajador[]>;
+  getTrabajadoresByZonas(zonasIds: string[]): Promise<Trabajador[]>;
   getTrabajador(id: string): Promise<Trabajador | undefined>;
   createTrabajador(data: InsertTrabajador): Promise<Trabajador>;
   updateTrabajador(id: string, data: Partial<InsertTrabajador>): Promise<Trabajador | undefined>;
@@ -43,6 +44,7 @@ export interface IStorage {
 
   // EPIs
   getEpis(): Promise<Epi[]>;
+  getEpisByZonas(zonasIds: string[]): Promise<Epi[]>;
   getEpi(id: string): Promise<Epi | undefined>;
   getEpisByTrabajador(trabajadorId: string): Promise<Epi[]>;
   createEpi(data: InsertEpi): Promise<Epi>;
@@ -51,6 +53,7 @@ export interface IStorage {
 
   // Cursos
   getCursos(): Promise<Curso[]>;
+  getCursosByZonas(zonasIds: string[]): Promise<Curso[]>;
   getCurso(id: string): Promise<Curso | undefined>;
   getCursosByTrabajador(trabajadorId: string): Promise<Curso[]>;
   createCurso(data: InsertCurso): Promise<Curso>;
@@ -59,6 +62,7 @@ export interface IStorage {
 
   // Accidentes
   getAccidentes(): Promise<Accidente[]>;
+  getAccidentesByZonas(zonasIds: string[]): Promise<Accidente[]>;
   getAccidente(id: string): Promise<Accidente | undefined>;
   getAccidentesByTrabajador(trabajadorId: string): Promise<Accidente[]>;
   createAccidente(data: InsertAccidente): Promise<Accidente>;
@@ -94,6 +98,7 @@ export interface IStorage {
 
   // Equipos
   getEquipos(): Promise<Equipo[]>;
+  getEquiposByZonas(zonasIds: string[]): Promise<Equipo[]>;
   getEquipo(id: string): Promise<Equipo | undefined>;
   createEquipo(data: InsertEquipo): Promise<Equipo>;
   updateEquipo(id: string, data: Partial<InsertEquipo>): Promise<Equipo | undefined>;
@@ -129,6 +134,11 @@ export class DbStorage implements IStorage {
 
   async deleteTrabajador(id: string): Promise<void> {
     await db.delete(trabajadores).where(eq(trabajadores.id, id));
+  }
+
+  async getTrabajadoresByZonas(zonasIds: string[]): Promise<Trabajador[]> {
+    if (zonasIds.length === 0) return [];
+    return await db.select().from(trabajadores).where(inArray(trabajadores.zonaId, zonasIds));
   }
 
   // EPIs
@@ -182,6 +192,24 @@ export class DbStorage implements IStorage {
     await db.delete(epis).where(eq(epis.id, id));
   }
 
+  async getEpisByZonas(zonasIds: string[]): Promise<Epi[]> {
+    if (zonasIds.length === 0) return [];
+    
+    const trabajadoresEnZonas = await db
+      .select({ id: trabajadores.id })
+      .from(trabajadores)
+      .where(inArray(trabajadores.zonaId, zonasIds));
+    
+    const trabajadorIds = trabajadoresEnZonas.map(t => t.id);
+    if (trabajadorIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(epis)
+      .where(inArray(epis.trabajadorId, trabajadorIds))
+      .orderBy(desc(epis.fechaEntrega));
+  }
+
   // Cursos
   async getCursos(): Promise<Curso[]> {
     return await db.select().from(cursos).orderBy(desc(cursos.fechaRealizacion));
@@ -210,6 +238,24 @@ export class DbStorage implements IStorage {
     await db.delete(cursos).where(eq(cursos.id, id));
   }
 
+  async getCursosByZonas(zonasIds: string[]): Promise<Curso[]> {
+    if (zonasIds.length === 0) return [];
+    
+    const trabajadoresEnZonas = await db
+      .select({ id: trabajadores.id })
+      .from(trabajadores)
+      .where(inArray(trabajadores.zonaId, zonasIds));
+    
+    const trabajadorIds = trabajadoresEnZonas.map(t => t.id);
+    if (trabajadorIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(cursos)
+      .where(inArray(cursos.trabajadorId, trabajadorIds))
+      .orderBy(desc(cursos.fechaRealizacion));
+  }
+
   // Accidentes
   async getAccidentes(): Promise<Accidente[]> {
     return await db.select().from(accidentes).orderBy(desc(accidentes.fecha));
@@ -236,6 +282,24 @@ export class DbStorage implements IStorage {
 
   async deleteAccidente(id: string): Promise<void> {
     await db.delete(accidentes).where(eq(accidentes.id, id));
+  }
+
+  async getAccidentesByZonas(zonasIds: string[]): Promise<Accidente[]> {
+    if (zonasIds.length === 0) return [];
+    
+    const trabajadoresEnZonas = await db
+      .select({ id: trabajadores.id })
+      .from(trabajadores)
+      .where(inArray(trabajadores.zonaId, zonasIds));
+    
+    const trabajadorIds = trabajadoresEnZonas.map(t => t.id);
+    if (trabajadorIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(accidentes)
+      .where(inArray(accidentes.trabajadorId, trabajadorIds))
+      .orderBy(desc(accidentes.fecha));
   }
 
   // EPI Documentos
@@ -351,6 +415,11 @@ export class DbStorage implements IStorage {
 
   async deleteEquipo(id: string): Promise<void> {
     await db.delete(equipos).where(eq(equipos.id, id));
+  }
+
+  async getEquiposByZonas(zonasIds: string[]): Promise<Equipo[]> {
+    if (zonasIds.length === 0) return [];
+    return await db.select().from(equipos).where(inArray(equipos.zonaId, zonasIds)).orderBy(desc(equipos.fechaCreacion));
   }
 
   // Equipos EPIs Obligatorios (relación many-to-many)
