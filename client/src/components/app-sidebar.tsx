@@ -19,42 +19,56 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
+import { useAuth } from "@/contexts/AuthContext";
 
-const menuItems = [
+const allMenuItems = [
   {
     title: "Dashboard",
     url: "/",
     icon: LayoutDashboard,
+    roles: ["AdminGral", "Administrador"], // Usuario NO tiene acceso
   },
   {
     title: "Trabajadores",
     url: "/trabajadores",
     icon: Users,
+    roles: ["AdminGral", "Administrador", "Usuario"],
   },
   {
     title: "EPIs",
     url: "/epis",
     icon: HardHat,
+    roles: ["AdminGral", "Administrador", "Usuario"],
   },
   {
     title: "Cursos",
     url: "/cursos",
     icon: GraduationCap,
+    roles: ["AdminGral", "Administrador", "Usuario"],
   },
   {
     title: "Accidentes",
     url: "/accidentes",
     icon: AlertTriangle,
+    roles: ["AdminGral", "Administrador", "Usuario"],
   },
   {
     title: "Equipos",
     url: "/equipos",
     icon: Wrench,
+    roles: ["AdminGral", "Administrador", "Usuario"],
   },
 ];
 
 export function AppSidebar() {
   const [location] = useLocation();
+  const { user } = useAuth();
+
+  const menuItems = allMenuItems.filter(
+    (item) => user && item.roles.includes(user.tipoAcceso)
+  );
+
+  const showConfiguracion = user?.tipoAcceso === "AdminGral";
 
   return (
     <Sidebar>
@@ -83,25 +97,27 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Sistema</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location === "/configuracion"}
-                  data-testid="link-configuracion"
-                >
-                  <a href="/configuracion">
-                    <Settings className="h-4 w-4" />
-                    <span>Configuración</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {showConfiguracion && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location === "/configuracion"}
+                    data-testid="link-configuracion"
+                  >
+                    <a href="/configuracion">
+                      <Settings className="h-4 w-4" />
+                      <span>Configuración</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );

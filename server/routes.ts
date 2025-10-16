@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { requireAuth } from "./middleware";
 import { 
   insertTrabajadorSchema,
   insertEpiSchema,
@@ -20,6 +21,14 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import bcrypt from "bcrypt";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply authentication middleware to all /api routes except /api/auth/*
+  app.use("/api", (req, res, next) => {
+    if (req.path.startsWith("/auth")) {
+      return next();
+    }
+    requireAuth(req, res, next);
+  });
+
   // Trabajadores routes
   app.get("/api/trabajadores", async (req, res) => {
     try {
@@ -674,6 +683,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error setting equipo EPIs obligatorios:", error);
       res.status(400).json({ error: "Error al actualizar EPIs obligatorios" });
+    }
+  });
+
+  // Auth routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { nombreUsuario, password } = req.body;
+      
+      if (!nombreUsuario || !password) {
+        return res.status(400).json({ error: "Usuario y contraseña son requeridos" });
+      }
+
+      const usuario = await storage.getUsuarioByNombre(nombreUsuario);
+      if (!usuario) {
+        return res.status(401).json({ error: "Credenciales inválidas" });
+      }
+
+      const validPassword = await bcrypt.compare(password, usuario.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: "Credenciales inválidas" });
+      }
+
+      // Store user info in session
+      req.session.userId = usuario.id;
+      req.session.nombreUsuario = usuario.nombreUsuario;
+      req.session.tipoAcceso = usuario.tipoAcceso;
+      req.session.zonaId = usuario.zonaId || null;
+
+      res.json({
+        id: usuario.id,
+        nombreUsuario: usuario.nombreUsuario,
+        tipoAcceso: usuario.tipoAcceso,
+        zonaId: usuario.zonaId,
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Error al iniciar sesión" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Error al cerrar sesión" });
+      }
+      res.json({ message: "Sesión cerrada" });
+    });
+  });
+
+  app.get("/api/auth/session", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "No hay sesión activa" });
+    }
+
+    try {
+      const usuario = await storage.getUsuario(req.session.userId);
+      if (!usuario) {
+        req.session.destroy(() => {});
+        return res.status(401).json({ error: "Usuario no encontrado" });
+      }
+
+      res.json({
+        id: usuario.id,
+        nombreUsuario: usuario.nombreUsuario,
+        tipoAcceso: usuario.tipoAcceso,
+        zonaId: usuario.zonaId,
+      });
+    } catch (error) {
+      console.error("Session check error:", error);
+      res.status(500).json({ error: "Error al verificar sesión" });
+    }
+  });
+
+  app.post("/api/auth/change-password", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "No hay sesión activa" });
+    }
+
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Contraseña actual y nueva son requeridas" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres" });
+      }
+
+      const usuario = await storage.getUsuario(req.session.userId);
+      if (!usuario) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      const validPassword = await bcrypt.compare(currentPassword, usuario.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: "Contraseña actual incorrecta" });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await storage.updateUsuario(req.session.userId, { password: hashedPassword });
+
+      res.json({ message: "Contraseña actualizada correctamente" });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(500).json({ error: "Error al cambiar la contraseña" });
     }
   });
 

@@ -132,6 +132,7 @@ export default function Configuracion() {
       nombreUsuario: "",
       password: "",
       tipoAcceso: "Usuario",
+      zonaId: undefined,
     },
   });
 
@@ -141,6 +142,7 @@ export default function Configuracion() {
       nombreUsuario: "",
       password: "",
       tipoAcceso: "Usuario",
+      zonaId: undefined,
     },
   });
 
@@ -409,6 +411,7 @@ export default function Configuracion() {
       nombreUsuario: usuario.nombreUsuario,
       password: "",
       tipoAcceso: usuario.tipoAcceso as typeof TIPOS_ACCESO[number],
+      zonaId: usuario.zonaId || undefined,
     });
     setIsEditUsuarioDialogOpen(true);
   };
@@ -825,6 +828,34 @@ export default function Configuracion() {
                                 </FormItem>
                               )}
                             />
+                            <FormField
+                              control={createUsuarioForm.control}
+                              name="zonaId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Zona de Trabajo</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-zona-usuario">
+                                        <SelectValue placeholder="Ninguna (opcional)" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {zonas.map((zona) => (
+                                        <SelectItem 
+                                          key={zona.id} 
+                                          value={zona.id}
+                                          data-testid={`select-zona-option-${zona.id}`}
+                                        >
+                                          {zona.zona}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                             <DialogFooter>
                               <Button
                                 type="button"
@@ -865,36 +896,43 @@ export default function Configuracion() {
                         <TableRow>
                           <TableHead>Nombre de Usuario</TableHead>
                           <TableHead>Tipo de Acceso</TableHead>
+                          <TableHead>Zona</TableHead>
                           <TableHead className="w-[100px]">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredUsuarios.map((usuario) => (
-                          <TableRow key={usuario.id} data-testid={`row-usuario-${usuario.id}`}>
-                            <TableCell className="font-medium">{usuario.nombreUsuario}</TableCell>
-                            <TableCell>{usuario.tipoAcceso}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleOpenEditUsuarioDialog(usuario)}
-                                  data-testid={`button-edit-usuario-${usuario.id}`}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDeleteUsuario(usuario.id)}
-                                  data-testid={`button-delete-usuario-${usuario.id}`}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {filteredUsuarios.map((usuario) => {
+                          const zona = zonas.find(z => z.id === usuario.zonaId);
+                          return (
+                            <TableRow key={usuario.id} data-testid={`row-usuario-${usuario.id}`}>
+                              <TableCell className="font-medium">{usuario.nombreUsuario}</TableCell>
+                              <TableCell>{usuario.tipoAcceso}</TableCell>
+                              <TableCell data-testid={`text-zona-usuario-${usuario.id}`}>
+                                {zona ? zona.zona : "-"}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleOpenEditUsuarioDialog(usuario)}
+                                    data-testid={`button-edit-usuario-${usuario.id}`}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDeleteUsuario(usuario.id)}
+                                    data-testid={`button-delete-usuario-${usuario.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   )}
@@ -1075,6 +1113,34 @@ export default function Configuracion() {
                         {TIPOS_ACCESO.map((tipo) => (
                           <SelectItem key={tipo} value={tipo}>
                             {tipo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editUsuarioForm.control}
+                name="zonaId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zona de Trabajo</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-edit-zona-usuario">
+                          <SelectValue placeholder="Ninguna (opcional)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {zonas.map((zona) => (
+                          <SelectItem 
+                            key={zona.id} 
+                            value={zona.id}
+                            data-testid={`select-edit-zona-option-${zona.id}`}
+                          >
+                            {zona.zona}
                           </SelectItem>
                         ))}
                       </SelectContent>
