@@ -71,7 +71,7 @@ function AppContent() {
               <div className="flex items-center gap-4">
                 <div className="text-sm">
                   <span className="text-muted-foreground">Usuario:</span>{" "}
-                  <span className="font-medium" data-testid="text-current-user">{user.nombreUsuario}</span>
+                  <span className="font-medium" data-testid="text-username">{user.nombreUsuario}</span>
                 </div>
                 <Button
                   variant="outline"

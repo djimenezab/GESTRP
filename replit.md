@@ -79,7 +79,39 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
 
 ## Recent Changes
 
-### October 15, 2025 (Latest)
+### October 16, 2025 (Latest)
+- **Authentication & Authorization System**:
+  - Implemented complete session-based authentication using express-session
+  - Users table extended with `zonaId` field (foreign key to zonas_trabajo) for zone-based access control
+  - Three access levels: AdminGral (full access), Administrador (filtered by zona), Usuario (own data only)
+  - **Session Management**:
+    - SESSION_SECRET stored in Replit secrets
+    - express-session with connect-pg-simple for PostgreSQL session store
+    - Session persistence across page refreshes
+  - **Authentication Routes**:
+    - POST /api/auth/login - Login with username/password
+    - POST /api/auth/logout - Logout and destroy session
+    - GET /api/auth/session - Check current session status
+    - POST /api/auth/change-password - Change user password (requires current password)
+  - **Middleware**:
+    - requireAuth - Protects all /api/* routes except /api/auth/*
+    - requireRole - Checks user role for specific operations
+  - **Frontend Components**:
+    - AuthContext with session persistence and refresh on page load
+    - Login page with username/password fields and change password form
+    - Protected routes - redirects to login if not authenticated
+    - Header displays logged-in user name with logout button
+    - Sidebar filters menu items by role (AdminGral sees all, Administrador excludes Configuración, Usuario sees limited options)
+  - **Security**:
+    - All API routes protected with authentication middleware
+    - Passwords hashed with bcrypt (10 salt rounds)
+    - Session-based authentication with secure HTTP-only cookies
+    - Unauthenticated requests return 401 Unauthorized
+  - **Pending Implementation**:
+    - Backend role-based data filtering (filter trabajadores/EPIs/cursos/accidentes/equipos by zona for Administrador/Usuario)
+    - Frontend feature gating (disable create/edit/delete buttons based on role)
+
+### October 15, 2025
 - **Equipos - Zona Field Implementation**:
   - Added "Zona" field to equipment management
   - Zona selector positioned after "Fecha de Adquisición" in create/edit forms

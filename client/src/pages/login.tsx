@@ -66,9 +66,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     try {
       setIsLoading(true);
       const response: any = await apiRequest("POST", "/api/auth/login", data);
+      console.log("Login response:", response);
+      console.log("nombreUsuario:", response?.nombreUsuario);
       toast({
         title: "Inicio de sesión exitoso",
-        description: `Bienvenido, ${response.nombreUsuario}`,
+        description: `Bienvenido, ${response?.nombreUsuario || 'usuario'}`,
       });
       onLoginSuccess(response);
     } catch (error: any) {
