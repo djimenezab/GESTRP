@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface User {
   id: string;
@@ -45,7 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await apiRequest("POST", "/api/auth/logout");
+      // Limpiar completamente el caché de react-query
+      queryClient.clear();
       setUser(null);
+      // Forzar recarga completa para limpiar cualquier estado residual
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
     }
