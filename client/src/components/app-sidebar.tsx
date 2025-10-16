@@ -73,7 +73,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <h2 className="text-lg font-semibold">Prevención Riesgos</h2>
+        <h2 className="text-lg font-semibold">Gestión R.P.</h2>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
