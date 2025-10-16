@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import {
   Accordion,
@@ -132,7 +133,7 @@ export default function Configuracion() {
       nombreUsuario: "",
       password: "",
       tipoAcceso: "Usuario",
-      zonaId: undefined,
+      zonasIds: [],
     },
   });
 
@@ -142,7 +143,7 @@ export default function Configuracion() {
       nombreUsuario: "",
       password: "",
       tipoAcceso: "Usuario",
-      zonaId: undefined,
+      zonasIds: [],
     },
   });
 
@@ -411,7 +412,7 @@ export default function Configuracion() {
       nombreUsuario: usuario.nombreUsuario,
       password: "",
       tipoAcceso: usuario.tipoAcceso as typeof TIPOS_ACCESO[number],
-      zonaId: usuario.zonaId || undefined,
+      zonasIds: usuario.zonasIds || [],
     });
     setIsEditUsuarioDialogOpen(true);
   };
@@ -830,28 +831,37 @@ export default function Configuracion() {
                             />
                             <FormField
                               control={createUsuarioForm.control}
-                              name="zonaId"
+                              name="zonasIds"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Zona de Trabajo</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                                    <FormControl>
-                                      <SelectTrigger data-testid="select-zona-usuario">
-                                        <SelectValue placeholder="Ninguna (opcional)" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {zonas.map((zona) => (
-                                        <SelectItem 
-                                          key={zona.id} 
-                                          value={zona.id}
-                                          data-testid={`select-zona-option-${zona.id}`}
-                                        >
+                                  <FormLabel>Zonas de Trabajo (opcional)</FormLabel>
+                                  <div className="space-y-2 border rounded-md p-3 max-h-40 overflow-y-auto">
+                                    {zonas.map((zona) => (
+                                      <div key={zona.id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                          checked={field.value?.includes(zona.id)}
+                                          onCheckedChange={(checked) => {
+                                            const currentValue = field.value || [];
+                                            const newValue = checked
+                                              ? [...currentValue, zona.id]
+                                              : currentValue.filter((id) => id !== zona.id);
+                                            field.onChange(newValue);
+                                          }}
+                                          data-testid={`checkbox-zona-${zona.id}`}
+                                        />
+                                        <label className="text-sm cursor-pointer" onClick={() => {
+                                          const currentValue = field.value || [];
+                                          const isChecked = currentValue.includes(zona.id);
+                                          const newValue = isChecked
+                                            ? currentValue.filter((id) => id !== zona.id)
+                                            : [...currentValue, zona.id];
+                                          field.onChange(newValue);
+                                        }}>
                                           {zona.zona}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                        </label>
+                                      </div>
+                                    ))}
+                                  </div>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -896,19 +906,21 @@ export default function Configuracion() {
                         <TableRow>
                           <TableHead>Nombre de Usuario</TableHead>
                           <TableHead>Tipo de Acceso</TableHead>
-                          <TableHead>Zona</TableHead>
+                          <TableHead>Zonas</TableHead>
                           <TableHead className="w-[100px]">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredUsuarios.map((usuario) => {
-                          const zona = zonas.find(z => z.id === usuario.zonaId);
+                          const usuarioZonas = usuario.zonasIds
+                            ?.map(zonaId => zonas.find(z => z.id === zonaId)?.zona)
+                            .filter(Boolean) || [];
                           return (
                             <TableRow key={usuario.id} data-testid={`row-usuario-${usuario.id}`}>
                               <TableCell className="font-medium">{usuario.nombreUsuario}</TableCell>
                               <TableCell>{usuario.tipoAcceso}</TableCell>
-                              <TableCell data-testid={`text-zona-usuario-${usuario.id}`}>
-                                {zona ? zona.zona : "-"}
+                              <TableCell data-testid={`text-zonas-usuario-${usuario.id}`}>
+                                {usuarioZonas.length > 0 ? usuarioZonas.join(", ") : "-"}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
@@ -1123,28 +1135,37 @@ export default function Configuracion() {
               />
               <FormField
                 control={editUsuarioForm.control}
-                name="zonaId"
+                name="zonasIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Zona de Trabajo</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || undefined}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-edit-zona-usuario">
-                          <SelectValue placeholder="Ninguna (opcional)" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {zonas.map((zona) => (
-                          <SelectItem 
-                            key={zona.id} 
-                            value={zona.id}
-                            data-testid={`select-edit-zona-option-${zona.id}`}
-                          >
+                    <FormLabel>Zonas de Trabajo (opcional)</FormLabel>
+                    <div className="space-y-2 border rounded-md p-3 max-h-40 overflow-y-auto">
+                      {zonas.map((zona) => (
+                        <div key={zona.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={field.value?.includes(zona.id)}
+                            onCheckedChange={(checked) => {
+                              const currentValue = field.value || [];
+                              const newValue = checked
+                                ? [...currentValue, zona.id]
+                                : currentValue.filter((id) => id !== zona.id);
+                              field.onChange(newValue);
+                            }}
+                            data-testid={`checkbox-edit-zona-${zona.id}`}
+                          />
+                          <label className="text-sm cursor-pointer" onClick={() => {
+                            const currentValue = field.value || [];
+                            const isChecked = currentValue.includes(zona.id);
+                            const newValue = isChecked
+                              ? currentValue.filter((id) => id !== zona.id)
+                              : [...currentValue, zona.id];
+                            field.onChange(newValue);
+                          }}>
                             {zona.zona}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
