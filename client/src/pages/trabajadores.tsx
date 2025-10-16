@@ -194,8 +194,8 @@ export default function Trabajadores() {
           <WorkerCard
             key={worker.id}
             {...worker}
-            onEdit={() => handleOpenEditDialog(worker)}
-            onDelete={() => handleDeleteWorker(worker.id)}
+            onEdit={user?.tipoAcceso !== "Usuario" ? () => handleOpenEditDialog(worker) : undefined}
+            onDelete={user?.tipoAcceso !== "Usuario" ? () => handleDeleteWorker(worker.id) : undefined}
             onClick={() => handleWorkerClick(worker)}
           />
         ))}
