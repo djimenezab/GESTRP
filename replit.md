@@ -80,6 +80,19 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
 ## Recent Changes
 
 ### October 16, 2025 (Latest)
+- **Zone-Based Data Filtering Implementation**:
+  - **Backend Filtering**: Implemented zone-based filtering for all data endpoints
+  - **Storage Layer**: Added filtered query methods (getTrabajadoresByZonas, getEpisByZonas, getCursosByZonas, getAccidentesByZonas, getEquiposByZonas)
+  - **Route Logic**: 
+    - AdminGral: sees all data (no filtering)
+    - Administrador: sees only data from assigned zonasIds
+    - Usuario: planned to see only own data (currently returns empty arrays)
+  - **Filtering Strategy**:
+    - Trabajadores & Equipos: Direct filter by zonaId field
+    - EPIs, Cursos & Accidentes: Indirect filter via trabajadorId (workers in assigned zones)
+  - **Validation**: Tested with Administrador user with 2 zones, correctly filtered to show 1/5 workers and 1/2 equipment items
+  - **Pending**: Usuario role filtering implementation
+
 - **Multiple Zones per User**:
   - Updated users table to support multiple zones (zonasIds array field)
   - Changed from single zone (zonaId) to multiple zones (zonasIds varchar[])
