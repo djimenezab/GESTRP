@@ -347,12 +347,13 @@ export default function Equipos() {
               <TableBody>
                 {filteredEquipos.map((equipo) => {
                   const zona = zonasTrabajo.find(z => z.id === equipo.zonaId);
+                  const isUsuario = user?.tipoAcceso === "Usuario";
                   return (
                     <TableRow 
                       key={equipo.id} 
                       data-testid={`row-equipo-${equipo.id}`}
-                      onClick={() => handleEdit(equipo)}
-                      className="cursor-pointer hover-elevate"
+                      onClick={isUsuario ? undefined : () => handleEdit(equipo)}
+                      className={isUsuario ? "" : "cursor-pointer hover-elevate"}
                     >
                       <TableCell className="font-medium" data-testid={`text-nombre-${equipo.id}`}>
                         {equipo.nombre}
@@ -412,17 +413,19 @@ export default function Equipos() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(equipo);
-                          }}
-                          data-testid={`button-delete-equipo-${equipo.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {!isUsuario && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(equipo);
+                            }}
+                            data-testid={`button-delete-equipo-${equipo.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   );

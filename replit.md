@@ -26,6 +26,7 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 
 - **Comprehensive Management Modules**: Includes modules for Worker, EPI, Equipment, Training, and Accident management with full CRUD operations.
 - **Role-Based Access Control**: Three access levels (AdminGral, Administrador, Usuario) with zone-based and individual user-based data filtering and creation restrictions implemented at both backend and frontend. Users can be assigned to multiple work zones.
+  - **Usuario Role**: View-only access to their own data (trabajador, EPIs, cursos, accidentes) and zone equipment. No creation/deletion permissions. Equipment module is read-only with document viewing capabilities only.
 - **File Uploads**: Integration with Replit Object Storage for documents and images (e.g., EPI documentation, equipment files, evaluation sheets, manuals).
 - **Risk Evaluation Tracking**: Includes comprehensive validation and tracking for worker risk evaluation delivery with printable documents.
 - **UI/UX Design**: Professional interface using Shadcn UI and Tailwind CSS, featuring searchable tables, modal dialogs, and consistent design patterns, with light/dark mode support.
