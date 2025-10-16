@@ -59,6 +59,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!trabajador) {
         return res.status(404).json({ error: "Trabajador no encontrado" });
       }
+      
+      // Validar acceso para Usuario: solo puede ver su propia ficha
+      if (req.session.tipoAcceso === "Usuario" && req.session.trabajadorId !== req.params.id) {
+        return res.status(403).json({ error: "No tiene permisos para ver este trabajador" });
+      }
+      
+      // Validar acceso para Administrador: solo puede ver trabajadores de sus zonas
+      if (req.session.tipoAcceso === "Administrador" && req.session.zonasIds) {
+        if (!trabajador.zonaId || !req.session.zonasIds.includes(trabajador.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para ver este trabajador" });
+        }
+      }
+      
       res.json(trabajador);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener trabajador" });
@@ -188,6 +201,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!epi) {
         return res.status(404).json({ error: "EPI no encontrado" });
       }
+      
+      // Validar acceso para Usuario: solo puede ver sus propios EPIs
+      if (req.session.tipoAcceso === "Usuario" && req.session.trabajadorId !== epi.trabajadorId) {
+        return res.status(403).json({ error: "No tiene permisos para ver este EPI" });
+      }
+      
+      // Validar acceso para Administrador: solo puede ver EPIs de trabajadores de sus zonas
+      if (req.session.tipoAcceso === "Administrador" && req.session.zonasIds) {
+        const trabajador = await storage.getTrabajador(epi.trabajadorId);
+        if (!trabajador || !trabajador.zonaId || !req.session.zonasIds.includes(trabajador.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para ver este EPI" });
+        }
+      }
+      
       res.json(epi);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener EPI" });
@@ -270,6 +297,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!curso) {
         return res.status(404).json({ error: "Curso no encontrado" });
       }
+      
+      // Validar acceso para Usuario: solo puede ver sus propios cursos
+      if (req.session.tipoAcceso === "Usuario" && req.session.trabajadorId !== curso.trabajadorId) {
+        return res.status(403).json({ error: "No tiene permisos para ver este curso" });
+      }
+      
+      // Validar acceso para Administrador: solo puede ver cursos de trabajadores de sus zonas
+      if (req.session.tipoAcceso === "Administrador" && req.session.zonasIds) {
+        const trabajador = await storage.getTrabajador(curso.trabajadorId);
+        if (!trabajador || !trabajador.zonaId || !req.session.zonasIds.includes(trabajador.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para ver este curso" });
+        }
+      }
+      
       res.json(curso);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener curso" });
@@ -352,6 +393,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!accidente) {
         return res.status(404).json({ error: "Accidente no encontrado" });
       }
+      
+      // Validar acceso para Usuario: solo puede ver sus propios accidentes
+      if (req.session.tipoAcceso === "Usuario" && req.session.trabajadorId !== accidente.trabajadorId) {
+        return res.status(403).json({ error: "No tiene permisos para ver este accidente" });
+      }
+      
+      // Validar acceso para Administrador: solo puede ver accidentes de trabajadores de sus zonas
+      if (req.session.tipoAcceso === "Administrador" && req.session.zonasIds) {
+        const trabajador = await storage.getTrabajador(accidente.trabajadorId);
+        if (!trabajador || !trabajador.zonaId || !req.session.zonasIds.includes(trabajador.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para ver este accidente" });
+        }
+      }
+      
       res.json(accidente);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener accidente" });
@@ -680,15 +735,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tipoAcceso = req.session.tipoAcceso;
       const zonasIds = req.session.zonasIds;
+      const trabajadorId = req.session.trabajadorId;
       let equipos: any[] = [];
       
       if (tipoAcceso === "AdminGral") {
         equipos = await storage.getEquipos();
       } else if (tipoAcceso === "Administrador" && zonasIds) {
         equipos = await storage.getEquiposByZonas(zonasIds);
-      } else if (tipoAcceso === "Usuario") {
-        // Usuario no gestiona equipos, lista vacía
-        equipos = [];
+      } else if (tipoAcceso === "Usuario" && trabajadorId) {
+        // Usuario ve equipos de su zona
+        const trabajador = await storage.getTrabajador(trabajadorId);
+        if (trabajador && trabajador.zonaId) {
+          equipos = await storage.getEquiposByZonas([trabajador.zonaId]);
+        }
       }
       
       res.json(equipos);
@@ -704,6 +763,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!equipo) {
         return res.status(404).json({ error: "Equipo no encontrado" });
       }
+      
+      // Validar acceso para Usuario: solo puede ver equipos de su zona
+      if (req.session.tipoAcceso === "Usuario" && req.session.trabajadorId) {
+        const trabajador = await storage.getTrabajador(req.session.trabajadorId);
+        if (!trabajador || trabajador.zonaId !== equipo.zonaId) {
+          return res.status(403).json({ error: "No tiene permisos para ver este equipo" });
+        }
+      }
+      
+      // Validar acceso para Administrador: solo puede ver equipos de sus zonas
+      if (req.session.tipoAcceso === "Administrador" && req.session.zonasIds) {
+        if (!equipo.zonaId || !req.session.zonasIds.includes(equipo.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para ver este equipo" });
+        }
+      }
+      
       res.json(equipo);
     } catch (error) {
       console.error("Error getting equipo:", error);

@@ -88,10 +88,15 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
     - EPIs: Only EPIs assigned to them (via trabajadorId)
     - Cursos: Only courses assigned to them (via trabajadorId)
     - Accidentes: Only accidents involving them (via trabajadorId)
-    - Equipos: Empty array (no equipment access)
+    - Equipos: Only equipment from their work zone (via trabajador.zonaId)
   - **Creation Restrictions**:
     - Backend: All POST endpoints return 403 Forbidden for Usuario accounts (trabajadores, epis, cursos, accidentes, equipos)
     - Frontend: All "Nuevo/Nueva" buttons hidden for Usuario accounts across all modules
+  - **Detail Endpoint Security**:
+    - All GET /:id endpoints validate user access permissions
+    - Usuario: Can only access their own records (trabajadorId match) or zone equipment
+    - Administrador: Can only access records from assigned zones
+    - Returns 403 Forbidden for unauthorized access attempts
   - **Storage Layer**: Added getTrabajadorByEmail method for email-based lookup
   - **Implementation**: Complete role-based access control with both backend security and frontend UX
 
