@@ -6,5 +6,6 @@ declare module "express-session" {
     nombreUsuario?: string;
     tipoAcceso?: string;
     zonasIds?: string[];
+    trabajadorId?: string;
   }
 }

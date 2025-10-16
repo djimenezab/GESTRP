@@ -26,6 +26,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { AccidentForm } from "@/components/accident-form";
 import type { Accidente, Trabajador, InsertAccidente } from "@shared/schema";
+import { useAuth } from "@/contexts/AuthContext";
 
 const gravedadColors = {
   LEVE: "bg-chart-2 text-white",
@@ -39,6 +40,7 @@ const tipoAccidenteLabels = {
 };
 
 export default function Accidentes() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -166,23 +168,25 @@ export default function Accidentes() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Accidentes Laborales</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-nuevo-accidente">
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Accidente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Registrar Nuevo Accidente</DialogTitle>
-            </DialogHeader>
-            <AccidentForm
-              onSubmit={(data) => createAccidenteMutation.mutate(data)}
-              isLoading={createAccidenteMutation.isPending}
-            />
-          </DialogContent>
-        </Dialog>
+        {user?.tipoAcceso !== "Usuario" && (
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-nuevo-accidente">
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Accidente
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Registrar Nuevo Accidente</DialogTitle>
+              </DialogHeader>
+              <AccidentForm
+                onSubmit={(data) => createAccidenteMutation.mutate(data)}
+                isLoading={createAccidenteMutation.isPending}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex items-center gap-2">

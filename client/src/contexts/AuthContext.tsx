@@ -6,6 +6,7 @@ interface User {
   nombreUsuario: string;
   tipoAcceso: string;
   zonasIds?: string[];
+  trabajadorId?: string;
 }
 
 interface AuthContextType {

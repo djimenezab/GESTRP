@@ -80,18 +80,32 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
 ## Recent Changes
 
 ### October 16, 2025 (Latest)
+- **Usuario Role Implementation - Complete Filtering and Restrictions**:
+  - **User-Worker Relationship**: Usuario accounts linked to trabajador records via email (usuarios.nombreUsuario = trabajadores.email)
+  - **Session Management**: trabajadorId stored in session for Usuario accounts during login and session refresh
+  - **Backend Filtering**: Usuario users see only their own data:
+    - Trabajadores: Only their own worker record (single item array)
+    - EPIs: Only EPIs assigned to them (via trabajadorId)
+    - Cursos: Only courses assigned to them (via trabajadorId)
+    - Accidentes: Only accidents involving them (via trabajadorId)
+    - Equipos: Empty array (no equipment access)
+  - **Creation Restrictions**:
+    - Backend: All POST endpoints return 403 Forbidden for Usuario accounts (trabajadores, epis, cursos, accidentes, equipos)
+    - Frontend: All "Nuevo/Nueva" buttons hidden for Usuario accounts across all modules
+  - **Storage Layer**: Added getTrabajadorByEmail method for email-based lookup
+  - **Implementation**: Complete role-based access control with both backend security and frontend UX
+
 - **Zone-Based Data Filtering Implementation**:
   - **Backend Filtering**: Implemented zone-based filtering for all data endpoints
   - **Storage Layer**: Added filtered query methods (getTrabajadoresByZonas, getEpisByZonas, getCursosByZonas, getAccidentesByZonas, getEquiposByZonas)
   - **Route Logic**: 
     - AdminGral: sees all data (no filtering)
     - Administrador: sees only data from assigned zonasIds
-    - Usuario: planned to see only own data (currently returns empty arrays)
+    - Usuario: sees only own data (via trabajadorId)
   - **Filtering Strategy**:
     - Trabajadores & Equipos: Direct filter by zonaId field
     - EPIs, Cursos & Accidentes: Indirect filter via trabajadorId (workers in assigned zones)
   - **Validation**: Tested with Administrador user with 2 zones, correctly filtered to show 1/5 workers and 1/2 equipment items
-  - **Pending**: Usuario role filtering implementation
 
 - **Multiple Zones per User**:
   - Updated users table to support multiple zones (zonasIds array field)

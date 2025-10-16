@@ -33,8 +33,10 @@ import { EpiDocumentosDialog } from "@/components/epi-documentos-dialog";
 import { type InsertEpi, type Epi, type Trabajador } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Epis() {
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -186,20 +188,22 @@ export default function Epis() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-3xl font-bold">EPIs</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-epi">
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Entrega EPI
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Registrar Entrega de EPI</DialogTitle>
-            </DialogHeader>
-            <EpiForm onSubmit={handleCreateEpi} trabajadores={trabajadores} />
-          </DialogContent>
-        </Dialog>
+        {user?.tipoAcceso !== "Usuario" && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-epi">
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Entrega EPI
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Registrar Entrega de EPI</DialogTitle>
+              </DialogHeader>
+              <EpiForm onSubmit={handleCreateEpi} trabajadores={trabajadores} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="relative max-w-md">

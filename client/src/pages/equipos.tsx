@@ -56,8 +56,10 @@ import { useToast } from "@/hooks/use-toast";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Equipos() {
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -300,10 +302,12 @@ export default function Equipos() {
             <CardTitle>Listado de Equipos</CardTitle>
             <CardDescription>Gestiona los equipos y su información</CardDescription>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)} data-testid="button-add-equipo">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Equipo
-          </Button>
+          {user?.tipoAcceso !== "Usuario" && (
+            <Button onClick={() => setIsDialogOpen(true)} data-testid="button-add-equipo">
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Equipo
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">

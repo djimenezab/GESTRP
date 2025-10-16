@@ -38,6 +38,7 @@ export interface IStorage {
   getTrabajadores(): Promise<Trabajador[]>;
   getTrabajadoresByZonas(zonasIds: string[]): Promise<Trabajador[]>;
   getTrabajador(id: string): Promise<Trabajador | undefined>;
+  getTrabajadorByEmail(email: string): Promise<Trabajador | undefined>;
   createTrabajador(data: InsertTrabajador): Promise<Trabajador>;
   updateTrabajador(id: string, data: Partial<InsertTrabajador>): Promise<Trabajador | undefined>;
   deleteTrabajador(id: string): Promise<void>;
@@ -134,6 +135,11 @@ export class DbStorage implements IStorage {
 
   async deleteTrabajador(id: string): Promise<void> {
     await db.delete(trabajadores).where(eq(trabajadores.id, id));
+  }
+
+  async getTrabajadorByEmail(email: string): Promise<Trabajador | undefined> {
+    const result = await db.select().from(trabajadores).where(eq(trabajadores.email, email));
+    return result[0];
   }
 
   async getTrabajadoresByZonas(zonasIds: string[]): Promise<Trabajador[]> {

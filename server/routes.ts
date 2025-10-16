@@ -34,15 +34,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tipoAcceso = req.session.tipoAcceso;
       const zonasIds = req.session.zonasIds;
+      const trabajadorId = req.session.trabajadorId;
       let trabajadores: any[] = [];
       
       if (tipoAcceso === "AdminGral") {
         trabajadores = await storage.getTrabajadores();
       } else if (tipoAcceso === "Administrador" && zonasIds) {
         trabajadores = await storage.getTrabajadoresByZonas(zonasIds);
-      } else if (tipoAcceso === "Usuario") {
-        // Usuario solo ve sus propios datos (implementar después)
-        trabajadores = [];
+      } else if (tipoAcceso === "Usuario" && trabajadorId) {
+        // Usuario solo ve su propia ficha
+        const trabajador = await storage.getTrabajador(trabajadorId);
+        trabajadores = trabajador ? [trabajador] : [];
       }
       
       res.json(trabajadores);
@@ -65,6 +67,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/trabajadores", async (req, res) => {
     try {
+      // Bloquear creación para usuarios tipo Usuario
+      if (req.session.tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No tiene permisos para crear trabajadores" });
+      }
+      
       const data = insertTrabajadorSchema.parse(req.body);
       const trabajador = await storage.createTrabajador(data);
       res.status(201).json(trabajador);
@@ -157,15 +164,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tipoAcceso = req.session.tipoAcceso;
       const zonasIds = req.session.zonasIds;
+      const trabajadorId = req.session.trabajadorId;
       let epis: any[] = [];
       
       if (tipoAcceso === "AdminGral") {
         epis = await storage.getEpis();
       } else if (tipoAcceso === "Administrador" && zonasIds) {
         epis = await storage.getEpisByZonas(zonasIds);
-      } else if (tipoAcceso === "Usuario") {
-        // Usuario solo ve sus propios datos (implementar después)
-        epis = [];
+      } else if (tipoAcceso === "Usuario" && trabajadorId) {
+        // Usuario solo ve sus propios EPIs
+        epis = await storage.getEpisByTrabajador(trabajadorId);
       }
       
       res.json(epis);
@@ -197,6 +205,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/epis", async (req, res) => {
     try {
+      // Bloquear creación para usuarios tipo Usuario
+      if (req.session.tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No tiene permisos para crear EPIs" });
+      }
+      
       const data = insertEpiSchema.parse(req.body);
       const epi = await storage.createEpi(data);
       res.status(201).json(epi);
@@ -233,15 +246,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tipoAcceso = req.session.tipoAcceso;
       const zonasIds = req.session.zonasIds;
+      const trabajadorId = req.session.trabajadorId;
       let cursos: any[] = [];
       
       if (tipoAcceso === "AdminGral") {
         cursos = await storage.getCursos();
       } else if (tipoAcceso === "Administrador" && zonasIds) {
         cursos = await storage.getCursosByZonas(zonasIds);
-      } else if (tipoAcceso === "Usuario") {
-        // Usuario solo ve sus propios datos (implementar después)
-        cursos = [];
+      } else if (tipoAcceso === "Usuario" && trabajadorId) {
+        // Usuario solo ve sus propios cursos
+        cursos = await storage.getCursosByTrabajador(trabajadorId);
       }
       
       res.json(cursos);
@@ -273,6 +287,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cursos", async (req, res) => {
     try {
+      // Bloquear creación para usuarios tipo Usuario
+      if (req.session.tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No tiene permisos para crear cursos" });
+      }
+      
       const data = insertCursoSchema.parse(req.body);
       const curso = await storage.createCurso(data);
       res.status(201).json(curso);
@@ -309,15 +328,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tipoAcceso = req.session.tipoAcceso;
       const zonasIds = req.session.zonasIds;
+      const trabajadorId = req.session.trabajadorId;
       let accidentes: any[] = [];
       
       if (tipoAcceso === "AdminGral") {
         accidentes = await storage.getAccidentes();
       } else if (tipoAcceso === "Administrador" && zonasIds) {
         accidentes = await storage.getAccidentesByZonas(zonasIds);
-      } else if (tipoAcceso === "Usuario") {
-        // Usuario solo ve sus propios datos (implementar después)
-        accidentes = [];
+      } else if (tipoAcceso === "Usuario" && trabajadorId) {
+        // Usuario solo ve sus propios accidentes
+        accidentes = await storage.getAccidentesByTrabajador(trabajadorId);
       }
       
       res.json(accidentes);
@@ -349,6 +369,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/accidentes", async (req, res) => {
     try {
+      // Bloquear creación para usuarios tipo Usuario
+      if (req.session.tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No tiene permisos para crear accidentes" });
+      }
+      
       const data = insertAccidenteSchema.parse(req.body);
       const accidente = await storage.createAccidente(data);
       res.status(201).json(accidente);
@@ -661,9 +686,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         equipos = await storage.getEquipos();
       } else if (tipoAcceso === "Administrador" && zonasIds) {
         equipos = await storage.getEquiposByZonas(zonasIds);
-      } else if (tipoAcceso === "Usuario" && zonasIds) {
-        // Usuario solo ve equipos de sus zonas
-        equipos = await storage.getEquiposByZonas(zonasIds);
+      } else if (tipoAcceso === "Usuario") {
+        // Usuario no gestiona equipos, lista vacía
+        equipos = [];
       }
       
       res.json(equipos);
@@ -688,6 +713,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/equipos", async (req, res) => {
     try {
+      // Bloquear creación para usuarios tipo Usuario
+      if (req.session.tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No tiene permisos para crear equipos" });
+      }
+      
       const data = insertEquipoSchema.parse(req.body);
       const equipo = await storage.createEquipo(data);
       res.status(201).json(equipo);
@@ -771,6 +801,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.tipoAcceso = usuario.tipoAcceso;
       req.session.zonasIds = usuario.zonasIds || [];
 
+      // Para usuarios tipo "Usuario", buscar su trabajador asociado por email
+      if (usuario.tipoAcceso === "Usuario") {
+        const trabajador = await storage.getTrabajadorByEmail(usuario.nombreUsuario);
+        if (trabajador) {
+          req.session.trabajadorId = trabajador.id;
+        }
+      }
+
       res.json({
         id: usuario.id,
         nombreUsuario: usuario.nombreUsuario,
@@ -804,11 +842,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Usuario no encontrado" });
       }
 
+      // Para usuarios tipo "Usuario", buscar su trabajador asociado si no está en sesión
+      if (usuario.tipoAcceso === "Usuario" && !req.session.trabajadorId) {
+        const trabajador = await storage.getTrabajadorByEmail(usuario.nombreUsuario);
+        if (trabajador) {
+          req.session.trabajadorId = trabajador.id;
+        }
+      }
+
       res.json({
         id: usuario.id,
         nombreUsuario: usuario.nombreUsuario,
         tipoAcceso: usuario.tipoAcceso,
         zonasIds: usuario.zonasIds,
+        trabajadorId: req.session.trabajadorId,
       });
     } catch (error) {
       console.error("Session check error:", error);

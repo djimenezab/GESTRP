@@ -17,8 +17,10 @@ import {
 import { CATEGORIAS, type InsertTrabajador, type Trabajador } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Trabajadores() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -143,20 +145,22 @@ export default function Trabajadores() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-3xl font-bold">Trabajadores</h1>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-worker">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Trabajador
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Añadir Nuevo Trabajador</DialogTitle>
-            </DialogHeader>
-            <WorkerForm onSubmit={handleCreateWorker} />
-          </DialogContent>
-        </Dialog>
+        {user?.tipoAcceso !== "Usuario" && (
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-worker">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo Trabajador
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Añadir Nuevo Trabajador</DialogTitle>
+              </DialogHeader>
+              <WorkerForm onSubmit={handleCreateWorker} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
