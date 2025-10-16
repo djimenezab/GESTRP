@@ -709,13 +709,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = usuario.id;
       req.session.nombreUsuario = usuario.nombreUsuario;
       req.session.tipoAcceso = usuario.tipoAcceso;
-      req.session.zonaId = usuario.zonaId || null;
+      req.session.zonasIds = usuario.zonasIds || [];
 
       res.json({
         id: usuario.id,
         nombreUsuario: usuario.nombreUsuario,
         tipoAcceso: usuario.tipoAcceso,
-        zonaId: usuario.zonaId,
+        zonasIds: usuario.zonasIds,
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -748,7 +748,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: usuario.id,
         nombreUsuario: usuario.nombreUsuario,
         tipoAcceso: usuario.tipoAcceso,
-        zonaId: usuario.zonaId,
+        zonasIds: usuario.zonasIds,
       });
     } catch (error) {
       console.error("Session check error:", error);

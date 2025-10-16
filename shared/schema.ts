@@ -36,7 +36,7 @@ export const usuarios = pgTable("usuarios", {
   nombreUsuario: text("nombre_usuario").notNull().unique(),
   password: text("password").notNull(),
   tipoAcceso: text("tipo_acceso").notNull(),
-  zonaId: varchar("zona_id").references(() => zonasTrabajo.id),
+  zonasIds: varchar("zonas_ids").array(),
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
 });
 
@@ -197,7 +197,7 @@ export const insertUsuarioSchema = createInsertSchema(usuarios).omit({ id: true,
   nombreUsuario: z.string().min(3, "Nombre de usuario debe tener al menos 3 caracteres"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
   tipoAcceso: z.enum(TIPOS_ACCESO),
-  zonaId: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  zonasIds: z.array(z.string()).optional(),
 });
 
 export const insertEquipoSchema = createInsertSchema(equipos).omit({ id: true, fechaCreacion: true }).extend({

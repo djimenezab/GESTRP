@@ -5,6 +5,6 @@ declare module "express-session" {
     userId?: string;
     nombreUsuario?: string;
     tipoAcceso?: string;
-    zonaId?: string | null;
+    zonasIds?: string[];
   }
 }

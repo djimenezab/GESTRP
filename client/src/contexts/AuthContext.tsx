@@ -5,7 +5,7 @@ interface User {
   id: string;
   nombreUsuario: string;
   tipoAcceso: string;
-  zonaId?: string | null;
+  zonasIds?: string[];
 }
 
 interface AuthContextType {
