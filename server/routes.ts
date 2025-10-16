@@ -36,15 +36,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const zonasIds = req.session.zonasIds;
       let trabajadores: any[] = [];
       
+      console.log("GET /api/trabajadores - tipoAcceso:", tipoAcceso);
+      console.log("GET /api/trabajadores - zonasIds:", zonasIds);
+      console.log("GET /api/trabajadores - zonasIds type:", typeof zonasIds);
+      console.log("GET /api/trabajadores - zonasIds isArray:", Array.isArray(zonasIds));
+      
       if (tipoAcceso === "AdminGral") {
         trabajadores = await storage.getTrabajadores();
       } else if (tipoAcceso === "Administrador" && zonasIds) {
+        console.log("Filtrando trabajadores por zonas:", zonasIds);
         trabajadores = await storage.getTrabajadoresByZonas(zonasIds);
       } else if (tipoAcceso === "Usuario") {
         // Usuario solo ve sus propios datos (implementar después)
         trabajadores = [];
       }
       
+      console.log("GET /api/trabajadores - resultado count:", trabajadores.length);
       res.json(trabajadores);
     } catch (error) {
       res.status(500).json({ error: "Error al obtener trabajadores" });
@@ -770,6 +777,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.nombreUsuario = usuario.nombreUsuario;
       req.session.tipoAcceso = usuario.tipoAcceso;
       req.session.zonasIds = usuario.zonasIds || [];
+
+      console.log("LOGIN - Usuario zonasIds:", usuario.zonasIds);
+      console.log("LOGIN - Session zonasIds:", req.session.zonasIds);
 
       res.json({
         id: usuario.id,
