@@ -80,10 +80,19 @@ Type safety is enforced through Zod schemas generated from Drizzle schemas.
 ## Recent Changes
 
 ### October 16, 2025 (Latest)
+- **Multiple Zones per User**:
+  - Updated users table to support multiple zones (zonasIds array field)
+  - Changed from single zone (zonaId) to multiple zones (zonasIds varchar[])
+  - Database migration: Converted existing zonaId values to arrays preserving data
+  - Updated forms in Configuración to use checkboxes for multi-zone selection
+  - Users table displays comma-separated zone names
+  - Updated AuthContext and session management for multiple zones
+  - Form validation supports optional array of zone IDs
+
 - **Authentication & Authorization System**:
   - Implemented complete session-based authentication using express-session
-  - Users table extended with `zonaId` field (foreign key to zonas_trabajo) for zone-based access control
-  - Three access levels: AdminGral (full access), Administrador (filtered by zona), Usuario (own data only)
+  - Users can be assigned to multiple work zones for flexible access control
+  - Three access levels: AdminGral (full access), Administrador (filtered by zonas), Usuario (own data only)
   - **Session Management**:
     - SESSION_SECRET stored in Replit secrets
     - express-session with connect-pg-simple for PostgreSQL session store
