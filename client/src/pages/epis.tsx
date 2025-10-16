@@ -55,6 +55,10 @@ export default function Epis() {
     queryKey: ["/api/trabajadores"],
   });
 
+  const { data: episFichasEv = [] } = useQuery<Array<{ id: string; nombreEpi: string }>>({
+    queryKey: ["/api/epis-fichas-ev"],
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data: InsertEpi) => {
       return await apiRequest("POST", "/api/epis", data);
@@ -200,7 +204,7 @@ export default function Epis() {
               <DialogHeader>
                 <DialogTitle>Registrar Entrega de EPI</DialogTitle>
               </DialogHeader>
-              <EpiForm onSubmit={handleCreateEpi} trabajadores={trabajadores} />
+              <EpiForm onSubmit={handleCreateEpi} trabajadores={trabajadores} episFichasEv={episFichasEv} />
             </DialogContent>
           </Dialog>
         )}
@@ -317,6 +321,7 @@ export default function Epis() {
             <EpiForm 
               onSubmit={handleEditEpi}
               trabajadores={trabajadores}
+              episFichasEv={episFichasEv}
               initialData={{
                 trabajadorId: editingEpi.trabajadorId,
                 tipoEquipo: editingEpi.tipoEquipo,

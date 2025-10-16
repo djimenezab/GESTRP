@@ -23,11 +23,12 @@ import {
 interface EpiFormProps {
   onSubmit: (data: InsertEpi) => void;
   trabajadores: Array<{ id: string; nombreCompleto: string }>;
+  episFichasEv: Array<{ id: string; nombreEpi: string }>;
   initialData?: Partial<InsertEpi>;
   isLoading?: boolean;
 }
 
-export function EpiForm({ onSubmit, trabajadores, initialData, isLoading }: EpiFormProps) {
+export function EpiForm({ onSubmit, trabajadores, episFichasEv, initialData, isLoading }: EpiFormProps) {
   const form = useForm<InsertEpi>({
     resolver: zodResolver(insertEpiSchema),
     defaultValues: {
@@ -75,13 +76,20 @@ export function EpiForm({ onSubmit, trabajadores, initialData, isLoading }: EpiF
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tipo de Equipo</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ej: Casco, Guantes, Botas de seguridad"
-                  {...field}
-                  data-testid="input-tipo-equipo"
-                />
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-tipo-equipo">
+                    <SelectValue placeholder="Selecciona un tipo de equipo" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {episFichasEv.map((epi) => (
+                    <SelectItem key={epi.id} value={epi.nombreEpi}>
+                      {epi.nombreEpi}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
