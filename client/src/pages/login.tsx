@@ -146,7 +146,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Iniciar Sesión</CardTitle>
           <CardDescription>
-            Sistema de Prevención de Riesgos Laborales
+            Gestión de Recursos de Prevención de Riesgos Laborales
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

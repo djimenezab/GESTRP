@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Printer, AlertTriangle, Mail, MapPin } from "lucide-react";
+import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Eye, Download, AlertTriangle, Mail, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -20,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { EvaluacionRiesgosDocument } from "./evaluacion-riesgos-document";
 import type { Epi, Curso, Accidente, ZonaTrabajo } from "@shared/schema";
 
 interface WorkerDetailDialogProps {
@@ -34,8 +33,7 @@ interface WorkerDetailDialogProps {
     fechaNacimiento: string;
     email?: string | null;
     zonaId?: string | null;
-    recibeEvaluacionRiesgos: boolean;
-    fechaEntregaEvaluacion: string | null;
+    fichaEvaluacionRiesgosUrl?: string | null;
   };
 }
 
@@ -44,7 +42,6 @@ export function WorkerDetailDialog({
   onOpenChange,
   worker,
 }: WorkerDetailDialogProps) {
-  const [showDocument, setShowDocument] = useState(false);
 
   const { data: zona } = useQuery<ZonaTrabajo>({
     queryKey: ["/api/zonas-trabajo", worker.zonaId],
@@ -134,48 +131,55 @@ export function WorkerDetailDialog({
             </CardContent>
           </Card>
 
-          {/* Evaluación de Riesgos */}
+          {/* Ficha de Evaluación de Riesgos Laborales */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Evaluación de Riesgos Laborales
-                </span>
-                {worker.recibeEvaluacionRiesgos && worker.fechaEntregaEvaluacion && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDocument(true)}
-                    data-testid="button-print-evaluacion"
-                  >
-                    <Printer className="h-4 w-4 mr-2" />
-                    Ver Acreditación
-                  </Button>
-                )}
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Ficha de Evaluación de Riesgos Laborales
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  {worker.recibeEvaluacionRiesgos ? (
-                    <>
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
-                      <span className="font-medium">Recibe copia de evaluación de riesgos</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-muted-foreground">No recibe copia de evaluación de riesgos</span>
-                    </>
-                  )}
-                </div>
-                {worker.recibeEvaluacionRiesgos && worker.fechaEntregaEvaluacion && (
-                  <div className="pl-7 text-sm text-muted-foreground">
-                    Fecha de entrega: {format(new Date(worker.fechaEntregaEvaluacion), "dd/MM/yyyy", { locale: es })}
+              {worker.fichaEvaluacionRiesgosUrl ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <span className="font-medium">Ficha de evaluación disponible</span>
                   </div>
-                )}
-              </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(worker.fichaEvaluacionRiesgosUrl!, '_blank')}
+                      data-testid="button-view-ficha-evaluacion"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Documento
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (worker.fichaEvaluacionRiesgosUrl) {
+                          const link = document.createElement('a');
+                          link.href = worker.fichaEvaluacionRiesgosUrl;
+                          link.download = `ficha_evaluacion_${worker.dni}`;
+                          link.click();
+                        }
+                      }}
+                      data-testid="button-download-ficha-evaluacion"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Descargar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <XCircle className="h-5 w-5" />
+                  <span>No hay ficha de evaluación disponible</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -308,36 +312,6 @@ export function WorkerDetailDialog({
           </Card>
         </div>
       </DialogContent>
-
-      {/* Diálogo para mostrar el documento */}
-      <Dialog open={showDocument} onOpenChange={setShowDocument}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Acreditación de Recepción - Evaluación de Riesgos</span>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => window.print()}
-                data-testid="button-do-print"
-              >
-                <Printer className="h-4 w-4 mr-2" />
-                Imprimir
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          {worker.fechaEntregaEvaluacion && (
-            <EvaluacionRiesgosDocument
-              worker={{
-                nombreCompleto: worker.nombreCompleto,
-                dni: worker.dni,
-                categoria: worker.categoria,
-                fechaEntregaEvaluacion: worker.fechaEntregaEvaluacion,
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </Dialog>
   );
 }

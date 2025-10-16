@@ -220,6 +220,9 @@ export default function Trabajadores() {
                 dni: editingWorker.dni,
                 categoria: editingWorker.categoria as typeof CATEGORIAS[number],
                 fechaNacimiento: editingWorker.fechaNacimiento,
+                email: editingWorker.email || undefined,
+                zonaId: editingWorker.zonaId || undefined,
+                fichaEvaluacionRiesgosUrl: editingWorker.fichaEvaluacionRiesgosUrl || undefined,
               }}
             />
           )}

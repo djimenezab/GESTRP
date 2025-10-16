@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -21,6 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import { FileText, Eye, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface WorkerFormProps {
   onSubmit: (data: InsertTrabajador) => void;
@@ -29,6 +31,7 @@ interface WorkerFormProps {
 }
 
 export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps) {
+  const { toast } = useToast();
   const { data: zonas = [] } = useQuery<ZonaTrabajo[]>({
     queryKey: ['/api/zonas-trabajo'],
   });
@@ -42,17 +45,44 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
       email: initialData?.email || "",
       zonaId: initialData?.zonaId || "",
       fechaNacimiento: initialData?.fechaNacimiento || "",
-      recibeEvaluacionRiesgos: initialData?.recibeEvaluacionRiesgos || false,
-      fechaEntregaEvaluacion: initialData?.fechaEntregaEvaluacion || "",
+      fichaEvaluacionRiesgosUrl: initialData?.fichaEvaluacionRiesgosUrl || "",
     },
   });
 
-  const recibeEvaluacion = form.watch("recibeEvaluacionRiesgos");
+  const handleFileUpload = async () => {
+    const response = await fetch("/api/objects/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    
+    if (!response.ok) {
+      throw new Error("Error al obtener URL de subida");
+    }
+    
+    const data = await response.json();
+    return {
+      method: "PUT" as const,
+      url: data.uploadURL,
+    };
+  };
 
-  const handleSwitchChange = (checked: boolean) => {
-    form.setValue("recibeEvaluacionRiesgos", checked);
-    if (!checked) {
-      form.setValue("fechaEntregaEvaluacion", "");
+  const handleUploadComplete = (result: any) => {
+    if (result.successful && result.successful.length > 0) {
+      const file = result.successful[0];
+      const uploadUrl = file.uploadURL || file.response?.uploadURL;
+      if (uploadUrl) {
+        const urlParts = new URL(uploadUrl).pathname.split('/');
+        const uploadsIndex = urlParts.indexOf('uploads');
+        if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
+          const objectId = urlParts[uploadsIndex + 1];
+          const objectPath = `/objects/uploads/${objectId}`;
+          form.setValue("fichaEvaluacionRiesgosUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+          toast({
+            title: "Archivo subido",
+            description: "La ficha de evaluación ha sido subida correctamente",
+          });
+        }
+      }
     }
   };
 
@@ -188,51 +218,68 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
         />
 
         <div className="border-t pt-6 space-y-4">
-          <h3 className="text-lg font-semibold">Evaluación de Riesgos Laborales</h3>
+          <h3 className="text-lg font-semibold">Ficha de Evaluación de Riesgos Laborales</h3>
           
           <FormField
             control={form.control}
-            name="recibeEvaluacionRiesgos"
+            name="fichaEvaluacionRiesgosUrl"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">
-                    Recibe Copia de Evaluación de Riesgos
-                  </FormLabel>
-                  <FormDescription>
-                    ¿El trabajador ha recibido copia de la evaluación de riesgos?
-                  </FormDescription>
-                </div>
+              <FormItem>
+                <FormLabel>Documento de Evaluación (opcional)</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={handleSwitchChange}
-                    data-testid="switch-recibe-evaluacion"
-                  />
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <ObjectUploader
+                        maxNumberOfFiles={1}
+                        maxFileSize={10485760}
+                        onGetUploadParameters={handleFileUpload}
+                        onComplete={handleUploadComplete}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Subir Ficha de Evaluación
+                      </ObjectUploader>
+                      {field.value && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="default"
+                            onClick={() => field.value && window.open(field.value, '_blank')}
+                            data-testid="button-view-ficha-form"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="default"
+                            onClick={() => {
+                              if (field.value) {
+                                const link = document.createElement('a');
+                                link.href = field.value;
+                                link.download = 'ficha_evaluacion';
+                                link.click();
+                              }
+                            }}
+                            data-testid="button-download-ficha-form"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Descargar
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    {field.value && <p className="text-sm text-muted-foreground">Archivo subido</p>}
+                  </div>
                 </FormControl>
+                <FormDescription>
+                  Subir la ficha de evaluación de riesgos laborales del trabajador
+                </FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
-
-          {recibeEvaluacion && (
-            <FormField
-              control={form.control}
-              name="fechaEntregaEvaluacion"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fecha de Entrega</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      data-testid="input-fecha-entrega-evaluacion"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-submit-worker">
