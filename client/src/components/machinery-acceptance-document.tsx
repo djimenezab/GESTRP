@@ -34,26 +34,26 @@ export function MachineryAcceptanceDocument({
 
   return (
     <div
-      className="space-y-3 p-8 bg-background print:bg-white print:pt-2 print:pb-2 print:px-12 print:space-y-1 print:leading-tight"
+      className="space-y-3 p-8 bg-background print:bg-white print:pt-0 print:pb-2 print:px-12 print:space-y-1 print:leading-tight"
       data-testid="documento-aceptacion-maquinaria"
     >
       {/* Membrete con logo */}
-      <div className="mb-3 print:mb-2">
+      <div className="mb-3 print:mb-1">
         <img
           src={logoPath}
           alt="Castilla-La Mancha"
-          className="h-16 w-auto print:h-14"
+          className="h-16 w-auto print:h-12"
           data-testid="logo-membrete"
         />
       </div>
 
       {/* Título */}
-      <h1 className="text-2xl font-bold text-center my-8 print:text-base print:my-3 print:font-bold">
+      <h1 className="text-2xl font-bold text-center my-8 print:text-base print:my-2 print:font-bold">
         ACEPTACIÓN DE USO DE MAQUINARIA/EQUIPO
       </h1>
 
       {/* Separar párrafo */}
-      <div className="print:h-4"></div>
+      <div className="print:h-2"></div>
 
       {/* Datos del trabajador y fecha */}
       <div className="space-y-2 print:space-y-0.5">

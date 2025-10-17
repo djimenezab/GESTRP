@@ -109,8 +109,9 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
   - **Adaptive text sizing**: Font size automatically adjusted (0.85rem) with compact line-height (1.3) to accommodate variable content
   - **Flexible spacing**: Compact margins and paddings (print:space-y-1, print:leading-tight) that adapt to content volume
   - **Dynamic scaling**: Handles variable content (multiple EPIs, long observations) while maintaining A4 format
-  - **Logo sizing**: Logo reduced to `h-14` for better proportions on A4
-  - **Title sizing**: Title reduced to `text-base` for compact header
+  - **Logo sizing**: Logo reduced to `h-12` with minimal bottom margin (print:mb-1) for compact header
+  - **Title sizing**: Title reduced to `text-base` with tight margins (print:my-2)
+  - **Zero top padding**: Document starts at top of page (print:pt-0) to maximize vertical space
   - "Atentamente," text hidden when printing (print:hidden)
   - Separator margin minimized to reduce blank space after obligations (print:my-0.5)
   - Page break control with `page-break-inside: avoid` to prevent splitting across pages
