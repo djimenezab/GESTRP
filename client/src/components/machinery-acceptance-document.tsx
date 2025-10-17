@@ -34,7 +34,7 @@ export function MachineryAcceptanceDocument({
 
   return (
     <div
-      className="space-y-3 p-8 bg-background print:bg-white print:pt-2 print:pb-2 print:px-12 print:space-y-1.5 print:text-sm"
+      className="space-y-3 p-8 bg-background print:bg-white print:pt-2 print:pb-2 print:px-12 print:space-y-1 print:leading-tight"
       data-testid="documento-aceptacion-maquinaria"
     >
       {/* Membrete con logo */}
@@ -48,12 +48,12 @@ export function MachineryAcceptanceDocument({
       </div>
 
       {/* Título */}
-      <h1 className="text-2xl font-bold text-center my-8 print:text-base print:my-4">
+      <h1 className="text-2xl font-bold text-center my-8 print:text-base print:my-3 print:font-bold">
         ACEPTACIÓN DE USO DE MAQUINARIA/EQUIPO
       </h1>
 
       {/* Separar párrafo */}
-      <div className="print:h-6"></div>
+      <div className="print:h-4"></div>
 
       {/* Datos del trabajador y fecha */}
       <div className="space-y-2 print:space-y-0.5">

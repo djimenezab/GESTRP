@@ -103,16 +103,18 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - **Dynamic EPIs display**: Document automatically shows equipment's mandatory EPIs as **bold centered list** under point c) when available
 - Fetches EPIs from `/api/equipos/:id/epis-obligatorios` endpoint and displays them with stable test IDs (`text-epi-${id}`)
 - **Removed administrator signature**: "Firmado: Administrador" text no longer appears in the document
-- **Print optimizations for A4 format**: 
+- **Print optimizations for A4 format with adaptive content**: 
   - All dialog UI elements hidden when printing (header title, close X button, toast notifications)
   - Obligation point e) removed from document
-  - **Optimized text sizing**: Base font size reduced to `text-sm` for print to fit A4 page
-  - **Compact spacing**: All margins and paddings optimized for A4 (print:space-y-1, print:my-2)
+  - **Adaptive text sizing**: Font size automatically adjusted (0.85rem) with compact line-height (1.3) to accommodate variable content
+  - **Flexible spacing**: Compact margins and paddings (print:space-y-1, print:leading-tight) that adapt to content volume
+  - **Dynamic scaling**: Handles variable content (multiple EPIs, long observations) while maintaining A4 format
   - **Logo sizing**: Logo reduced to `h-14` for better proportions on A4
   - **Title sizing**: Title reduced to `text-base` for compact header
   - "Atentamente," text hidden when printing (print:hidden)
   - Separator margin minimized to reduce blank space after obligations (print:my-0.5)
   - Page break control with `page-break-inside: avoid` to prevent splitting across pages
   - CSS @page rules configured for A4 size with 1cm-1.5cm margins
-- Print-friendly document layout with proper formatting for physical/PDF output optimized for A4
+  - Max-height constraint (29.7cm) ensures content stays within A4 bounds
+- Print-friendly document layout that automatically adapts to content volume while maintaining A4 format
 - All document elements tagged with data-testid attributes for comprehensive test automation
