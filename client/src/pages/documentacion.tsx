@@ -11,15 +11,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertFichaSeguridadProductoSchema, type FichaSeguridadProducto, type InsertFichaSeguridadProducto } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Download, Upload, Trash2, Edit, FileText } from "lucide-react";
+import { Plus, Trash2, Edit, FileText, Eye, Download } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ObjectUploader } from "@/components/ObjectUploader";
 
 export default function Documentacion() {
   const { toast } = useToast();
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [editingFicha, setEditingFicha] = useState<FichaSeguridadProducto | null>(null);
   const [deletingFichaId, setDeletingFichaId] = useState<string | null>(null);
-  const [uploadingFichaId, setUploadingFichaId] = useState<string | null>(null);
 
   const { data: fichas = [], isLoading } = useQuery<FichaSeguridadProducto[]>({
     queryKey: ['/api/fichas-seguridad-productos'],
@@ -32,6 +32,7 @@ export default function Documentacion() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/fichas-seguridad-productos'] });
       setOpenCreateDialog(false);
+      form.reset();
       toast({ title: "Ficha creada exitosamente" });
     },
     onError: () => {
@@ -46,6 +47,7 @@ export default function Documentacion() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/fichas-seguridad-productos'] });
       setEditingFicha(null);
+      editForm.reset();
       toast({ title: "Ficha actualizada exitosamente" });
     },
     onError: () => {
@@ -67,26 +69,13 @@ export default function Documentacion() {
     }
   });
 
-  const uploadMutation = useMutation({
-    mutationFn: async ({ id, fileName, fileData }: { id: string, fileName: string, fileData: string }) => {
-      return await apiRequest('POST', `/api/fichas-seguridad-productos/${id}/upload`, { fileName, fileData });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/fichas-seguridad-productos'] });
-      setUploadingFichaId(null);
-      toast({ title: "Archivo subido exitosamente" });
-    },
-    onError: () => {
-      toast({ title: "Error al subir archivo", variant: "destructive" });
-    }
-  });
-
   const form = useForm<InsertFichaSeguridadProducto>({
     resolver: zodResolver(insertFichaSeguridadProductoSchema),
     defaultValues: {
       nombre: "",
       marca: "",
       modelo: "",
+      archivoUrl: "",
     }
   });
 
@@ -96,8 +85,50 @@ export default function Documentacion() {
       nombre: "",
       marca: "",
       modelo: "",
+      archivoUrl: "",
     }
   });
+
+  const handleFileUpload = (formInstance: any) => {
+    return async () => {
+      const response = await fetch("/api/objects/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      if (!response.ok) {
+        throw new Error("Error al obtener URL de subida");
+      }
+      
+      const data = await response.json();
+      return {
+        method: "PUT" as const,
+        url: data.uploadURL,
+      };
+    };
+  };
+
+  const handleUploadComplete = (formInstance: any) => {
+    return (result: any) => {
+      if (result.successful && result.successful.length > 0) {
+        const file = result.successful[0];
+        const uploadUrl = file.uploadURL || file.response?.uploadURL;
+        if (uploadUrl) {
+          const urlParts = new URL(uploadUrl).pathname.split('/');
+          const uploadsIndex = urlParts.indexOf('uploads');
+          if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
+            const objectId = urlParts[uploadsIndex + 1];
+            const objectPath = `/objects/uploads/${objectId}`;
+            formInstance.setValue("archivoUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+            toast({
+              title: "Archivo subido",
+              description: "El archivo ha sido subido correctamente",
+            });
+          }
+        }
+      }
+    };
+  };
 
   const handleCreateFicha = (data: InsertFichaSeguridadProducto) => {
     createMutation.mutate(data);
@@ -109,50 +140,13 @@ export default function Documentacion() {
     }
   };
 
-  const handleFileUpload = async (fichaId: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      toast({ title: "Solo se permiten archivos PDF", variant: "destructive" });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64Data = e.target?.result?.toString().split(',')[1];
-      if (base64Data) {
-        uploadMutation.mutate({ id: fichaId, fileName: file.name, fileData: base64Data });
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDownload = async (ficha: FichaSeguridadProducto) => {
-    if (!ficha.archivoUrl) return;
-    
-    try {
-      const response = await fetch(`/api/fichas-seguridad-productos/${ficha.id}/download`);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = ficha.nombreArchivo || 'ficha-seguridad.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      toast({ title: "Error al descargar archivo", variant: "destructive" });
-    }
-  };
-
   const openEditDialog = (ficha: FichaSeguridadProducto) => {
     setEditingFicha(ficha);
     editForm.reset({
       nombre: ficha.nombre,
       marca: ficha.marca,
       modelo: ficha.modelo,
+      archivoUrl: ficha.archivoUrl || "",
     });
   };
 
@@ -236,6 +230,68 @@ export default function Documentacion() {
                             </FormItem>
                           )}
                         />
+                        <FormField
+                          control={form.control}
+                          name="archivoUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ficha de Seguridad (PDF)</FormLabel>
+                              <FormControl>
+                                <div className="space-y-2">
+                                  <input type="hidden" {...field} value={field.value || ""} />
+                                  <div className="flex gap-2">
+                                    <ObjectUploader
+                                      maxNumberOfFiles={1}
+                                      maxFileSize={10485760}
+                                      onGetUploadParameters={handleFileUpload(form)}
+                                      onComplete={handleUploadComplete(form)}
+                                    >
+                                      <FileText className="h-4 w-4 mr-2" />
+                                      {field.value ? "Cambiar Ficha" : "Subir Ficha"}
+                                    </ObjectUploader>
+                                    {field.value && (
+                                      <>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="default"
+                                          onClick={() => field.value && window.open(field.value, '_blank')}
+                                          data-testid="button-view-ficha-create"
+                                        >
+                                          <Eye className="h-4 w-4 mr-2" />
+                                          Ver
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="default"
+                                          onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = field.value || '';
+                                            link.download = 'ficha-seguridad.pdf';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                          }}
+                                          data-testid="button-download-ficha-create"
+                                        >
+                                          <Download className="h-4 w-4 mr-2" />
+                                          Descargar
+                                        </Button>
+                                      </>
+                                    )}
+                                  </div>
+                                  {field.value && (
+                                    <p className="text-sm text-muted-foreground">
+                                      ✓ Archivo cargado
+                                    </p>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                         <DialogFooter>
                           <Button type="submit" disabled={createMutation.isPending} data-testid="button-guardar-ficha">
                             {createMutation.isPending ? "Guardando..." : "Guardar"}
@@ -272,7 +328,7 @@ export default function Documentacion() {
                         {ficha.archivoUrl && (
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <FileText className="h-4 w-4" />
-                            <span className="truncate">{ficha.nombreArchivo}</span>
+                            <span>Ficha disponible</span>
                           </div>
                         )}
                         
@@ -287,26 +343,34 @@ export default function Documentacion() {
                             Editar
                           </Button>
                           
-                          {ficha.archivoUrl ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDownload(ficha)}
-                              data-testid={`button-descargar-${ficha.id}`}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Descargar
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setUploadingFichaId(ficha.id)}
-                              data-testid={`button-subir-${ficha.id}`}
-                            >
-                              <Upload className="h-4 w-4 mr-2" />
-                              Subir PDF
-                            </Button>
+                          {ficha.archivoUrl && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(ficha.archivoUrl || '', '_blank')}
+                                data-testid={`button-ver-${ficha.id}`}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = ficha.archivoUrl || '';
+                                  link.download = `${ficha.nombre}.pdf`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                data-testid={`button-descargar-${ficha.id}`}
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar
+                              </Button>
+                            </>
                           )}
                           
                           <Button
@@ -319,17 +383,6 @@ export default function Documentacion() {
                             Eliminar
                           </Button>
                         </div>
-
-                        {uploadingFichaId === ficha.id && (
-                          <div className="mt-3">
-                            <Input
-                              type="file"
-                              accept=".pdf"
-                              onChange={(e) => handleFileUpload(ficha.id, e)}
-                              data-testid={`input-archivo-${ficha.id}`}
-                            />
-                          </div>
-                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -381,6 +434,68 @@ export default function Documentacion() {
                     <FormLabel>Modelo</FormLabel>
                     <FormControl>
                       <Input {...field} data-testid="input-edit-modelo" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="archivoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ficha de Seguridad (PDF)</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <input type="hidden" {...field} value={field.value || ""} />
+                        <div className="flex gap-2">
+                          <ObjectUploader
+                            maxNumberOfFiles={1}
+                            maxFileSize={10485760}
+                            onGetUploadParameters={handleFileUpload(editForm)}
+                            onComplete={handleUploadComplete(editForm)}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            {field.value ? "Cambiar Ficha" : "Subir Ficha"}
+                          </ObjectUploader>
+                          {field.value && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => field.value && window.open(field.value, '_blank')}
+                                data-testid="button-view-ficha-edit"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="default"
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = field.value || '';
+                                  link.download = 'ficha-seguridad.pdf';
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                data-testid="button-download-ficha-edit"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Descargar
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                        {field.value && (
+                          <p className="text-sm text-muted-foreground">
+                            ✓ Archivo cargado
+                          </p>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

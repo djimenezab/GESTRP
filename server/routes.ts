@@ -867,58 +867,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload/Download archivo de ficha de seguridad
-  app.post("/api/fichas-seguridad-productos/:id/upload", async (req, res) => {
-    try {
-      const objectStorage = new ObjectStorageService();
-      const { fileName, fileData } = req.body;
-      
-      if (!fileName || !fileData) {
-        return res.status(400).json({ error: "Nombre de archivo y datos son requeridos" });
-      }
-      
-      // Upload file to object storage
-      const buffer = Buffer.from(fileData, 'base64');
-      const filePath = `/fichas-seguridad/${req.params.id}/${fileName}`;
-      await objectStorage.uploadFile(filePath, buffer, 'application/pdf');
-      
-      // Update ficha with file URL
-      const fileUrl = `/objects${filePath}`;
-      await storage.updateFichaSeguridadProducto(req.params.id, {
-        archivoUrl: fileUrl,
-        nombreArchivo: fileName
-      });
-      
-      res.json({ url: fileUrl, fileName });
-    } catch (error) {
-      console.error("Error uploading ficha archivo:", error);
-      res.status(500).json({ error: "Error al subir archivo" });
-    }
-  });
-
-  app.get("/api/fichas-seguridad-productos/:id/download", async (req, res) => {
-    try {
-      const ficha = await storage.getFichaSeguridadProducto(req.params.id);
-      if (!ficha || !ficha.archivoUrl) {
-        return res.status(404).json({ error: "Archivo no encontrado" });
-      }
-      
-      const objectStorage = new ObjectStorageService();
-      const filePath = ficha.archivoUrl.replace('/objects', '');
-      const fileBuffer = await objectStorage.downloadFile(filePath);
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${ficha.nombreArchivo}"`);
-      res.send(fileBuffer);
-    } catch (error) {
-      if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: "Archivo no encontrado" });
-      }
-      console.error("Error downloading ficha archivo:", error);
-      res.status(500).json({ error: "Error al descargar archivo" });
-    }
-  });
-
   // Auth routes
   app.post("/api/auth/login", async (req, res) => {
     try {
