@@ -14,6 +14,7 @@ import {
   insertEquipoSchema,
   insertFichaSeguridadProductoSchema,
   insertInformeAceptacionMaquinariaSchema,
+  insertDocumentoExpedienteSchema,
   trabajadores,
   CATEGORIAS
 } from "@shared/schema";
@@ -910,6 +911,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting informe aceptacion:", error);
       res.status(500).json({ error: "Error al eliminar informe" });
+    }
+  });
+
+  // Documentos del Expediente Digitalizado routes
+  app.get("/api/trabajadores/:trabajadorId/documentos-expediente", async (req, res) => {
+    try {
+      const documentos = await storage.getDocumentosExpediente(req.params.trabajadorId);
+      res.json(documentos);
+    } catch (error) {
+      console.error("Error getting documentos expediente:", error);
+      res.status(500).json({ error: "Error al obtener documentos" });
+    }
+  });
+
+  app.get("/api/documentos-expediente/:id", async (req, res) => {
+    try {
+      const documento = await storage.getDocumentoExpediente(req.params.id);
+      if (!documento) {
+        return res.status(404).json({ error: "Documento no encontrado" });
+      }
+      res.json(documento);
+    } catch (error) {
+      console.error("Error getting documento expediente:", error);
+      res.status(500).json({ error: "Error al obtener documento" });
+    }
+  });
+
+  app.post("/api/documentos-expediente", async (req, res) => {
+    try {
+      const data = insertDocumentoExpedienteSchema.parse(req.body);
+      const objectStorageService = new ObjectStorageService();
+      
+      // Normalizar la ruta del archivo si viene como URL completa
+      const rutaNormalizada = objectStorageService.normalizeObjectEntityPath(data.archivoUrl);
+      
+      const documento = await storage.createDocumentoExpediente({
+        ...data,
+        archivoUrl: rutaNormalizada
+      });
+      
+      res.status(201).json(documento);
+    } catch (error) {
+      console.error("Error creating documento expediente:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/documentos-expediente/:id", async (req, res) => {
+    try {
+      await storage.deleteDocumentoExpediente(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting documento expediente:", error);
+      res.status(500).json({ error: "Error al eliminar documento" });
     }
   });
 
