@@ -34,6 +34,7 @@ export const zonasTrabajo = pgTable("zonas_trabajo", {
 export const usuarios = pgTable("usuarios", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   nombreUsuario: text("nombre_usuario").notNull().unique(),
+  nombreCompleto: text("nombre_completo"),
   password: text("password").notNull(),
   tipoAcceso: text("tipo_acceso").notNull(),
   zonasIds: varchar("zonas_ids").array(),
