@@ -370,4 +370,10 @@
     page-break-inside: avoid;
     padding-top: 3cm !important;
   }
+
+  /* Optimización para documento de aceptación de maquinaria en A4 */
+  [data-testid="documento-aceptacion-maquinaria"] {
+    page-break-inside: avoid;
+    max-width: 100%;
+  }
 }

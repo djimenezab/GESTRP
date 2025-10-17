@@ -103,12 +103,16 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - **Dynamic EPIs display**: Document automatically shows equipment's mandatory EPIs as **bold centered list** under point c) when available
 - Fetches EPIs from `/api/equipos/:id/epis-obligatorios` endpoint and displays them with stable test IDs (`text-epi-${id}`)
 - **Removed administrator signature**: "Firmado: Administrador" text no longer appears in the document
-- **Print optimizations**: 
+- **Print optimizations for A4 format**: 
   - All dialog UI elements hidden when printing (header title, close X button, toast notifications)
   - Obligation point e) removed from document
-  - Reduced top margins for compact printed output (print:pt-2, print:mb-3, print:my-6)
+  - **Optimized text sizing**: Base font size reduced to `text-sm` for print to fit A4 page
+  - **Compact spacing**: All margins and paddings optimized for A4 (print:space-y-1, print:my-2)
+  - **Logo sizing**: Logo reduced to `h-14` for better proportions on A4
+  - **Title sizing**: Title reduced to `text-base` for compact header
   - "Atentamente," text hidden when printing (print:hidden)
   - Separator margin minimized to reduce blank space after obligations (print:my-0.5)
-  - Tighter spacing between sections for optimal page usage (print:mt-2)
-- Print-friendly document layout with proper formatting for physical/PDF output
+  - Page break control with `page-break-inside: avoid` to prevent splitting across pages
+  - CSS @page rules configured for A4 size with 1cm-1.5cm margins
+- Print-friendly document layout with proper formatting for physical/PDF output optimized for A4
 - All document elements tagged with data-testid attributes for comprehensive test automation

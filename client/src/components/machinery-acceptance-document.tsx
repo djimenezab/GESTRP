@@ -34,26 +34,26 @@ export function MachineryAcceptanceDocument({
 
   return (
     <div
-      className="space-y-3 p-8 bg-background print:bg-white print:pt-2 print:pb-2 print:px-12 print:space-y-2"
+      className="space-y-3 p-8 bg-background print:bg-white print:pt-2 print:pb-2 print:px-12 print:space-y-1.5 print:text-sm"
       data-testid="documento-aceptacion-maquinaria"
     >
       {/* Membrete con logo */}
-      <div className="mb-3 print:mb-3">
+      <div className="mb-3 print:mb-2">
         <img
           src={logoPath}
           alt="Castilla-La Mancha"
-          className="h-16 w-auto print:h-16"
+          className="h-16 w-auto print:h-14"
           data-testid="logo-membrete"
         />
       </div>
 
       {/* Título */}
-      <h1 className="text-2xl font-bold text-center my-8 print:text-lg print:my-6">
+      <h1 className="text-2xl font-bold text-center my-8 print:text-base print:my-4">
         ACEPTACIÓN DE USO DE MAQUINARIA/EQUIPO
       </h1>
 
       {/* Separar párrafo */}
-      <div className="print:h-10"></div>
+      <div className="print:h-6"></div>
 
       {/* Datos del trabajador y fecha */}
       <div className="space-y-2 print:space-y-0.5">
@@ -66,22 +66,22 @@ export function MachineryAcceptanceDocument({
       </div>
 
       {/* Saludo */}
-      <p className="mt-3 print:mt-1.5">Muy señor/a nuestro/a:</p>
+      <p className="mt-3 print:mt-1">Muy señor/a nuestro/a:</p>
 
       {/* Cuerpo del documento */}
-      <div className="space-y-3 print:space-y-1.5">
+      <div className="space-y-3 print:space-y-1">
         <p>
                Por medio del presente documento, reconoce que ha leído el manual de instrucciones y se le 
         comunica la autorización para el uso de la siguiente herramienta/maquinaria:
         </p>
 
-        <div className="my-6 print:my-4 print:py-3 space-y-2 print:space-y-1">
+        <div className="my-6 print:my-2 print:py-1 space-y-2 print:space-y-0.5">
           <p className="text-center">
-            <strong className="text-lg print:text-base uppercase">
+            <strong className="text-lg print:text-sm uppercase">
               <span data-testid="text-equipo-nombre">{equipoNombre}</span>
             </strong>
           </p>
-          <div className="text-center space-y-1 print:space-y-0.5">
+          <div className="text-center space-y-1 print:space-y-0">
             <p><strong>Marca:</strong> <span data-testid="text-equipo-marca">{equipoMarca}</span></p>
             <p><strong>Modelo:</strong> <span data-testid="text-equipo-modelo">{equipoModelo}</span></p>
             <p><strong>Número de Serie:</strong> <span data-testid="text-equipo-numero-serie">{equipoNumeroSerie}</span></p>
@@ -124,7 +124,7 @@ export function MachineryAcceptanceDocument({
         </div>
 
         {observaciones && (
-          <div className="mt-4 print:mt-2 p-3 print:p-2 border rounded-md">
+          <div className="mt-4 print:mt-1 p-3 print:p-1.5 border rounded-md">
             <p><strong>Observaciones:</strong></p>
             <p className="mt-1" data-testid="text-observaciones">{observaciones}</p>
           </div>
@@ -132,8 +132,8 @@ export function MachineryAcceptanceDocument({
 
         <p className="mt-3 print:hidden">Atentamente,</p>
 
-        <div className="mt-4 print:mt-2 print:mb-12">
-          <div className="print:mb-16"></div>
+        <div className="mt-4 print:mt-1 print:mb-8">
+          <div className="print:mb-10"></div>
         </div>
       </div>
 
@@ -141,7 +141,7 @@ export function MachineryAcceptanceDocument({
       <div className="border-t-2 border-border my-6 print:my-0.5"></div>
 
       {/* Sección de aceptación del trabajador */}
-      <div className="space-y-3 print:space-y-1.5">
+      <div className="space-y-3 print:space-y-1">
         <p>
           D./Dª <strong><span data-testid="text-trabajador-nombre-final">{trabajadorNombre}</span></strong> con D.N.I. nº{" "}
           <strong><span data-testid="text-trabajador-dni">{trabajadorDni}</span></strong> declara haber recibido la formación e información 
@@ -149,16 +149,16 @@ export function MachineryAcceptanceDocument({
           así como conocer los riesgos asociados a su utilización y las medidas preventivas a adoptar.
         </p>
 
-        <p className="mt-2">
+        <p className="mt-2 print:mt-1">
           Asimismo, se compromete a utilizar el equipo de forma responsable, siguiendo las 
           instrucciones recibidas y utilizando los EPIs correspondientes.
         </p>
 
-        <div className="mt-8 print:mt-5">
+        <div className="mt-8 print:mt-4">
           <p>
             <strong>Firmado:</strong> <span data-testid="text-firmado-trabajador">{trabajadorNombre}</span>
           </p>
-          <div className="border-b border-border w-64 mt-2 print:mt-3"></div>
+          <div className="border-b border-border w-64 mt-2 print:mt-2"></div>
         </div>
       </div>
     </div>
