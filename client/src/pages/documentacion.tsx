@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertFichaSeguridadProductoSchema, type FichaSeguridadProducto, type InsertFichaSeguridadProducto } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit, FileText, Eye, Download } from "lucide-react";
+import { Plus, Trash2, Edit, FileText, Eye, Download, Search } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
 
@@ -20,6 +20,7 @@ export default function Documentacion() {
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [editingFicha, setEditingFicha] = useState<FichaSeguridadProducto | null>(null);
   const [deletingFichaId, setDeletingFichaId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: fichas = [], isLoading } = useQuery<FichaSeguridadProducto[]>({
     queryKey: ['/api/fichas-seguridad-productos'],
@@ -150,6 +151,12 @@ export default function Documentacion() {
     });
   };
 
+  const filteredFichas = fichas.filter(ficha =>
+    ficha.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ficha.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ficha.modelo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -177,7 +184,17 @@ export default function Documentacion() {
           </AccordionTrigger>
           <AccordionContent className="pb-4">
             <div className="space-y-4 mt-4">
-              <div className="flex justify-end">
+              <div className="flex gap-4 items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nombre, marca o modelo..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                    data-testid="input-search-fichas"
+                  />
+                </div>
                 <Dialog open={openCreateDialog} onOpenChange={setOpenCreateDialog}>
                   <DialogTrigger asChild>
                     <Button data-testid="button-crear-ficha">
@@ -314,9 +331,18 @@ export default function Documentacion() {
                     </p>
                   </CardContent>
                 </Card>
+              ) : filteredFichas.length === 0 ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground text-center">
+                      No se encontraron fichas que coincidan con "{searchTerm}".
+                    </p>
+                  </CardContent>
+                </Card>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {fichas.map((ficha) => (
+                  {filteredFichas.map((ficha) => (
                     <Card key={ficha.id} data-testid={`card-ficha-${ficha.id}`}>
                       <CardHeader>
                         <CardTitle className="text-lg">{ficha.nombre}</CardTitle>
