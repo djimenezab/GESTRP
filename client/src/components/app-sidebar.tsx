@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   Settings,
   Wrench,
+  FileText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -56,6 +57,12 @@ const allMenuItems = [
     title: "Equipos",
     url: "/equipos",
     icon: Wrench,
+    roles: ["AdminGral", "Administrador", "Usuario"],
+  },
+  {
+    title: "Documentación",
+    url: "/documentacion",
+    icon: FileText,
     roles: ["AdminGral", "Administrador", "Usuario"],
   },
 ];

@@ -16,6 +16,7 @@ import Epis from "@/pages/epis";
 import Cursos from "@/pages/cursos";
 import Accidentes from "@/pages/accidentes";
 import Equipos from "@/pages/equipos";
+import Documentacion from "@/pages/documentacion";
 import Configuracion from "@/pages/configuracion";
 import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/cursos" component={Cursos} />
       <Route path="/accidentes" component={Accidentes} />
       <Route path="/equipos" component={Equipos} />
+      <Route path="/documentacion" component={Documentacion} />
       {user?.tipoAcceso === "AdminGral" && (
         <Route path="/configuracion" component={Configuracion} />
       )}
