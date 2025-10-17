@@ -32,7 +32,7 @@ const gravedadColors = {
 };
 
 export default function WorkerDetail() {
-  const [, params] = useRoute("/trabajador/:id");
+  const [, params] = useRoute("/trabajadores/:id");
   const trabajadorId = params?.id || "";
   
   const [activeTab, setActiveTab] = useState("epis");
