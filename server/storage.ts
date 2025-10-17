@@ -10,6 +10,7 @@ import {
   usuarios,
   equipos,
   equiposEpisObligatorios,
+  fichasSeguridadProductos,
   type Trabajador,
   type InsertTrabajador,
   type Epi,
@@ -29,7 +30,9 @@ import {
   type Equipo,
   type InsertEquipo,
   type EquipoEpiObligatorio,
-  type InsertEquipoEpiObligatorio
+  type InsertEquipoEpiObligatorio,
+  type FichaSeguridadProducto,
+  type InsertFichaSeguridadProducto
 } from "@shared/schema";
 import { eq, desc, or, ilike, asc, inArray } from "drizzle-orm";
 
@@ -110,6 +113,13 @@ export interface IStorage {
   addEquipoEpiObligatorio(data: InsertEquipoEpiObligatorio): Promise<EquipoEpiObligatorio>;
   removeEquipoEpiObligatorio(equipoId: string, epiFichaEvId: string): Promise<void>;
   setEquipoEpisObligatorios(equipoId: string, epiIds: string[]): Promise<void>;
+
+  // Fichas de Seguridad de Productos
+  getFichasSeguridadProductos(): Promise<FichaSeguridadProducto[]>;
+  getFichaSeguridadProducto(id: string): Promise<FichaSeguridadProducto | undefined>;
+  createFichaSeguridadProducto(data: InsertFichaSeguridadProducto): Promise<FichaSeguridadProducto>;
+  updateFichaSeguridadProducto(id: string, data: Partial<InsertFichaSeguridadProducto>): Promise<FichaSeguridadProducto | undefined>;
+  deleteFichaSeguridadProducto(id: string): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -467,6 +477,30 @@ export class DbStorage implements IStorage {
         epiIds.map(epiId => ({ equipoId, epiFichaEvId: epiId }))
       );
     }
+  }
+
+  // Fichas de Seguridad de Productos
+  async getFichasSeguridadProductos(): Promise<FichaSeguridadProducto[]> {
+    return await db.select().from(fichasSeguridadProductos).orderBy(desc(fichasSeguridadProductos.fechaCreacion));
+  }
+
+  async getFichaSeguridadProducto(id: string): Promise<FichaSeguridadProducto | undefined> {
+    const result = await db.select().from(fichasSeguridadProductos).where(eq(fichasSeguridadProductos.id, id));
+    return result[0];
+  }
+
+  async createFichaSeguridadProducto(data: InsertFichaSeguridadProducto): Promise<FichaSeguridadProducto> {
+    const result = await db.insert(fichasSeguridadProductos).values(data).returning();
+    return result[0];
+  }
+
+  async updateFichaSeguridadProducto(id: string, data: Partial<InsertFichaSeguridadProducto>): Promise<FichaSeguridadProducto | undefined> {
+    const result = await db.update(fichasSeguridadProductos).set(data).where(eq(fichasSeguridadProductos.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteFichaSeguridadProducto(id: string): Promise<void> {
+    await db.delete(fichasSeguridadProductos).where(eq(fichasSeguridadProductos.id, id));
   }
 }
 

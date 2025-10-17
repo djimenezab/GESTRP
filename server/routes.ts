@@ -12,6 +12,7 @@ import {
   insertZonaTrabajoSchema,
   insertUsuarioSchema,
   insertEquipoSchema,
+  insertFichaSeguridadProductoSchema,
   trabajadores,
   CATEGORIAS
 } from "@shared/schema";
@@ -802,6 +803,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error setting equipo EPIs obligatorios:", error);
       res.status(400).json({ error: "Error al actualizar EPIs obligatorios" });
+    }
+  });
+
+  // Fichas de Seguridad de Productos routes
+  app.get("/api/fichas-seguridad-productos", async (req, res) => {
+    try {
+      const fichas = await storage.getFichasSeguridadProductos();
+      res.json(fichas);
+    } catch (error) {
+      console.error("Error getting fichas seguridad productos:", error);
+      res.status(500).json({ error: "Error al obtener fichas de seguridad" });
+    }
+  });
+
+  app.get("/api/fichas-seguridad-productos/:id", async (req, res) => {
+    try {
+      const ficha = await storage.getFichaSeguridadProducto(req.params.id);
+      if (!ficha) {
+        return res.status(404).json({ error: "Ficha de seguridad no encontrada" });
+      }
+      res.json(ficha);
+    } catch (error) {
+      console.error("Error getting ficha seguridad producto:", error);
+      res.status(500).json({ error: "Error al obtener ficha de seguridad" });
+    }
+  });
+
+  app.post("/api/fichas-seguridad-productos", async (req, res) => {
+    try {
+      const data = insertFichaSeguridadProductoSchema.parse(req.body);
+      const ficha = await storage.createFichaSeguridadProducto(data);
+      res.status(201).json(ficha);
+    } catch (error) {
+      console.error("Error creating ficha seguridad producto:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/fichas-seguridad-productos/:id", async (req, res) => {
+    try {
+      const baseSchema = insertFichaSeguridadProductoSchema.partial();
+      const data = baseSchema.parse(req.body);
+      
+      const ficha = await storage.updateFichaSeguridadProducto(req.params.id, data);
+      if (!ficha) {
+        return res.status(404).json({ error: "Ficha de seguridad no encontrada" });
+      }
+      res.json(ficha);
+    } catch (error) {
+      console.error("Error updating ficha seguridad producto:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/fichas-seguridad-productos/:id", async (req, res) => {
+    try {
+      await storage.deleteFichaSeguridadProducto(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting ficha seguridad producto:", error);
+      res.status(500).json({ error: "Error al eliminar ficha de seguridad" });
+    }
+  });
+
+  // Upload/Download archivo de ficha de seguridad
+  app.post("/api/fichas-seguridad-productos/:id/upload", async (req, res) => {
+    try {
+      const objectStorage = new ObjectStorageService();
+      const { fileName, fileData } = req.body;
+      
+      if (!fileName || !fileData) {
+        return res.status(400).json({ error: "Nombre de archivo y datos son requeridos" });
+      }
+      
+      // Upload file to object storage
+      const buffer = Buffer.from(fileData, 'base64');
+      const filePath = `/fichas-seguridad/${req.params.id}/${fileName}`;
+      await objectStorage.uploadFile(filePath, buffer, 'application/pdf');
+      
+      // Update ficha with file URL
+      const fileUrl = `/objects${filePath}`;
+      await storage.updateFichaSeguridadProducto(req.params.id, {
+        archivoUrl: fileUrl,
+        nombreArchivo: fileName
+      });
+      
+      res.json({ url: fileUrl, fileName });
+    } catch (error) {
+      console.error("Error uploading ficha archivo:", error);
+      res.status(500).json({ error: "Error al subir archivo" });
+    }
+  });
+
+  app.get("/api/fichas-seguridad-productos/:id/download", async (req, res) => {
+    try {
+      const ficha = await storage.getFichaSeguridadProducto(req.params.id);
+      if (!ficha || !ficha.archivoUrl) {
+        return res.status(404).json({ error: "Archivo no encontrado" });
+      }
+      
+      const objectStorage = new ObjectStorageService();
+      const filePath = ficha.archivoUrl.replace('/objects', '');
+      const fileBuffer = await objectStorage.downloadFile(filePath);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${ficha.nombreArchivo}"`);
+      res.send(fileBuffer);
+    } catch (error) {
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: "Archivo no encontrado" });
+      }
+      console.error("Error downloading ficha archivo:", error);
+      res.status(500).json({ error: "Error al descargar archivo" });
     }
   });
 
