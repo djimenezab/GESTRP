@@ -118,3 +118,12 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
   - CSS @page rules configured for A4 size with 1cm-1.5cm margins
 - Print-friendly document layout that automatically adapts to content volume while maintaining A4 format
 - All document elements tagged with data-testid attributes for comprehensive test automation
+
+### Equipment List Interaction Enhancement (October 2025)
+- **Clickable equipment rows for all user types**: Equipment list rows are now clickable with visual hover feedback
+- **Usuario access type**: Clicking an equipment row opens a dialog showing mandatory EPIs (EPIs Obligatorios) for that equipment
+- **Admin access types**: Clicking an equipment row opens the edit dialog (existing behavior)
+- **EPIs visualization dialog**: Displays equipment's mandatory EPIs in a clean list format with visual bullets
+- Empty state message when equipment has no mandatory EPIs registered
+- Uses existing `/api/equipos/:id/epis-obligatorios` endpoint for data fetching
+- All elements tagged with `data-testid` attributes for automated testing (`dialog-epis-equipo`, `text-epi-obligatorio-${id}`, `button-close-epis-dialog`)

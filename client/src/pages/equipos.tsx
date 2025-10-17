@@ -63,9 +63,11 @@ export default function Equipos() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEpisDialogOpen, setIsEpisDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingEquipo, setEditingEquipo] = useState<Equipo | null>(null);
   const [deletingEquipo, setDeletingEquipo] = useState<Equipo | null>(null);
+  const [viewingEquipo, setViewingEquipo] = useState<Equipo | null>(null);
   const { toast } = useToast();
 
   const { data: equipos = [], isLoading } = useQuery<Equipo[]>({
@@ -83,6 +85,11 @@ export default function Equipos() {
   const { data: episObligatoriosSeleccionados = [] } = useQuery<EpiFichaEv[]>({
     queryKey: ["/api/equipos", editingEquipo?.id, "epis-obligatorios"],
     enabled: !!editingEquipo?.id,
+  });
+
+  const { data: episObligatoriosVisualizacion = [] } = useQuery<EpiFichaEv[]>({
+    queryKey: ["/api/equipos", viewingEquipo?.id, "epis-obligatorios"],
+    enabled: !!viewingEquipo?.id,
   });
 
   // Actualizar formulario de edición cuando se cargan los EPIs obligatorios
@@ -238,6 +245,11 @@ export default function Equipos() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleViewEpis = (equipo: Equipo) => {
+    setViewingEquipo(equipo);
+    setIsEpisDialogOpen(true);
+  };
+
   const filteredEquipos = equipos.filter(equipo =>
     equipo.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     equipo.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -352,8 +364,8 @@ export default function Equipos() {
                     <TableRow 
                       key={equipo.id} 
                       data-testid={`row-equipo-${equipo.id}`}
-                      onClick={isUsuario ? undefined : () => handleEdit(equipo)}
-                      className={isUsuario ? "" : "cursor-pointer hover-elevate"}
+                      onClick={isUsuario ? () => handleViewEpis(equipo) : () => handleEdit(equipo)}
+                      className="cursor-pointer hover-elevate"
                     >
                       <TableCell className="font-medium" data-testid={`text-nombre-${equipo.id}`}>
                         {equipo.nombre}
@@ -1127,6 +1139,52 @@ export default function Equipos() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* EPIs Dialog for Usuario */}
+      <Dialog open={isEpisDialogOpen} onOpenChange={setIsEpisDialogOpen}>
+        <DialogContent data-testid="dialog-epis-equipo">
+          <DialogHeader>
+            <DialogTitle>EPIs Obligatorios</DialogTitle>
+            <DialogDescription>
+              Equipo: {viewingEquipo?.marca} {viewingEquipo?.modelo}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {episObligatoriosVisualizacion.length === 0 ? (
+              <div className="text-center py-8">
+                <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground" data-testid="text-no-epis-obligatorios">
+                  No hay EPIs obligatorios registrados para este equipo
+                </p>
+              </div>
+            ) : (
+              <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
+                <ul className="space-y-2">
+                  {episObligatoriosVisualizacion.map((epi) => (
+                    <li 
+                      key={epi.id} 
+                      className="flex items-center space-x-2"
+                      data-testid={`text-epi-obligatorio-${epi.id}`}
+                    >
+                      <div className="h-2 w-2 rounded-full bg-primary"></div>
+                      <span>{epi.nombreEpi}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => setIsEpisDialogOpen(false)}
+              data-testid="button-close-epis-dialog"
+            >
+              Cerrar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
