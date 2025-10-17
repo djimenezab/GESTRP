@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import logoPath from "@assets/logonuevoazul_1_1760345384948.png";
+import { type EpiFichaEv } from "@shared/schema";
 
 interface MachineryAcceptanceDocumentProps {
   trabajadorNombre: string;
@@ -12,6 +13,7 @@ interface MachineryAcceptanceDocumentProps {
   fechaAceptacion: string;
   observaciones?: string;
   nombreAdministrador?: string;
+  equipoEpis?: EpiFichaEv[];
 }
 
 export function MachineryAcceptanceDocument({
@@ -24,6 +26,7 @@ export function MachineryAcceptanceDocument({
   fechaAceptacion,
   observaciones,
   nombreAdministrador,
+  equipoEpis = [],
 }: MachineryAcceptanceDocumentProps) {
   const fechaFormateada = format(new Date(fechaAceptacion), "dd/MM/yyyy", {
     locale: es,
@@ -46,7 +49,7 @@ export function MachineryAcceptanceDocument({
 
       {/* Título */}
       <h1 className="text-2xl font-bold text-center my-8 print:text-lg print:my-16">
-        DOCUMENTO DE ACEPTACIÓN DE USO DE MAQUINARIA/EQUIPO
+        ACEPTACIÓN DE USO DE MAQUINARIA/EQUIPO
       </h1>
 
       {/* Separar párrafo */}
@@ -68,7 +71,8 @@ export function MachineryAcceptanceDocument({
       {/* Cuerpo del documento */}
       <div className="space-y-3 print:space-y-1.5">
         <p>
-          Por medio del presente documento, se comunica la autorización para el uso del siguiente equipo/maquinaria:
+               Por medio del presente documento, reconoce que ha leído el manual de instrucciones y se le 
+        comunica la autorización para el uso de la siguiente herramienta/maquinaria:
         </p>
 
         <div className="my-6 print:my-4 print:py-3 space-y-2 print:space-y-1">
@@ -103,8 +107,17 @@ export function MachineryAcceptanceDocument({
           </p>
           <p>
             <strong>c)</strong> Utilizar los Equipos de Protección Individual (EPIs) obligatorios durante el manejo 
-            del equipo.
+            del equipo:
           </p>
+          {equipoEpis && equipoEpis.length > 0 && (
+            <ul className="ml-12 mt-1 list-disc space-y-0.5 print:ml-8">
+              {equipoEpis.map((epi) => (
+                <li key={epi.id} data-testid={`text-epi-${epi.id}`}>
+                  {epi.nombreEpi}
+                </li>
+              ))}
+            </ul>
+          )}
           <p>
             <strong>d)</strong> Comunicar inmediatamente cualquier anomalía, avería o situación de peligro 
             que se detecte en el equipo.
@@ -124,9 +137,7 @@ export function MachineryAcceptanceDocument({
         <p className="mt-3 print:mt-2">Atentamente,</p>
 
         <div className="mt-4 print:mt-3 print:mb-12">
-          <p className="print:mb-16">
-            <strong>Firmado:</strong> <span data-testid="text-firmado-administrador">{nombreAdministrador || "Administrador"}</span>
-          </p>
+          <div className="print:mb-16"></div>
         </div>
       </div>
 

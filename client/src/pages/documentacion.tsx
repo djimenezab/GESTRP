@@ -17,7 +17,8 @@ import {
   type InsertFichaSeguridadProducto,
   type Trabajador,
   type Equipo,
-  type InsertInformeAceptacionMaquinaria
+  type InsertInformeAceptacionMaquinaria,
+  type EpiFichaEv
 } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +40,7 @@ export default function Documentacion() {
   const [selectedTrabajador, setSelectedTrabajador] = useState<Trabajador | null>(null);
   const [selectedEquipo, setSelectedEquipo] = useState<Equipo | null>(null);
   const [machineryFormData, setMachineryFormData] = useState<any>(null);
+  const [equipoEpisObligatorios, setEquipoEpisObligatorios] = useState<EpiFichaEv[]>([]);
 
   const { data: fichas = [], isLoading } = useQuery<FichaSeguridadProducto[]>({
     queryKey: ['/api/fichas-seguridad-productos'],
@@ -203,13 +205,22 @@ export default function Documentacion() {
     });
   };
 
-  const handleGenerateMachineryDocument = (data: InsertInformeAceptacionMaquinaria) => {
+  const handleGenerateMachineryDocument = async (data: InsertInformeAceptacionMaquinaria) => {
     const trabajador = trabajadores.find(t => t.id === data.trabajadorId);
     const equipo = equipos.find(e => e.id === data.equipoId);
     
     if (!trabajador || !equipo) {
       toast({ title: "Error: Datos incompletos", variant: "destructive" });
       return;
+    }
+
+    // Obtener EPIs obligatorios del equipo
+    try {
+      const episObligatorios = await apiRequest('GET', `/api/equipos/${data.equipoId}/epis-obligatorios`) as EpiFichaEv[];
+      setEquipoEpisObligatorios(episObligatorios || []);
+    } catch (error) {
+      console.error("Error obteniendo EPIs obligatorios:", error);
+      setEquipoEpisObligatorios([]);
     }
 
     setSelectedTrabajador(trabajador);
@@ -794,6 +805,7 @@ export default function Documentacion() {
               fechaAceptacion={machineryFormData.fechaAceptacion}
               observaciones={machineryFormData.observaciones}
               nombreAdministrador={user?.email ? undefined : "Administrador"}
+              equipoEpis={equipoEpisObligatorios}
             />
             <DialogFooter className="print:hidden">
               <Button
