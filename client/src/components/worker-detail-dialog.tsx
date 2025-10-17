@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { ObjectUploader } from "@/components/ObjectUploader";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Eye, Download, AlertTriangle, Mail, MapPin } from "lucide-react";
+import { User, Calendar, FileText, HardHat, GraduationCap, CheckCircle2, XCircle, Eye, Download, AlertTriangle, Mail, MapPin, Upload, Trash2, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -20,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Epi, Curso, Accidente, ZonaTrabajo } from "@shared/schema";
+import type { Epi, Curso, Accidente, ZonaTrabajo, DocumentoExpediente, InsertDocumentoExpediente } from "@shared/schema";
 
 interface WorkerDetailDialogProps {
   open: boolean;
@@ -42,6 +45,7 @@ export function WorkerDetailDialog({
   onOpenChange,
   worker,
 }: WorkerDetailDialogProps) {
+  const { toast } = useToast();
 
   const { data: zona } = useQuery<ZonaTrabajo>({
     queryKey: ["/api/zonas-trabajo", worker.zonaId],
@@ -61,6 +65,51 @@ export function WorkerDetailDialog({
   const { data: accidentes = [] } = useQuery<Accidente[]>({
     queryKey: ["/api/trabajadores", worker.id, "accidentes"],
     enabled: open,
+  });
+
+  const { data: documentosExpediente = [], isLoading: isLoadingDocumentos } = useQuery<DocumentoExpediente[]>({
+    queryKey: [`/api/trabajadores/${worker.id}/documentos-expediente`],
+    enabled: open,
+  });
+
+  const createDocumentoMutation = useMutation({
+    mutationFn: async (data: InsertDocumentoExpediente) => {
+      return apiRequest("POST", "/api/documentos-expediente", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/trabajadores/${worker.id}/documentos-expediente`] });
+      toast({
+        title: "Documento subido",
+        description: "El documento ha sido agregado al expediente correctamente.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo subir el documento.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteDocumentoMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/documentos-expediente/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/trabajadores/${worker.id}/documentos-expediente`] });
+      toast({
+        title: "Documento eliminado",
+        description: "El documento ha sido eliminado del expediente.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el documento.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Ordenar EPIs por fecha (más recientes primero)
@@ -307,6 +356,115 @@ export function WorkerDetailDialog({
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No hay accidentes registrados para este trabajador
                 </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Expediente Digitalizado */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FolderOpen className="h-5 w-5" />
+                  Expediente Digitalizado
+                </div>
+                <ObjectUploader
+                  maxNumberOfFiles={1}
+                  maxFileSize={10485760}
+                  onGetUploadParameters={async () => {
+                    const response = await fetch('/api/objects/upload', {
+                      method: 'POST',
+                      credentials: 'include',
+                    });
+                    const data = await response.json();
+                    return {
+                      method: 'PUT' as const,
+                      url: data.uploadURL,
+                    };
+                  }}
+                  onComplete={(result) => {
+                    if (result.successful && result.successful.length > 0) {
+                      const uploadedFile = result.successful[0];
+                      createDocumentoMutation.mutate({
+                        trabajadorId: worker.id,
+                        nombreDocumento: uploadedFile.name || 'Documento',
+                        archivoUrl: uploadedFile.uploadURL || '',
+                        tipoArchivo: uploadedFile.type || undefined,
+                        tamanoBytes: uploadedFile.size || undefined,
+                      });
+                    }
+                  }}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Subir Documento
+                </ObjectUploader>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingDocumentos ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Cargando documentos...
+                </p>
+              ) : documentosExpediente.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nombre del Documento</TableHead>
+                      <TableHead>Fecha de Subida</TableHead>
+                      <TableHead>Tamaño</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {documentosExpediente.map((documento) => (
+                      <TableRow key={documento.id} data-testid={`row-documento-dialog-${documento.id}`}>
+                        <TableCell className="font-medium">{documento.nombreDocumento}</TableCell>
+                        <TableCell>
+                          {format(new Date(documento.fechaSubida), "dd/MM/yyyy HH:mm", { locale: es })}
+                        </TableCell>
+                        <TableCell>
+                          {documento.tamanoBytes 
+                            ? `${(documento.tamanoBytes / 1024 / 1024).toFixed(2)} MB`
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => window.open(documento.archivoUrl, '_blank')}
+                              data-testid={`button-download-documento-dialog-${documento.id}`}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                if (confirm('¿Está seguro de que desea eliminar este documento?')) {
+                                  deleteDocumentoMutation.mutate(documento.id);
+                                }
+                              }}
+                              data-testid={`button-delete-documento-dialog-${documento.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8">
+                  <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    No hay documentos en el expediente
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Sube documentos para comenzar a digitalizar el expediente
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
