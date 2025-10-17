@@ -12,6 +12,7 @@ import {
   equiposEpisObligatorios,
   fichasSeguridadProductos,
   informesAceptacionMaquinaria,
+  documentosExpediente,
   type Trabajador,
   type InsertTrabajador,
   type Epi,
@@ -35,7 +36,9 @@ import {
   type FichaSeguridadProducto,
   type InsertFichaSeguridadProducto,
   type InformeAceptacionMaquinaria,
-  type InsertInformeAceptacionMaquinaria
+  type InsertInformeAceptacionMaquinaria,
+  type DocumentoExpediente,
+  type InsertDocumentoExpediente
 } from "@shared/schema";
 import { eq, desc, or, ilike, asc, inArray } from "drizzle-orm";
 
@@ -129,6 +132,12 @@ export interface IStorage {
   getInformeAceptacionMaquinaria(id: string): Promise<InformeAceptacionMaquinaria | undefined>;
   createInformeAceptacionMaquinaria(data: InsertInformeAceptacionMaquinaria): Promise<InformeAceptacionMaquinaria>;
   deleteInformeAceptacionMaquinaria(id: string): Promise<void>;
+
+  // Documentos del Expediente Digitalizado
+  getDocumentosExpediente(trabajadorId: string): Promise<DocumentoExpediente[]>;
+  getDocumentoExpediente(id: string): Promise<DocumentoExpediente | undefined>;
+  createDocumentoExpediente(data: InsertDocumentoExpediente): Promise<DocumentoExpediente>;
+  deleteDocumentoExpediente(id: string): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -529,6 +538,27 @@ export class DbStorage implements IStorage {
 
   async deleteInformeAceptacionMaquinaria(id: string): Promise<void> {
     await db.delete(informesAceptacionMaquinaria).where(eq(informesAceptacionMaquinaria.id, id));
+  }
+
+  // Documentos del Expediente Digitalizado
+  async getDocumentosExpediente(trabajadorId: string): Promise<DocumentoExpediente[]> {
+    return await db.select().from(documentosExpediente)
+      .where(eq(documentosExpediente.trabajadorId, trabajadorId))
+      .orderBy(desc(documentosExpediente.fechaSubida));
+  }
+
+  async getDocumentoExpediente(id: string): Promise<DocumentoExpediente | undefined> {
+    const result = await db.select().from(documentosExpediente).where(eq(documentosExpediente.id, id));
+    return result[0];
+  }
+
+  async createDocumentoExpediente(data: InsertDocumentoExpediente): Promise<DocumentoExpediente> {
+    const result = await db.insert(documentosExpediente).values(data).returning();
+    return result[0];
+  }
+
+  async deleteDocumentoExpediente(id: string): Promise<void> {
+    await db.delete(documentosExpediente).where(eq(documentosExpediente.id, id));
   }
 }
 
