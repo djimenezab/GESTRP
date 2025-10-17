@@ -20,11 +20,11 @@ The backend uses **Express.js** with **Node.js** and **TypeScript**, following a
 
 ### Data Storage Solutions
 
-The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, connected via **Neon serverless PostgreSQL**. The database schema includes tables for `trabajadores` (workers), `epis` (safety equipment), `cursos` (training courses), `accidentes` (accidents), `epis_fichas_ev` (EPI evaluation sheets catalog), `zonas_trabajo` (work zones), `usuarios` (system users with hashed passwords and access levels), and `equipos` (equipment and machinery), and `epiDocumentos` (EPI documentation). Type safety is enforced through Zod schemas generated from Drizzle schemas.
+The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, connected via **Neon serverless PostgreSQL**. The database schema includes tables for `trabajadores` (workers), `epis` (safety equipment), `cursos` (training courses), `accidentes` (accidents), `epis_fichas_ev` (EPI evaluation sheets catalog), `zonas_trabajo` (work zones), `usuarios` (system users with hashed passwords and access levels), `equipos` (equipment and machinery), `epiDocumentos` (EPI documentation), and `fichas_seguridad_productos` (product safety data sheets). Type safety is enforced through Zod schemas generated from Drizzle schemas.
 
 ### System Design Choices
 
-- **Comprehensive Management Modules**: Includes modules for Worker, EPI, Equipment, Training, and Accident management with full CRUD operations.
+- **Comprehensive Management Modules**: Includes modules for Worker, EPI, Equipment, Training, Accident, and Documentation management with full CRUD operations. Documentation section includes safety data sheets with PDF upload capabilities.
 - **Role-Based Access Control**: Three access levels (AdminGral, Administrador, Usuario) with zone-based and individual user-based data filtering and creation restrictions implemented at both backend and frontend. Users can be assigned to multiple work zones.
   - **Usuario Role**: View-only access to their own data (trabajador, EPIs, cursos, accidentes) and zone equipment. No creation/deletion permissions. Equipment module is read-only with document viewing capabilities only.
 - **File Uploads**: Integration with Replit Object Storage for documents and images (e.g., EPI documentation, equipment files, evaluation sheets, manuals).
@@ -69,3 +69,13 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - **class-variance-authority**: Type-safe component variants.
 - **clsx** & **tailwind-merge**: Utilities for conditional class names.
 - **nanoid**: Unique ID generation.
+
+## Recent Changes
+
+### Documentación Section (October 2025)
+- Implemented **Fichas de seguridad de productos** (Product Safety Data Sheets) subsection with full CRUD operations
+- Integrated **ObjectUploader** component for PDF file uploads using Replit Object Storage
+- Added view and download capabilities for safety data sheets
+- Uses accordion UI pattern for expandable documentation sections
+- Follows same file upload pattern as Equipment section for consistency
+- Fixed **apiRequest** utility to properly handle 204 No Content responses from DELETE operations
