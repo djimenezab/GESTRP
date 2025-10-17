@@ -89,8 +89,8 @@ export function MachineryAcceptanceDocument({
         </div>
 
         <p>
-          En cumplimiento de la Ley 31/1995 de 8 de noviembre, de Prevención de Riesgos Laborales, 
-          y tras haber recibido la formación e información necesaria sobre los riesgos asociados 
+          En cumplimiento de la Ley 31/1995 de 8 de noviembre, de P.R.L., y tras haber recibido
+          la formación e información necesaria sobre los riesgos asociados 
           al uso de este equipo, se le autoriza para su utilización.
         </p>
 
