@@ -1001,13 +1001,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email } = req.query;
       
+      console.log("[DEBUG] /api/trabajador-nombre-by-email called with email:", email);
+      
       if (!email || typeof email !== 'string') {
+        console.log("[DEBUG] Email is missing or not a string");
         return res.status(400).json({ error: "Email es requerido" });
       }
 
       const trabajador = await storage.getTrabajadorByEmail(email);
       
+      console.log("[DEBUG] Trabajador found:", trabajador);
+      
       if (!trabajador) {
+        console.log("[DEBUG] No trabajador found for email:", email);
         return res.json({ nombreCompleto: null });
       }
 
