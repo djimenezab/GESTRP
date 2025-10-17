@@ -237,6 +237,27 @@ export const insertInformeAceptacionMaquinariaSchema = createInsertSchema(inform
   observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
+// Documentos del expediente digitalizado del trabajador
+export const documentosExpediente = pgTable("documentos_expediente", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  trabajadorId: varchar("trabajador_id").notNull().references(() => trabajadores.id, { onDelete: 'cascade' }),
+  nombreDocumento: text("nombre_documento").notNull(),
+  archivoUrl: text("archivo_url").notNull(),
+  tipoArchivo: text("tipo_archivo"),
+  tamanoBytes: integer("tamano_bytes"),
+  descripcion: text("descripcion"),
+  fechaSubida: timestamp("fecha_subida").defaultNow().notNull(),
+});
+
+export const insertDocumentoExpedienteSchema = createInsertSchema(documentosExpediente).omit({ id: true, fechaSubida: true }).extend({
+  trabajadorId: z.string().min(1, "Trabajador es requerido"),
+  nombreDocumento: z.string().min(1, "Nombre del documento es requerido"),
+  archivoUrl: z.string().min(1, "Archivo es requerido"),
+  tipoArchivo: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  tamanoBytes: z.preprocess(val => val === "" ? undefined : val, z.number().optional()),
+  descripcion: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+});
+
 // Types
 export type InsertTrabajador = z.infer<typeof insertTrabajadorSchema>;
 export type Trabajador = typeof trabajadores.$inferSelect;
@@ -274,3 +295,6 @@ export type FichaSeguridadProducto = typeof fichasSeguridadProductos.$inferSelec
 
 export type InsertInformeAceptacionMaquinaria = z.infer<typeof insertInformeAceptacionMaquinariaSchema>;
 export type InformeAceptacionMaquinaria = typeof informesAceptacionMaquinaria.$inferSelect;
+
+export type InsertDocumentoExpediente = z.infer<typeof insertDocumentoExpedienteSchema>;
+export type DocumentoExpediente = typeof documentosExpediente.$inferSelect;
