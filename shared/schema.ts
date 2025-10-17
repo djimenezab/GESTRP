@@ -220,6 +220,23 @@ export const insertFichaSeguridadProductoSchema = createInsertSchema(fichasSegur
   nombreArchivo: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
+// Informes de Aceptación de Uso de Maquinaria
+export const informesAceptacionMaquinaria = pgTable("informes_aceptacion_maquinaria", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  trabajadorId: varchar("trabajador_id").notNull().references(() => trabajadores.id, { onDelete: 'cascade' }),
+  equipoId: varchar("equipo_id").notNull().references(() => equipos.id, { onDelete: 'cascade' }),
+  fechaAceptacion: date("fecha_aceptacion").notNull(),
+  observaciones: text("observaciones"),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
+export const insertInformeAceptacionMaquinariaSchema = createInsertSchema(informesAceptacionMaquinaria).omit({ id: true, fechaCreacion: true }).extend({
+  trabajadorId: z.string().min(1, "Trabajador es requerido"),
+  equipoId: z.string().min(1, "Equipo es requerido"),
+  fechaAceptacion: z.string().min(1, "Fecha de aceptación es requerida"),
+  observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+});
+
 // Types
 export type InsertTrabajador = z.infer<typeof insertTrabajadorSchema>;
 export type Trabajador = typeof trabajadores.$inferSelect;
@@ -254,3 +271,6 @@ export type EquipoEpiObligatorio = typeof equiposEpisObligatorios.$inferSelect;
 
 export type InsertFichaSeguridadProducto = z.infer<typeof insertFichaSeguridadProductoSchema>;
 export type FichaSeguridadProducto = typeof fichasSeguridadProductos.$inferSelect;
+
+export type InsertInformeAceptacionMaquinaria = z.infer<typeof insertInformeAceptacionMaquinariaSchema>;
+export type InformeAceptacionMaquinaria = typeof informesAceptacionMaquinaria.$inferSelect;
