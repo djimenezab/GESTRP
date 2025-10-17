@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertFichaSeguridadProductoSchema, type FichaSeguridadProducto, type InsertFichaSeguridadProducto } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit, FileText, Eye, Download, Search } from "lucide-react";
+import { Plus, Trash2, Edit, FileText, Eye, Download, Search, FileSignature, ClipboardList } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ export default function Documentacion() {
   const [editingFicha, setEditingFicha] = useState<FichaSeguridadProducto | null>(null);
   const [deletingFichaId, setDeletingFichaId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [openMachineryAcceptanceDialog, setOpenMachineryAcceptanceDialog] = useState(false);
 
   const { data: fichas = [], isLoading } = useQuery<FichaSeguridadProducto[]>({
     queryKey: ['/api/fichas-seguridad-productos'],
@@ -425,6 +426,45 @@ export default function Documentacion() {
             </div>
           </AccordionContent>
         </AccordionItem>
+
+        {/* Generador de Informes - No visible para Usuario */}
+        {user?.tipoAcceso !== "Usuario" && (
+          <AccordionItem value="generador-informes" className="border rounded-lg px-4">
+            <AccordionTrigger className="hover:no-underline py-4">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                <span className="text-lg font-semibold">Generador de informes</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pb-4">
+              <div className="space-y-4 mt-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <Card className="hover-elevate" data-testid="card-informe-aceptacion">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <FileSignature className="h-5 w-5" />
+                        Aceptación uso maquinaria
+                      </CardTitle>
+                      <CardDescription>
+                        Generar documento de aceptación de uso de maquinaria/equipo
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        onClick={() => setOpenMachineryAcceptanceDialog(true)}
+                        className="w-full"
+                        data-testid="button-generar-aceptacion-maquinaria"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Generar Informe
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
       </Accordion>
 
       <Dialog open={!!editingFicha} onOpenChange={(open) => !open && setEditingFicha(null)}>
