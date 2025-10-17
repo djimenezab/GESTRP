@@ -88,3 +88,5 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - Created `/api/trabajador-nombre-by-email` endpoint to fetch worker names by email
 - Document signature automatically shows administrator's full name from `trabajadores` table based on their email
 - Falls back to "Administrador" if no matching worker is found for the email
+- **Fixed**: Corrected React Query queryKey to properly pass email as query parameter to the API endpoint
+- **Setup requirement**: All administrator users must have their `email` field set to match a `trabajadores.email` for the signature to work correctly

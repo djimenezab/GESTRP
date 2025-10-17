@@ -36,15 +36,9 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
 
   // Obtener nombre del administrador basado en su email
   const { data: adminData } = useQuery<{ nombreCompleto: string | null }>({
-    queryKey: [`/api/trabajador-nombre-by-email?email=${user?.email}`, user?.email],
+    queryKey: [`/api/trabajador-nombre-by-email?email=${user?.email}`],
     enabled: !!user?.email,
   });
-
-  // Debug logging
-  useEffect(() => {
-    console.log("[DEBUG] User email:", user?.email);
-    console.log("[DEBUG] Admin data:", adminData);
-  }, [user?.email, adminData]);
 
   // Reset document view when dialog closes or EPI changes
   useEffect(() => {
