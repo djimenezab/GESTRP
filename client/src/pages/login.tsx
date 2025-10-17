@@ -153,7 +153,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Iniciar Sesión</CardTitle>
@@ -223,6 +223,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </Form>
         </CardContent>
       </Card>
+
+      {/* Footer */}
+      <footer className="absolute bottom-4 right-4 text-sm text-muted-foreground">
+        Desarrollado por David Jiménez, Ver. 1.0 -OCT 2025-
+      </footer>
 
       {/* Change Password Dialog */}
       <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
