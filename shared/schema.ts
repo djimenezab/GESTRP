@@ -130,6 +130,17 @@ export const equiposEpisObligatorios = pgTable("equipos_epis_obligatorios", {
   epiFichaEvId: varchar("epi_ficha_ev_id").notNull().references(() => episFichasEv.id, { onDelete: 'cascade' }),
 });
 
+// Fichas de seguridad de productos (Documentación)
+export const fichasSeguridadProductos = pgTable("fichas_seguridad_productos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nombre: text("nombre").notNull(),
+  marca: text("marca").notNull(),
+  modelo: text("modelo").notNull(),
+  archivoUrl: text("archivo_url"),
+  nombreArchivo: text("nombre_archivo"),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id: true }).extend({
   categoria: z.enum(CATEGORIAS),
@@ -200,6 +211,14 @@ export const insertEquipoSchema = createInsertSchema(equipos).omit({ id: true, f
 
 export const insertEquipoEpiObligatorioSchema = createInsertSchema(equiposEpisObligatorios).omit({ id: true });
 
+export const insertFichaSeguridadProductoSchema = createInsertSchema(fichasSeguridadProductos).omit({ id: true, fechaCreacion: true }).extend({
+  nombre: z.string().min(1, "Nombre del producto es requerido"),
+  marca: z.string().min(1, "Marca es requerida"),
+  modelo: z.string().min(1, "Modelo es requerido"),
+  archivoUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  nombreArchivo: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+});
+
 // Types
 export type InsertTrabajador = z.infer<typeof insertTrabajadorSchema>;
 export type Trabajador = typeof trabajadores.$inferSelect;
@@ -231,3 +250,6 @@ export type Equipo = typeof equipos.$inferSelect;
 
 export type InsertEquipoEpiObligatorio = z.infer<typeof insertEquipoEpiObligatorioSchema>;
 export type EquipoEpiObligatorio = typeof equiposEpisObligatorios.$inferSelect;
+
+export type InsertFichaSeguridadProducto = z.infer<typeof insertFichaSeguridadProductoSchema>;
+export type FichaSeguridadProducto = typeof fichasSeguridadProductos.$inferSelect;
