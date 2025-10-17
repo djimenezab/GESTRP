@@ -27,7 +27,7 @@ export default function Documentacion() {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertFichaSeguridadProducto) => {
-      return await apiRequest('/api/fichas-seguridad-productos', 'POST', data);
+      return await apiRequest('POST', '/api/fichas-seguridad-productos', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/fichas-seguridad-productos'] });
@@ -41,7 +41,7 @@ export default function Documentacion() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<InsertFichaSeguridadProducto> }) => {
-      return await apiRequest(`/api/fichas-seguridad-productos/${id}`, 'PATCH', data);
+      return await apiRequest('PATCH', `/api/fichas-seguridad-productos/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/fichas-seguridad-productos'] });
@@ -55,7 +55,7 @@ export default function Documentacion() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/fichas-seguridad-productos/${id}`, 'DELETE');
+      return await apiRequest('DELETE', `/api/fichas-seguridad-productos/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/fichas-seguridad-productos'] });
@@ -69,7 +69,7 @@ export default function Documentacion() {
 
   const uploadMutation = useMutation({
     mutationFn: async ({ id, fileName, fileData }: { id: string, fileName: string, fileData: string }) => {
-      return await apiRequest(`/api/fichas-seguridad-productos/${id}/upload`, 'POST', { fileName, fileData });
+      return await apiRequest('POST', `/api/fichas-seguridad-productos/${id}/upload`, { fileName, fileData });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/fichas-seguridad-productos'] });
