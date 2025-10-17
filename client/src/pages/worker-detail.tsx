@@ -228,10 +228,10 @@ export default function WorkerDetail() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="epis" data-testid="tab-epis">EPIs Entregados</TabsTrigger>
+          <TabsTrigger value="epis" data-testid="tab-epis">EPIs</TabsTrigger>
           <TabsTrigger value="cursos" data-testid="tab-cursos">Cursos</TabsTrigger>
           <TabsTrigger value="accidentes" data-testid="tab-accidentes">Accidentes</TabsTrigger>
-          <TabsTrigger value="expediente" data-testid="button-tab-expediente">Expediente Digitalizado</TabsTrigger>
+          <TabsTrigger value="expediente" data-testid="button-tab-expediente">📄 Expediente</TabsTrigger>
         </TabsList>
 
         <TabsContent value="epis" className="space-y-4">
