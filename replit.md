@@ -127,3 +127,28 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - Empty state message when equipment has no mandatory EPIs registered
 - Uses existing `/api/equipos/:id/epis-obligatorios` endpoint for data fetching
 - All elements tagged with `data-testid` attributes for automated testing (`dialog-epis-equipo`, `text-epi-obligatorio-${id}`, `button-close-epis-dialog`)
+
+### Worker Digitized File (Expediente Digitalizado) Feature (October 2025)
+- **New "Expediente Digitalizado" tab** in Worker Detail page for managing worker's digitized documents
+- Created `documentos_expediente` table with fields: id, trabajadorId, nombreArchivo, rutaArchivo, tipoArchivo, tamanoBytes, descripcion, fechaSubida
+- Implemented complete CRUD backend with storage methods and REST API endpoints
+- **Document Management Features**:
+  - Upload documents using ObjectUploader component integrated with Replit Object Storage
+  - View list of uploaded documents with name, upload date, and file size
+  - Download documents (opens in new tab)
+  - Delete documents with confirmation
+  - Empty state message when no documents are present
+- **Worker Detail Page Refactored**:
+  - Changed from mock data to real API data using React Query
+  - Route fixed from `/trabajador/:id` to `/trabajadores/:id` (plural) for consistency
+  - Proper useRoute configuration to extract trabajadorId parameter
+  - All tabs (EPIs, Cursos, Accidentes, Expediente) now use real data
+  - Lazy loading of tab data (only loads when tab is activated)
+- **API Endpoints**:
+  - GET `/api/trabajadores/:id/documentos-expediente` - List worker's documents
+  - POST `/api/documentos-expediente` - Upload new document
+  - DELETE `/api/documentos-expediente/:id` - Delete document
+- **Data Validation**: Zod schema validation for all document operations
+- **Cache Management**: React Query cache invalidation after mutations to keep UI in sync
+- **E2E Testing**: Comprehensive end-to-end tests verify full upload → view → delete flow
+- All elements tagged with appropriate `data-testid` attributes for automated testing
