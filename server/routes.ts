@@ -13,6 +13,7 @@ import {
   insertUsuarioSchema,
   insertEquipoSchema,
   insertFichaSeguridadProductoSchema,
+  insertInformeAceptacionMaquinariaSchema,
   trabajadores,
   CATEGORIAS
 } from "@shared/schema";
@@ -864,6 +865,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting ficha seguridad producto:", error);
       res.status(500).json({ error: "Error al eliminar ficha de seguridad" });
+    }
+  });
+
+  // Informes de Aceptación de Maquinaria routes
+  app.get("/api/informes-aceptacion-maquinaria", async (req, res) => {
+    try {
+      const informes = await storage.getInformesAceptacionMaquinaria();
+      res.json(informes);
+    } catch (error) {
+      console.error("Error getting informes aceptacion:", error);
+      res.status(500).json({ error: "Error al obtener informes" });
+    }
+  });
+
+  app.get("/api/informes-aceptacion-maquinaria/:id", async (req, res) => {
+    try {
+      const informe = await storage.getInformeAceptacionMaquinaria(req.params.id);
+      if (!informe) {
+        return res.status(404).json({ error: "Informe no encontrado" });
+      }
+      res.json(informe);
+    } catch (error) {
+      console.error("Error getting informe aceptacion:", error);
+      res.status(500).json({ error: "Error al obtener informe" });
+    }
+  });
+
+  app.post("/api/informes-aceptacion-maquinaria", async (req, res) => {
+    try {
+      const data = insertInformeAceptacionMaquinariaSchema.parse(req.body);
+      const informe = await storage.createInformeAceptacionMaquinaria(data);
+      res.status(201).json(informe);
+    } catch (error) {
+      console.error("Error creating informe aceptacion:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/informes-aceptacion-maquinaria/:id", async (req, res) => {
+    try {
+      await storage.deleteInformeAceptacionMaquinaria(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting informe aceptacion:", error);
+      res.status(500).json({ error: "Error al eliminar informe" });
     }
   });
 

@@ -11,6 +11,7 @@ import {
   equipos,
   equiposEpisObligatorios,
   fichasSeguridadProductos,
+  informesAceptacionMaquinaria,
   type Trabajador,
   type InsertTrabajador,
   type Epi,
@@ -32,7 +33,9 @@ import {
   type EquipoEpiObligatorio,
   type InsertEquipoEpiObligatorio,
   type FichaSeguridadProducto,
-  type InsertFichaSeguridadProducto
+  type InsertFichaSeguridadProducto,
+  type InformeAceptacionMaquinaria,
+  type InsertInformeAceptacionMaquinaria
 } from "@shared/schema";
 import { eq, desc, or, ilike, asc, inArray } from "drizzle-orm";
 
@@ -120,6 +123,12 @@ export interface IStorage {
   createFichaSeguridadProducto(data: InsertFichaSeguridadProducto): Promise<FichaSeguridadProducto>;
   updateFichaSeguridadProducto(id: string, data: Partial<InsertFichaSeguridadProducto>): Promise<FichaSeguridadProducto | undefined>;
   deleteFichaSeguridadProducto(id: string): Promise<void>;
+
+  // Informes de Aceptación de Maquinaria
+  getInformesAceptacionMaquinaria(): Promise<InformeAceptacionMaquinaria[]>;
+  getInformeAceptacionMaquinaria(id: string): Promise<InformeAceptacionMaquinaria | undefined>;
+  createInformeAceptacionMaquinaria(data: InsertInformeAceptacionMaquinaria): Promise<InformeAceptacionMaquinaria>;
+  deleteInformeAceptacionMaquinaria(id: string): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -501,6 +510,25 @@ export class DbStorage implements IStorage {
 
   async deleteFichaSeguridadProducto(id: string): Promise<void> {
     await db.delete(fichasSeguridadProductos).where(eq(fichasSeguridadProductos.id, id));
+  }
+
+  // Informes de Aceptación de Maquinaria
+  async getInformesAceptacionMaquinaria(): Promise<InformeAceptacionMaquinaria[]> {
+    return await db.select().from(informesAceptacionMaquinaria).orderBy(desc(informesAceptacionMaquinaria.fechaCreacion));
+  }
+
+  async getInformeAceptacionMaquinaria(id: string): Promise<InformeAceptacionMaquinaria | undefined> {
+    const result = await db.select().from(informesAceptacionMaquinaria).where(eq(informesAceptacionMaquinaria.id, id));
+    return result[0];
+  }
+
+  async createInformeAceptacionMaquinaria(data: InsertInformeAceptacionMaquinaria): Promise<InformeAceptacionMaquinaria> {
+    const result = await db.insert(informesAceptacionMaquinaria).values(data).returning();
+    return result[0];
+  }
+
+  async deleteInformeAceptacionMaquinaria(id: string): Promise<void> {
+    await db.delete(informesAceptacionMaquinaria).where(eq(informesAceptacionMaquinaria.id, id));
   }
 }
 
