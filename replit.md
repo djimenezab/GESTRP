@@ -112,6 +112,8 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
   - **Logo sizing**: Logo reduced to `h-12` with minimal bottom margin (print:mb-1) for compact header
   - **Title sizing**: Title reduced to `text-base` with tight margins (print:my-2)
   - **Zero top padding**: Document starts at top of page (print:pt-0) to maximize vertical space
+  - **Dialog neutralization**: All dialog padding, margins, positioning, and transformations removed for print (position: static, padding: 0)
+  - **Overlay hidden**: Dialog overlay completely hidden during print (display: none)
   - "Atentamente," text hidden when printing (print:hidden)
   - Separator margin minimized to reduce blank space after obligations (print:my-0.5)
   - Page break control with `page-break-inside: avoid` to prevent splitting across pages
