@@ -90,8 +90,7 @@ export function MachineryAcceptanceDocument({
 
         <p>
           En cumplimiento de la Ley 31/1995 de 8 de noviembre, de P.R.L., y tras haber recibido
-          la formación e información necesaria sobre los riesgos asociados 
-          al uso de este equipo, se le autoriza para su utilización.
+          la formación e información necesaria sobre los riesgos asociados al uso de este equipo,
         </p>
 
         <p>Se hace constar la obligatoriedad de:</p>
@@ -131,7 +130,7 @@ export function MachineryAcceptanceDocument({
           </div>
         )}
 
-        <p className="mt-3 print:mt-2">Atentamente,</p>
+        <p className="mt-3 print:hidden">Atentamente,</p>
 
         <div className="mt-4 print:mt-3 print:mb-12">
           <div className="print:mb-16"></div>
@@ -139,7 +138,7 @@ export function MachineryAcceptanceDocument({
       </div>
 
       {/* Separador */}
-      <div className="border-t-2 border-border my-6 print:my-3"></div>
+      <div className="border-t-2 border-border my-6 print:my-1"></div>
 
       {/* Sección de aceptación del trabajador */}
       <div className="space-y-3 print:space-y-1.5">

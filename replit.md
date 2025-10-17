@@ -107,5 +107,7 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
   - All dialog UI elements hidden when printing (header title, close X button, toast notifications)
   - Obligation point e) removed from document
   - Reduced top margins for compact printed output (print:pt-2, print:mb-3, print:my-6)
+  - "Atentamente," text hidden when printing (print:hidden)
+  - Separator margin reduced to minimize blank space after obligations (print:my-1)
 - Print-friendly document layout with proper formatting for physical/PDF output
 - All document elements tagged with data-testid attributes for comprehensive test automation
