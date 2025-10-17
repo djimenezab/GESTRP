@@ -7,6 +7,7 @@ interface EpiDeliveryDocumentProps {
   trabajadorDni: string;
   fechaEntrega: string;
   tipoEquipo: string;
+  nombreAdministrador?: string;
 }
 
 export function EpiDeliveryDocument({
@@ -14,6 +15,7 @@ export function EpiDeliveryDocument({
   trabajadorDni,
   fechaEntrega,
   tipoEquipo,
+  nombreAdministrador,
 }: EpiDeliveryDocumentProps) {
   const fechaFormateada = format(new Date(fechaEntrega), "dd/MM/yyyy", {
     locale: es,
@@ -94,7 +96,7 @@ export function EpiDeliveryDocument({
 
         <div className="mt-4 print:mt-3 print:mb-12">
           <p className="print:mb-16">
-            <strong>Firmado:</strong> David Jiménez Minaya
+            <strong>Firmado:</strong> {nombreAdministrador || "Administrador"}
           </p>
         </div>
       </div>

@@ -81,3 +81,10 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - Fixed **apiRequest** utility to properly handle 204 No Content responses from DELETE operations
 - Added **real-time search functionality** to filter safety data sheets by name, brand, or model with instant feedback
 - Implemented **role-based access control**: Usuario type users can only view and download fichas (no create/edit/delete permissions)
+
+### EPI Delivery Document Enhancement (October 2025)
+- **Dynamic administrator signature**: EPI delivery documents now display the actual administrator's name who generates the document
+- Added `email` field to `usuarios` table to link administrators with their worker profiles
+- Created `/api/trabajador-nombre-by-email` endpoint to fetch worker names by email
+- Document signature automatically shows administrator's full name from `trabajadores` table based on their email
+- Falls back to "Administrador" if no matching worker is found for the email

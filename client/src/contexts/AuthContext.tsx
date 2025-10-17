@@ -4,6 +4,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 interface User {
   id: string;
   nombreUsuario: string;
+  email?: string;
   tipoAcceso: string;
   zonasIds?: string[];
   trabajadorId?: string;

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +32,13 @@ interface EpiDetailDialogProps {
 
 export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProps) {
   const [showDocument, setShowDocument] = useState(false);
+  const { user } = useAuth();
+
+  // Obtener nombre del administrador basado en su email
+  const { data: adminData } = useQuery<{ nombreCompleto: string | null }>({
+    queryKey: ['/api/trabajador-nombre-by-email', user?.email],
+    enabled: !!user?.email,
+  });
 
   // Reset document view when dialog closes or EPI changes
   useEffect(() => {
@@ -69,6 +78,7 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
               trabajadorDni={epi.trabajadorDni || ""}
               fechaEntrega={epi.fechaEntrega}
               tipoEquipo={epi.tipoEquipo}
+              nombreAdministrador={adminData?.nombreCompleto || undefined}
             />
             <div className="flex justify-end gap-2 print:hidden">
               <Button

@@ -903,6 +903,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         id: usuario.id,
         nombreUsuario: usuario.nombreUsuario,
+        email: usuario.email,
         tipoAcceso: usuario.tipoAcceso,
         zonasIds: usuario.zonasIds,
       });
@@ -944,6 +945,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         id: usuario.id,
         nombreUsuario: usuario.nombreUsuario,
+        email: usuario.email,
         tipoAcceso: usuario.tipoAcceso,
         zonasIds: usuario.zonasIds,
         trabajadorId: req.session.trabajadorId,
@@ -987,6 +989,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Change password error:", error);
       res.status(500).json({ error: "Error al cambiar la contraseña" });
+    }
+  });
+
+  // Obtener nombre del trabajador por email (para documentos firmados por administradores)
+  app.get("/api/trabajador-nombre-by-email", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "No autorizado" });
+    }
+
+    try {
+      const { email } = req.query;
+      
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ error: "Email es requerido" });
+      }
+
+      const trabajador = await storage.getTrabajadorByEmail(email);
+      
+      if (!trabajador) {
+        return res.json({ nombreCompleto: null });
+      }
+
+      res.json({ nombreCompleto: trabajador.nombreCompleto });
+    } catch (error) {
+      console.error("Error getting trabajador by email:", error);
+      res.status(500).json({ error: "Error al obtener trabajador" });
     }
   });
 
