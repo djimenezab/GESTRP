@@ -55,10 +55,10 @@ export function MachineryAcceptanceDocument({
       {/* Datos del trabajador y fecha */}
       <div className="space-y-2 print:space-y-0.5">
         <p>
-          <strong>D./Dª {trabajadorNombre}</strong>
+          <strong>D./Dª <span data-testid="text-trabajador-nombre">{trabajadorNombre}</span></strong>
         </p>
         <p>
-          <strong>Fecha:</strong> {fechaFormateada}
+          <strong>Fecha:</strong> <span data-testid="text-fecha-aceptacion">{fechaFormateada}</span>
         </p>
       </div>
 
@@ -74,13 +74,13 @@ export function MachineryAcceptanceDocument({
         <div className="my-6 print:my-4 print:py-3 space-y-2 print:space-y-1">
           <p className="text-center">
             <strong className="text-lg print:text-base uppercase">
-              {equipoNombre}
+              <span data-testid="text-equipo-nombre">{equipoNombre}</span>
             </strong>
           </p>
           <div className="text-center space-y-1 print:space-y-0.5">
-            <p><strong>Marca:</strong> {equipoMarca}</p>
-            <p><strong>Modelo:</strong> {equipoModelo}</p>
-            <p><strong>Número de Serie:</strong> {equipoNumeroSerie}</p>
+            <p><strong>Marca:</strong> <span data-testid="text-equipo-marca">{equipoMarca}</span></p>
+            <p><strong>Modelo:</strong> <span data-testid="text-equipo-modelo">{equipoModelo}</span></p>
+            <p><strong>Número de Serie:</strong> <span data-testid="text-equipo-numero-serie">{equipoNumeroSerie}</span></p>
           </div>
         </div>
 
@@ -117,7 +117,7 @@ export function MachineryAcceptanceDocument({
         {observaciones && (
           <div className="mt-4 print:mt-2 p-3 print:p-2 border rounded-md">
             <p><strong>Observaciones:</strong></p>
-            <p className="mt-1">{observaciones}</p>
+            <p className="mt-1" data-testid="text-observaciones">{observaciones}</p>
           </div>
         )}
 
@@ -125,7 +125,7 @@ export function MachineryAcceptanceDocument({
 
         <div className="mt-4 print:mt-3 print:mb-12">
           <p className="print:mb-16">
-            <strong>Firmado:</strong> {nombreAdministrador || "Administrador"}
+            <strong>Firmado:</strong> <span data-testid="text-firmado-administrador">{nombreAdministrador || "Administrador"}</span>
           </p>
         </div>
       </div>
@@ -136,8 +136,8 @@ export function MachineryAcceptanceDocument({
       {/* Sección de aceptación del trabajador */}
       <div className="space-y-3 print:space-y-1.5">
         <p>
-          D./Dª <strong>{trabajadorNombre}</strong> con D.N.I. nº{" "}
-          <strong>{trabajadorDni}</strong> declara haber recibido la formación e información 
+          D./Dª <strong><span data-testid="text-trabajador-nombre-final">{trabajadorNombre}</span></strong> con D.N.I. nº{" "}
+          <strong><span data-testid="text-trabajador-dni">{trabajadorDni}</span></strong> declara haber recibido la formación e información 
           necesaria para el uso seguro del equipo/maquinaria anteriormente descrito, 
           así como conocer los riesgos asociados a su utilización y las medidas preventivas a adoptar.
         </p>
@@ -149,7 +149,7 @@ export function MachineryAcceptanceDocument({
 
         <div className="mt-8 print:mt-5">
           <p>
-            <strong>Firmado:</strong> {trabajadorNombre}
+            <strong>Firmado:</strong> <span data-testid="text-firmado-trabajador">{trabajadorNombre}</span>
           </p>
           <div className="border-b border-border w-64 mt-2 print:mt-3"></div>
         </div>

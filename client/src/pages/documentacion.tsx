@@ -6,15 +6,26 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertFichaSeguridadProductoSchema, type FichaSeguridadProducto, type InsertFichaSeguridadProducto } from "@shared/schema";
+import { 
+  insertFichaSeguridadProductoSchema, 
+  insertInformeAceptacionMaquinariaSchema,
+  type FichaSeguridadProducto, 
+  type InsertFichaSeguridadProducto,
+  type Trabajador,
+  type Equipo,
+  type InsertInformeAceptacionMaquinaria
+} from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit, FileText, Eye, Download, Search, FileSignature, ClipboardList } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useAuth } from "@/contexts/AuthContext";
+import { MachineryAcceptanceDocument } from "@/components/machinery-acceptance-document";
 
 export default function Documentacion() {
   const { toast } = useToast();
@@ -24,9 +35,25 @@ export default function Documentacion() {
   const [deletingFichaId, setDeletingFichaId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [openMachineryAcceptanceDialog, setOpenMachineryAcceptanceDialog] = useState(false);
+  const [showMachineryDocument, setShowMachineryDocument] = useState(false);
+  const [selectedTrabajador, setSelectedTrabajador] = useState<Trabajador | null>(null);
+  const [selectedEquipo, setSelectedEquipo] = useState<Equipo | null>(null);
+  const [machineryFormData, setMachineryFormData] = useState<any>(null);
 
   const { data: fichas = [], isLoading } = useQuery<FichaSeguridadProducto[]>({
     queryKey: ['/api/fichas-seguridad-productos'],
+  });
+
+  // Query para trabajadores (filtrados por zona del admin)
+  const { data: trabajadores = [] } = useQuery<Trabajador[]>({
+    queryKey: ['/api/trabajadores'],
+    enabled: openMachineryAcceptanceDialog,
+  });
+
+  // Query para equipos (filtrados por zona del admin)
+  const { data: equipos = [] } = useQuery<Equipo[]>({
+    queryKey: ['/api/equipos'],
+    enabled: openMachineryAcceptanceDialog,
   });
 
   const createMutation = useMutation({
@@ -73,6 +100,18 @@ export default function Documentacion() {
     }
   });
 
+  const createMachineryMutation = useMutation({
+    mutationFn: async (data: InsertInformeAceptacionMaquinaria) => {
+      return await apiRequest('POST', '/api/informes-aceptacion-maquinaria', data);
+    },
+    onSuccess: () => {
+      toast({ title: "Informe generado exitosamente" });
+    },
+    onError: () => {
+      toast({ title: "Error al generar informe", variant: "destructive" });
+    }
+  });
+
   const form = useForm<InsertFichaSeguridadProducto>({
     resolver: zodResolver(insertFichaSeguridadProductoSchema),
     defaultValues: {
@@ -90,6 +129,16 @@ export default function Documentacion() {
       marca: "",
       modelo: "",
       archivoUrl: "",
+    }
+  });
+
+  const machineryForm = useForm<InsertInformeAceptacionMaquinaria>({
+    resolver: zodResolver(insertInformeAceptacionMaquinariaSchema),
+    defaultValues: {
+      trabajadorId: "",
+      equipoId: "",
+      fechaAceptacion: new Date().toISOString().split('T')[0],
+      observaciones: "",
     }
   });
 
@@ -152,6 +201,24 @@ export default function Documentacion() {
       modelo: ficha.modelo,
       archivoUrl: ficha.archivoUrl || "",
     });
+  };
+
+  const handleGenerateMachineryDocument = (data: InsertInformeAceptacionMaquinaria) => {
+    const trabajador = trabajadores.find(t => t.id === data.trabajadorId);
+    const equipo = equipos.find(e => e.id === data.equipoId);
+    
+    if (!trabajador || !equipo) {
+      toast({ title: "Error: Datos incompletos", variant: "destructive" });
+      return;
+    }
+
+    setSelectedTrabajador(trabajador);
+    setSelectedEquipo(equipo);
+    setMachineryFormData(data);
+    setShowMachineryDocument(true);
+    
+    // Guardar en base de datos
+    createMachineryMutation.mutate(data);
   };
 
   const filteredFichas = fichas.filter(ficha =>
@@ -604,6 +671,152 @@ export default function Documentacion() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Diálogo para generar informe de aceptación de maquinaria */}
+      <Dialog open={openMachineryAcceptanceDialog && !showMachineryDocument} onOpenChange={setOpenMachineryAcceptanceDialog}>
+        <DialogContent className="max-w-2xl" data-testid="dialog-machinery-acceptance">
+          <DialogHeader>
+            <DialogTitle>Generar Informe de Aceptación de Uso de Maquinaria</DialogTitle>
+          </DialogHeader>
+          <Form {...machineryForm}>
+            <form onSubmit={machineryForm.handleSubmit(handleGenerateMachineryDocument)} className="space-y-4">
+              <FormField
+                control={machineryForm.control}
+                name="trabajadorId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Trabajador</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-trabajador">
+                          <SelectValue placeholder="Seleccionar trabajador" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {trabajadores.map((trabajador) => (
+                          <SelectItem key={trabajador.id} value={trabajador.id}>
+                            {trabajador.nombreCompleto} - {trabajador.dni}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={machineryForm.control}
+                name="equipoId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Equipo/Maquinaria</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-equipo">
+                          <SelectValue placeholder="Seleccionar equipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {equipos.map((equipo) => (
+                          <SelectItem key={equipo.id} value={equipo.id}>
+                            {equipo.nombre} - {equipo.marca} {equipo.modelo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={machineryForm.control}
+                name="fechaAceptacion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fecha de Aceptación</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} data-testid="input-fecha-aceptacion" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={machineryForm.control}
+                name="observaciones"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observaciones (opcional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        value={field.value || ""}
+                        placeholder="Añadir observaciones relevantes sobre el uso del equipo..."
+                        data-testid="textarea-observaciones"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button 
+                  type="submit" 
+                  disabled={createMachineryMutation.isPending}
+                  data-testid="button-generar-documento-maquinaria"
+                >
+                  {createMachineryMutation.isPending ? "Generando..." : "Generar Documento"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para mostrar el documento generado */}
+      {showMachineryDocument && selectedTrabajador && selectedEquipo && machineryFormData && (
+        <Dialog open={showMachineryDocument} onOpenChange={setShowMachineryDocument}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-documento-generado">
+            <DialogHeader>
+              <DialogTitle>Documento de Aceptación de Uso de Maquinaria</DialogTitle>
+            </DialogHeader>
+            <MachineryAcceptanceDocument
+              trabajadorNombre={selectedTrabajador.nombreCompleto}
+              trabajadorDni={selectedTrabajador.dni}
+              equipoNombre={selectedEquipo.nombre}
+              equipoMarca={selectedEquipo.marca}
+              equipoModelo={selectedEquipo.modelo}
+              equipoNumeroSerie={selectedEquipo.numeroSerie}
+              fechaAceptacion={machineryFormData.fechaAceptacion}
+              observaciones={machineryFormData.observaciones}
+              nombreAdministrador={user?.email ? undefined : "Administrador"}
+            />
+            <DialogFooter className="print:hidden">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowMachineryDocument(false);
+                  setOpenMachineryAcceptanceDialog(false);
+                  machineryForm.reset();
+                }}
+                data-testid="button-volver"
+              >
+                Volver
+              </Button>
+              <Button
+                onClick={() => window.print()}
+                data-testid="button-imprimir"
+              >
+                Imprimir
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
