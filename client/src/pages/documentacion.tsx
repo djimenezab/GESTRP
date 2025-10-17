@@ -792,7 +792,7 @@ export default function Documentacion() {
       {showMachineryDocument && selectedTrabajador && selectedEquipo && machineryFormData && (
         <Dialog open={showMachineryDocument} onOpenChange={setShowMachineryDocument}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="dialog-documento-generado">
-            <DialogHeader>
+            <DialogHeader className="print:hidden">
               <DialogTitle>Documento de Aceptación de Uso de Maquinaria</DialogTitle>
             </DialogHeader>
             <MachineryAcceptanceDocument

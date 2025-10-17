@@ -122,9 +122,6 @@ export function MachineryAcceptanceDocument({
             <strong>d)</strong> Comunicar inmediatamente cualquier anomalía, avería o situación de peligro 
             que se detecte en el equipo.
           </p>
-          <p>
-            <strong>e)</strong> No realizar modificaciones ni reparaciones del equipo sin autorización expresa.
-          </p>
         </div>
 
         {observaciones && (

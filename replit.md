@@ -99,9 +99,10 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - Dialog-based report generation interface with selects for worker, equipment, date, and optional observations
 - **Access restrictions**: Report generator only visible to AdminGral and Administrador users (hidden from Usuario type)
 - Reports automatically filtered by administrator's assigned zones for both workers and equipment
-- Document includes worker details, equipment specifications, legal compliance text, obligations list, and worker signature
+- Document includes worker details, equipment specifications, legal compliance text, obligations list (a, b, c, d), and worker signature
 - **Dynamic EPIs display**: Document automatically shows equipment's mandatory EPIs as bullet list under point c) when available
 - Fetches EPIs from `/api/equipos/:id/epis-obligatorios` endpoint and displays them with stable test IDs (`text-epi-${id}`)
 - **Removed administrator signature**: "Firmado: Administrador" text no longer appears in the document
+- **Print optimizations**: Dialog header (title and close button), toast notifications, and obligation point e) hidden/removed when printing
 - Print-friendly document layout with proper formatting for physical/PDF output
 - All document elements tagged with data-testid attributes for comprehensive test automation
