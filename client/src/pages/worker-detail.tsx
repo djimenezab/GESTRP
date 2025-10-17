@@ -231,7 +231,7 @@ export default function WorkerDetail() {
           <TabsTrigger value="epis" data-testid="tab-epis">EPIs Entregados</TabsTrigger>
           <TabsTrigger value="cursos" data-testid="tab-cursos">Cursos</TabsTrigger>
           <TabsTrigger value="accidentes" data-testid="tab-accidentes">Accidentes</TabsTrigger>
-          <TabsTrigger value="expediente" data-testid="tab-expediente">Expediente Digitalizado</TabsTrigger>
+          <TabsTrigger value="expediente" data-testid="button-tab-expediente">Expediente Digitalizado</TabsTrigger>
         </TabsList>
 
         <TabsContent value="epis" className="space-y-4">
