@@ -109,7 +109,7 @@ export function MachineryAcceptanceDocument({
             del equipo:
           </p>
           {equipoEpis && equipoEpis.length > 0 && (
-            <ul className="ml-12 mt-1 list-disc space-y-0.5 print:ml-8">
+            <ul className="text-center mt-1 list-none space-y-0.5">
               {equipoEpis.map((epi) => (
                 <li key={epi.id} data-testid={`text-epi-${epi.id}`}>
                   <strong>{epi.nombreEpi}</strong>
@@ -132,13 +132,13 @@ export function MachineryAcceptanceDocument({
 
         <p className="mt-3 print:hidden">Atentamente,</p>
 
-        <div className="mt-4 print:mt-3 print:mb-12">
+        <div className="mt-4 print:mt-2 print:mb-12">
           <div className="print:mb-16"></div>
         </div>
       </div>
 
       {/* Separador */}
-      <div className="border-t-2 border-border my-6 print:my-1"></div>
+      <div className="border-t-2 border-border my-6 print:my-0.5"></div>
 
       {/* Sección de aceptación del trabajador */}
       <div className="space-y-3 print:space-y-1.5">
