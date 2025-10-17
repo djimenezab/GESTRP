@@ -14,9 +14,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit, FileText, Eye, Download, Search } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Documentacion() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [editingFicha, setEditingFicha] = useState<FichaSeguridadProducto | null>(null);
   const [deletingFichaId, setDeletingFichaId] = useState<string | null>(null);
@@ -195,18 +197,19 @@ export default function Documentacion() {
                     data-testid="input-search-fichas"
                   />
                 </div>
-                <Dialog open={openCreateDialog} onOpenChange={setOpenCreateDialog}>
-                  <DialogTrigger asChild>
-                    <Button data-testid="button-crear-ficha">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Crear Ficha
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Crear Ficha de Seguridad</DialogTitle>
-                    </DialogHeader>
-                    <Form {...form}>
+                {user?.tipoAcceso !== "Usuario" && (
+                  <Dialog open={openCreateDialog} onOpenChange={setOpenCreateDialog}>
+                    <DialogTrigger asChild>
+                      <Button data-testid="button-crear-ficha">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Crear Ficha
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Crear Ficha de Seguridad</DialogTitle>
+                      </DialogHeader>
+                      <Form {...form}>
                       <form onSubmit={form.handleSubmit(handleCreateFicha)} className="space-y-4">
                         <FormField
                           control={form.control}
@@ -318,6 +321,7 @@ export default function Documentacion() {
                     </Form>
                   </DialogContent>
                 </Dialog>
+                )}
               </div>
 
               {fichas.length === 0 ? (
@@ -359,15 +363,17 @@ export default function Documentacion() {
                         )}
                         
                         <div className="flex flex-wrap gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openEditDialog(ficha)}
-                            data-testid={`button-editar-${ficha.id}`}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </Button>
+                          {user?.tipoAcceso !== "Usuario" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditDialog(ficha)}
+                              data-testid={`button-editar-${ficha.id}`}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </Button>
+                          )}
                           
                           {ficha.archivoUrl && (
                             <>
@@ -399,15 +405,17 @@ export default function Documentacion() {
                             </>
                           )}
                           
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setDeletingFichaId(ficha.id)}
-                            data-testid={`button-eliminar-${ficha.id}`}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Eliminar
-                          </Button>
+                          {user?.tipoAcceso !== "Usuario" && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDeletingFichaId(ficha.id)}
+                              data-testid={`button-eliminar-${ficha.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Eliminar
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

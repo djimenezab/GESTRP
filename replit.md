@@ -80,3 +80,4 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - Follows same file upload pattern as Equipment section for consistency
 - Fixed **apiRequest** utility to properly handle 204 No Content responses from DELETE operations
 - Added **real-time search functionality** to filter safety data sheets by name, brand, or model with instant feedback
+- Implemented **role-based access control**: Usuario type users can only view and download fichas (no create/edit/delete permissions)
