@@ -23,7 +23,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import logoImage from "@assets/generated_images/Safety_prevention_logo_icon_dc1b807d.png";
+import logoImage from "@assets/generated_images/Blue_mandatory_safety_sign_EPIs_99bbccff.png";
 
 const loginSchema = z.object({
   nombreUsuario: z.string().min(1, "Usuario es requerido"),
