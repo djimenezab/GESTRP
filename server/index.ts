@@ -9,6 +9,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Trust proxy for Replit Autoscale (required for secure cookies behind HTTPS proxy)
+app.set('trust proxy', 1);
+
 // Configure session store
 const PgStore = connectPgSimple(session);
 const sessionStore = process.env.DATABASE_URL
