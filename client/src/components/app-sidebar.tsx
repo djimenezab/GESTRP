@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
+import logoImage from "@assets/generated_images/Blue_mandatory_safety_sign_EPIs_99bbccff.png";
 
 const allMenuItems = [
   {
@@ -80,9 +81,16 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <div>
-          <h2 className="text-lg font-semibold">Gestión R.P.</h2>
-          <p className="text-sm text-muted-foreground">Carreteras</p>
+        <div className="flex items-center gap-3">
+          <img 
+            src={logoImage} 
+            alt="Logo Prevención" 
+            className="w-12 h-12 object-contain flex-shrink-0"
+          />
+          <div>
+            <h2 className="text-lg font-semibold">Gestión R.P.</h2>
+            <p className="text-sm text-muted-foreground">Carreteras</p>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
