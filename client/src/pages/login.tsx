@@ -23,6 +23,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import logoImage from "@assets/generated_images/Safety_prevention_logo_icon_dc1b807d.png";
 
 const loginSchema = z.object({
   nombreUsuario: z.string().min(1, "Usuario es requerido"),
@@ -155,11 +156,21 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Iniciar Sesión</CardTitle>
-          <CardDescription>
-            Gestión de Recursos de Prevención de Riesgos Laborales
-          </CardDescription>
+        <CardHeader className="space-y-6">
+          <div className="flex flex-col items-center gap-4">
+            <img 
+              src={logoImage} 
+              alt="Logo Prevención" 
+              className="w-24 h-24 object-contain"
+            />
+            <div className="text-center space-y-1">
+              <h1 className="text-3xl font-bold tracking-tight">Gestión</h1>
+              <p className="text-base text-muted-foreground font-light">Recursos Prevención</p>
+            </div>
+          </div>
+          <div className="border-t pt-4">
+            <CardTitle className="text-xl font-semibold text-center">Iniciar Sesión</CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <Form {...loginForm}>
