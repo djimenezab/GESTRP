@@ -1,5 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import pg from "pg";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -7,8 +9,21 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Configure session store
+const PgStore = connectPgSimple(session);
+const sessionStore = process.env.DATABASE_URL
+  ? new PgStore({
+      pool: new pg.Pool({
+        connectionString: process.env.DATABASE_URL,
+      }),
+      tableName: "session",
+      createTableIfMissing: true,
+    })
+  : undefined;
+
 app.use(
   session({
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || "dev-secret",
     resave: false,
     saveUninitialized: false,
