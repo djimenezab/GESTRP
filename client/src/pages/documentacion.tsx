@@ -12,17 +12,21 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { 
   insertFichaSeguridadProductoSchema, 
+  insertProductoQuimicoSchema,
   insertInformeAceptacionMaquinariaSchema,
   type FichaSeguridadProducto, 
   type InsertFichaSeguridadProducto,
+  type ProductoQuimico,
+  type InsertProductoQuimico,
   type Trabajador,
   type Equipo,
+  type ZonaTrabajo,
   type InsertInformeAceptacionMaquinaria,
   type EpiFichaEv
 } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit, FileText, Eye, Download, Search, FileSignature, ClipboardList } from "lucide-react";
+import { Plus, Trash2, Edit, FileText, Eye, Download, Search, FileSignature, ClipboardList, Flask } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +39,10 @@ export default function Documentacion() {
   const [editingFicha, setEditingFicha] = useState<FichaSeguridadProducto | null>(null);
   const [deletingFichaId, setDeletingFichaId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchTermProductosQuimicos, setSearchTermProductosQuimicos] = useState("");
+  const [openCreateProductoQuimicoDialog, setOpenCreateProductoQuimicoDialog] = useState(false);
+  const [editingProductoQuimico, setEditingProductoQuimico] = useState<ProductoQuimico | null>(null);
+  const [deletingProductoQuimicoId, setDeletingProductoQuimicoId] = useState<string | null>(null);
   const [openMachineryAcceptanceDialog, setOpenMachineryAcceptanceDialog] = useState(false);
   const [showMachineryDocument, setShowMachineryDocument] = useState(false);
   const [selectedTrabajador, setSelectedTrabajador] = useState<Trabajador | null>(null);
@@ -44,6 +52,16 @@ export default function Documentacion() {
 
   const { data: fichas = [], isLoading } = useQuery<FichaSeguridadProducto[]>({
     queryKey: ['/api/fichas-seguridad-productos'],
+  });
+
+  // Query para productos químicos (filtrados por zona del usuario)
+  const { data: productosQuimicos = [], isLoading: isLoadingProductosQuimicos } = useQuery<ProductoQuimico[]>({
+    queryKey: ['/api/productos-quimicos'],
+  });
+
+  // Query para zonas de trabajo
+  const { data: zonasTrabajoData = [] } = useQuery<ZonaTrabajo[]>({
+    queryKey: ['/api/zonas-trabajo'],
   });
 
   // Query para trabajadores (filtrados por zona del admin)
@@ -102,6 +120,51 @@ export default function Documentacion() {
     }
   });
 
+  // Mutaciones para productos químicos
+  const createProductoQuimicoMutation = useMutation({
+    mutationFn: async (data: InsertProductoQuimico) => {
+      return await apiRequest('POST', '/api/productos-quimicos', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/productos-quimicos'] });
+      setOpenCreateProductoQuimicoDialog(false);
+      productoQuimicoForm.reset();
+      toast({ title: "Producto químico creado exitosamente" });
+    },
+    onError: () => {
+      toast({ title: "Error al crear producto químico", variant: "destructive" });
+    }
+  });
+
+  const updateProductoQuimicoMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: Partial<InsertProductoQuimico> }) => {
+      return await apiRequest('PATCH', `/api/productos-quimicos/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/productos-quimicos'] });
+      setEditingProductoQuimico(null);
+      editProductoQuimicoForm.reset();
+      toast({ title: "Producto químico actualizado exitosamente" });
+    },
+    onError: () => {
+      toast({ title: "Error al actualizar producto químico", variant: "destructive" });
+    }
+  });
+
+  const deleteProductoQuimicoMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/productos-quimicos/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/productos-quimicos'] });
+      setDeletingProductoQuimicoId(null);
+      toast({ title: "Producto químico eliminado exitosamente" });
+    },
+    onError: () => {
+      toast({ title: "Error al eliminar producto químico", variant: "destructive" });
+    }
+  });
+
   const createMachineryMutation = useMutation({
     mutationFn: async (data: InsertInformeAceptacionMaquinaria) => {
       return await apiRequest('POST', '/api/informes-aceptacion-maquinaria', data);
@@ -141,6 +204,28 @@ export default function Documentacion() {
       equipoId: "",
       fechaAceptacion: new Date().toISOString().split('T')[0],
       observaciones: "",
+    }
+  });
+
+  const productoQuimicoForm = useForm<InsertProductoQuimico>({
+    resolver: zodResolver(insertProductoQuimicoSchema),
+    defaultValues: {
+      zonaId: "",
+      nombre: "",
+      ubicacionAlmacen: "",
+      cantidad: "",
+      nombreComercial: "",
+    }
+  });
+
+  const editProductoQuimicoForm = useForm<InsertProductoQuimico>({
+    resolver: zodResolver(insertProductoQuimicoSchema),
+    defaultValues: {
+      zonaId: "",
+      nombre: "",
+      ubicacionAlmacen: "",
+      cantidad: "",
+      nombreComercial: "",
     }
   });
 
@@ -232,10 +317,37 @@ export default function Documentacion() {
     createMachineryMutation.mutate(data);
   };
 
+  const handleCreateProductoQuimico = (data: InsertProductoQuimico) => {
+    createProductoQuimicoMutation.mutate(data);
+  };
+
+  const handleUpdateProductoQuimico = (data: InsertProductoQuimico) => {
+    if (editingProductoQuimico) {
+      updateProductoQuimicoMutation.mutate({ id: editingProductoQuimico.id, data });
+    }
+  };
+
+  const openEditProductoQuimicoDialog = (producto: ProductoQuimico) => {
+    setEditingProductoQuimico(producto);
+    editProductoQuimicoForm.reset({
+      zonaId: producto.zonaId,
+      nombre: producto.nombre,
+      ubicacionAlmacen: producto.ubicacionAlmacen,
+      cantidad: producto.cantidad,
+      nombreComercial: producto.nombreComercial || "",
+    });
+  };
+
   const filteredFichas = fichas.filter(ficha =>
     ficha.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     ficha.marca.toLowerCase().includes(searchTerm.toLowerCase()) ||
     ficha.modelo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredProductosQuimicos = productosQuimicos.filter(producto =>
+    producto.nombre.toLowerCase().includes(searchTermProductosQuimicos.toLowerCase()) ||
+    (producto.nombreComercial && producto.nombreComercial.toLowerCase().includes(searchTermProductosQuimicos.toLowerCase())) ||
+    producto.ubicacionAlmacen.toLowerCase().includes(searchTermProductosQuimicos.toLowerCase())
   );
 
   if (isLoading) {
@@ -505,6 +617,207 @@ export default function Documentacion() {
           </AccordionContent>
         </AccordionItem>
 
+        {/* Productos Químicos */}
+        <AccordionItem value="productos-quimicos" className="border rounded-lg px-4">
+          <AccordionTrigger className="hover:no-underline py-4">
+            <div className="flex items-center gap-2">
+              <Flask className="h-5 w-5" />
+              <span className="text-lg font-semibold">Productos químicos</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="space-y-4 mt-4">
+              <div className="flex gap-4 items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nombre, nombre comercial o ubicación..."
+                    value={searchTermProductosQuimicos}
+                    onChange={(e) => setSearchTermProductosQuimicos(e.target.value)}
+                    className="pl-10"
+                    data-testid="input-search-productos-quimicos"
+                  />
+                </div>
+                <Dialog open={openCreateProductoQuimicoDialog} onOpenChange={setOpenCreateProductoQuimicoDialog}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-crear-producto-quimico">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Añadir Producto
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Añadir Producto Químico</DialogTitle>
+                    </DialogHeader>
+                    <Form {...productoQuimicoForm}>
+                      <form onSubmit={productoQuimicoForm.handleSubmit(handleCreateProductoQuimico)} className="space-y-4">
+                        <FormField
+                          control={productoQuimicoForm.control}
+                          name="zonaId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Zona de Trabajo</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-zona-create">
+                                    <SelectValue placeholder="Seleccionar zona" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {zonasTrabajoData.map((zona) => (
+                                    <SelectItem key={zona.id} value={zona.id}>
+                                      {zona.nombre}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={productoQuimicoForm.control}
+                          name="nombre"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nombre</FormLabel>
+                              <FormControl>
+                                <Input {...field} data-testid="input-nombre-producto" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={productoQuimicoForm.control}
+                          name="ubicacionAlmacen"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Ubicación Almacén</FormLabel>
+                              <FormControl>
+                                <Input {...field} data-testid="input-ubicacion" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={productoQuimicoForm.control}
+                          name="cantidad"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cantidad</FormLabel>
+                              <FormControl>
+                                <Input {...field} data-testid="input-cantidad" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={productoQuimicoForm.control}
+                          name="nombreComercial"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nombre Comercial (opcional)</FormLabel>
+                              <FormControl>
+                                <Input {...field} value={field.value || ""} data-testid="input-nombre-comercial" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <DialogFooter>
+                          <Button type="submit" disabled={createProductoQuimicoMutation.isPending} data-testid="button-guardar-producto">
+                            {createProductoQuimicoMutation.isPending ? "Guardando..." : "Guardar"}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {productosQuimicos.length === 0 ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <Flask className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground text-center">
+                      No hay productos químicos registrados.
+                      <br />
+                      Añade uno para comenzar.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : filteredProductosQuimicos.length === 0 ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground text-center">
+                      No se encontraron productos que coincidan con "{searchTermProductosQuimicos}".
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredProductosQuimicos.map((producto) => {
+                    const zona = zonasTrabajoData.find(z => z.id === producto.zonaId);
+                    return (
+                      <Card key={producto.id} data-testid={`card-producto-${producto.id}`}>
+                        <CardHeader>
+                          <CardTitle className="text-lg">{producto.nombre}</CardTitle>
+                          <CardDescription>
+                            {zona?.nombre || "Sin zona"}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="space-y-2 text-sm">
+                            {producto.nombreComercial && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-muted-foreground font-medium min-w-[100px]">Nombre comercial:</span>
+                                <span>{producto.nombreComercial}</span>
+                              </div>
+                            )}
+                            <div className="flex items-start gap-2">
+                              <span className="text-muted-foreground font-medium min-w-[100px]">Ubicación:</span>
+                              <span>{producto.ubicacionAlmacen}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <span className="text-muted-foreground font-medium min-w-[100px]">Cantidad:</span>
+                              <span>{producto.cantidad}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditProductoQuimicoDialog(producto)}
+                              data-testid={`button-editar-producto-${producto.id}`}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDeletingProductoQuimicoId(producto.id)}
+                              data-testid={`button-eliminar-producto-${producto.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Eliminar
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
         {/* Generador de Informes - No visible para Usuario */}
         {user?.tipoAcceso !== "Usuario" && (
           <AccordionItem value="generador-informes" className="border rounded-lg px-4">
@@ -676,6 +989,121 @@ export default function Documentacion() {
             <AlertDialogAction
               onClick={() => deletingFichaId && deleteMutation.mutate(deletingFichaId)}
               data-testid="button-confirmar-eliminar"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de edición de producto químico */}
+      <Dialog open={!!editingProductoQuimico} onOpenChange={(open) => !open && setEditingProductoQuimico(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Producto Químico</DialogTitle>
+          </DialogHeader>
+          <Form {...editProductoQuimicoForm}>
+            <form onSubmit={editProductoQuimicoForm.handleSubmit(handleUpdateProductoQuimico)} className="space-y-4">
+              <FormField
+                control={editProductoQuimicoForm.control}
+                name="zonaId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zona de Trabajo</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-zona-edit">
+                          <SelectValue placeholder="Seleccionar zona" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {zonasTrabajoData.map((zona) => (
+                          <SelectItem key={zona.id} value={zona.id}>
+                            {zona.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editProductoQuimicoForm.control}
+                name="nombre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-edit-nombre-producto" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editProductoQuimicoForm.control}
+                name="ubicacionAlmacen"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ubicación Almacén</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-edit-ubicacion" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editProductoQuimicoForm.control}
+                name="cantidad"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cantidad</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-edit-cantidad" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editProductoQuimicoForm.control}
+                name="nombreComercial"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre Comercial (opcional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value || ""} data-testid="input-edit-nombre-comercial" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit" disabled={updateProductoQuimicoMutation.isPending} data-testid="button-guardar-edit-producto">
+                  {updateProductoQuimicoMutation.isPending ? "Guardando..." : "Guardar Cambios"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* AlertDialog de eliminación de producto químico */}
+      <AlertDialog open={!!deletingProductoQuimicoId} onOpenChange={(open) => !open && setDeletingProductoQuimicoId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente el producto químico del registro.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancelar-eliminar-producto">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingProductoQuimicoId && deleteProductoQuimicoMutation.mutate(deletingProductoQuimicoId)}
+              data-testid="button-confirmar-eliminar-producto"
             >
               Eliminar
             </AlertDialogAction>
