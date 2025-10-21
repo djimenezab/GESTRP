@@ -82,6 +82,30 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - Added **real-time search functionality** to filter safety data sheets by name, brand, or model with instant feedback
 - Implemented **role-based access control**: Usuario type users can only view and download fichas (no create/edit/delete permissions)
 
+### Productos Químicos (Chemical Products) Feature (October 2025)
+- **New "Productos Químicos" subsection** in Documentation page with chemical products inventory management
+- Created `productos_quimicos` table with fields: id, zonaId, nombre, nombreComercial, ubicacionAlmacen, cantidad, fechaCreacion
+- Implemented complete CRUD backend with zone-based filtering for all operations
+- **Zone-based access control**:
+  - AdminGral: Full access to all chemical products across all zones
+  - Administrador: Access limited to products in their assigned zones
+  - Usuario: Read-only access to products in their assigned zones (no create/edit/delete)
+- **Frontend features**:
+  - Accordion-based UI following existing Documentation patterns
+  - Create/edit forms with zone selection requirement
+  - Card-based display showing product details (nombre, nombre comercial, ubicación, cantidad)
+  - Zone-specific filtering for administrators
+  - Empty state message when no products exist
+- **API Endpoints**:
+  - GET `/api/productos-quimicos` - List products (filtered by zone for Administrador/Usuario)
+  - POST `/api/productos-quimicos` - Create new product (requires zone selection)
+  - PATCH `/api/productos-quimicos/:id` - Update product
+  - DELETE `/api/productos-quimicos/:id` - Delete product
+- **Data Validation**: Zod schema validation with required fields (zonaId, nombre, cantidad)
+- **Cache Management**: React Query cache invalidation after mutations
+- Uses Beaker icon from lucide-react for chemical products
+- All elements tagged with `data-testid` attributes for automated testing
+
 ### EPI Delivery Document Enhancement (October 2025)
 - **Dynamic administrator signature**: EPI delivery documents now display the actual administrator's name who generates the document
 - Added `email` field to `usuarios` table to link administrators with their worker profiles
