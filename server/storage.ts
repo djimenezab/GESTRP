@@ -11,6 +11,7 @@ import {
   equipos,
   equiposEpisObligatorios,
   fichasSeguridadProductos,
+  productosQuimicos,
   informesAceptacionMaquinaria,
   documentosExpediente,
   type Trabajador,
@@ -35,6 +36,8 @@ import {
   type InsertEquipoEpiObligatorio,
   type FichaSeguridadProducto,
   type InsertFichaSeguridadProducto,
+  type ProductoQuimico,
+  type InsertProductoQuimico,
   type InformeAceptacionMaquinaria,
   type InsertInformeAceptacionMaquinaria,
   type DocumentoExpediente,
@@ -126,6 +129,14 @@ export interface IStorage {
   createFichaSeguridadProducto(data: InsertFichaSeguridadProducto): Promise<FichaSeguridadProducto>;
   updateFichaSeguridadProducto(id: string, data: Partial<InsertFichaSeguridadProducto>): Promise<FichaSeguridadProducto | undefined>;
   deleteFichaSeguridadProducto(id: string): Promise<void>;
+
+  // Productos Químicos
+  getProductosQuimicos(): Promise<ProductoQuimico[]>;
+  getProductosQuimicosByZonas(zonasIds: string[]): Promise<ProductoQuimico[]>;
+  getProductoQuimico(id: string): Promise<ProductoQuimico | undefined>;
+  createProductoQuimico(data: InsertProductoQuimico): Promise<ProductoQuimico>;
+  updateProductoQuimico(id: string, data: Partial<InsertProductoQuimico>): Promise<ProductoQuimico | undefined>;
+  deleteProductoQuimico(id: string): Promise<void>;
 
   // Informes de Aceptación de Maquinaria
   getInformesAceptacionMaquinaria(): Promise<InformeAceptacionMaquinaria[]>;
@@ -519,6 +530,37 @@ export class DbStorage implements IStorage {
 
   async deleteFichaSeguridadProducto(id: string): Promise<void> {
     await db.delete(fichasSeguridadProductos).where(eq(fichasSeguridadProductos.id, id));
+  }
+
+  // Productos Químicos
+  async getProductosQuimicos(): Promise<ProductoQuimico[]> {
+    return await db.select().from(productosQuimicos).orderBy(asc(productosQuimicos.nombre));
+  }
+
+  async getProductosQuimicosByZonas(zonasIds: string[]): Promise<ProductoQuimico[]> {
+    if (zonasIds.length === 0) return [];
+    return await db.select().from(productosQuimicos)
+      .where(inArray(productosQuimicos.zonaId, zonasIds))
+      .orderBy(asc(productosQuimicos.nombre));
+  }
+
+  async getProductoQuimico(id: string): Promise<ProductoQuimico | undefined> {
+    const result = await db.select().from(productosQuimicos).where(eq(productosQuimicos.id, id));
+    return result[0];
+  }
+
+  async createProductoQuimico(data: InsertProductoQuimico): Promise<ProductoQuimico> {
+    const result = await db.insert(productosQuimicos).values(data).returning();
+    return result[0];
+  }
+
+  async updateProductoQuimico(id: string, data: Partial<InsertProductoQuimico>): Promise<ProductoQuimico | undefined> {
+    const result = await db.update(productosQuimicos).set(data).where(eq(productosQuimicos.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteProductoQuimico(id: string): Promise<void> {
+    await db.delete(productosQuimicos).where(eq(productosQuimicos.id, id));
   }
 
   // Informes de Aceptación de Maquinaria

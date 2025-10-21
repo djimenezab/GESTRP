@@ -142,6 +142,17 @@ export const fichasSeguridadProductos = pgTable("fichas_seguridad_productos", {
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
 });
 
+// Productos químicos (Documentación)
+export const productosQuimicos = pgTable("productos_quimicos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  zonaId: varchar("zona_id").notNull().references(() => zonasTrabajo.id),
+  nombre: text("nombre").notNull(),
+  ubicacionAlmacen: text("ubicacion_almacen").notNull(),
+  cantidad: text("cantidad").notNull(),
+  nombreComercial: text("nombre_comercial").notNull(),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertTrabajadorSchema = createInsertSchema(trabajadores).omit({ id: true }).extend({
   categoria: z.enum(CATEGORIAS),
@@ -220,6 +231,14 @@ export const insertFichaSeguridadProductoSchema = createInsertSchema(fichasSegur
   nombreArchivo: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
+export const insertProductoQuimicoSchema = createInsertSchema(productosQuimicos).omit({ id: true, fechaCreacion: true }).extend({
+  zonaId: z.string().min(1, "Zona de trabajo es requerida"),
+  nombre: z.string().min(1, "Nombre es requerido"),
+  ubicacionAlmacen: z.string().min(1, "Ubicación de almacén es requerida"),
+  cantidad: z.string().min(1, "Cantidad es requerida"),
+  nombreComercial: z.string().min(1, "Nombre comercial es requerido"),
+});
+
 // Informes de Aceptación de Uso de Maquinaria
 export const informesAceptacionMaquinaria = pgTable("informes_aceptacion_maquinaria", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -292,6 +311,9 @@ export type EquipoEpiObligatorio = typeof equiposEpisObligatorios.$inferSelect;
 
 export type InsertFichaSeguridadProducto = z.infer<typeof insertFichaSeguridadProductoSchema>;
 export type FichaSeguridadProducto = typeof fichasSeguridadProductos.$inferSelect;
+
+export type InsertProductoQuimico = z.infer<typeof insertProductoQuimicoSchema>;
+export type ProductoQuimico = typeof productosQuimicos.$inferSelect;
 
 export type InsertInformeAceptacionMaquinaria = z.infer<typeof insertInformeAceptacionMaquinariaSchema>;
 export type InformeAceptacionMaquinaria = typeof informesAceptacionMaquinaria.$inferSelect;
