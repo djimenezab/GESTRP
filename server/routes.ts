@@ -13,6 +13,7 @@ import {
   insertUsuarioSchema,
   insertEquipoSchema,
   insertFichaSeguridadProductoSchema,
+  insertProductoQuimicoSchema,
   insertInformeAceptacionMaquinariaSchema,
   insertDocumentoExpedienteSchema,
   trabajadores,
@@ -866,6 +867,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting ficha seguridad producto:", error);
       res.status(500).json({ error: "Error al eliminar ficha de seguridad" });
+    }
+  });
+
+  // Productos Químicos routes
+  app.get("/api/productos-quimicos", async (req, res) => {
+    try {
+      const tipoAcceso = req.session.tipoAcceso;
+      const zonasIds = req.session.zonasIds;
+      let productos: any[] = [];
+      
+      if (tipoAcceso === "AdminGral") {
+        productos = await storage.getProductosQuimicos();
+      } else if (tipoAcceso === "Administrador" && zonasIds) {
+        productos = await storage.getProductosQuimicosByZonas(zonasIds);
+      } else if (tipoAcceso === "Usuario" && zonasIds) {
+        productos = await storage.getProductosQuimicosByZonas(zonasIds);
+      }
+      
+      res.json(productos);
+    } catch (error) {
+      console.error("Error getting productos quimicos:", error);
+      res.status(500).json({ error: "Error al obtener productos químicos" });
+    }
+  });
+
+  app.get("/api/productos-quimicos/:id", async (req, res) => {
+    try {
+      const producto = await storage.getProductoQuimico(req.params.id);
+      if (!producto) {
+        return res.status(404).json({ error: "Producto químico no encontrado" });
+      }
+      
+      // Validar acceso por zonas para Administrador y Usuario
+      if ((req.session.tipoAcceso === "Administrador" || req.session.tipoAcceso === "Usuario") && req.session.zonasIds) {
+        if (!producto.zonaId || !req.session.zonasIds.includes(producto.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para ver este producto químico" });
+        }
+      }
+      
+      res.json(producto);
+    } catch (error) {
+      console.error("Error getting producto quimico:", error);
+      res.status(500).json({ error: "Error al obtener producto químico" });
+    }
+  });
+
+  app.post("/api/productos-quimicos", async (req, res) => {
+    try {
+      const data = insertProductoQuimicoSchema.parse(req.body);
+      
+      // Validar acceso por zonas para Administrador y Usuario
+      if ((req.session.tipoAcceso === "Administrador" || req.session.tipoAcceso === "Usuario") && req.session.zonasIds) {
+        if (!data.zonaId || !req.session.zonasIds.includes(data.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para crear un producto químico en esta zona" });
+        }
+      }
+      
+      const producto = await storage.createProductoQuimico(data);
+      res.status(201).json(producto);
+    } catch (error) {
+      console.error("Error creating producto quimico:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.patch("/api/productos-quimicos/:id", async (req, res) => {
+    try {
+      const baseSchema = insertProductoQuimicoSchema.partial();
+      const data = baseSchema.parse(req.body);
+      
+      // Obtener producto existente para validar acceso
+      const productoExistente = await storage.getProductoQuimico(req.params.id);
+      if (!productoExistente) {
+        return res.status(404).json({ error: "Producto químico no encontrado" });
+      }
+      
+      // Validar acceso por zonas para Administrador y Usuario
+      if ((req.session.tipoAcceso === "Administrador" || req.session.tipoAcceso === "Usuario") && req.session.zonasIds) {
+        if (!productoExistente.zonaId || !req.session.zonasIds.includes(productoExistente.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para modificar este producto químico" });
+        }
+        // Validar que no se cambie a una zona no permitida
+        if (data.zonaId && !req.session.zonasIds.includes(data.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para mover este producto a otra zona" });
+        }
+      }
+      
+      const producto = await storage.updateProductoQuimico(req.params.id, data);
+      res.json(producto);
+    } catch (error) {
+      console.error("Error updating producto quimico:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/productos-quimicos/:id", async (req, res) => {
+    try {
+      // Obtener producto para validar acceso
+      const producto = await storage.getProductoQuimico(req.params.id);
+      if (!producto) {
+        return res.status(404).json({ error: "Producto químico no encontrado" });
+      }
+      
+      // Validar acceso por zonas para Administrador y Usuario
+      if ((req.session.tipoAcceso === "Administrador" || req.session.tipoAcceso === "Usuario") && req.session.zonasIds) {
+        if (!producto.zonaId || !req.session.zonasIds.includes(producto.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para eliminar este producto químico" });
+        }
+      }
+      
+      await storage.deleteProductoQuimico(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting producto quimico:", error);
+      res.status(500).json({ error: "Error al eliminar producto químico" });
     }
   });
 
