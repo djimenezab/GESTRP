@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -229,6 +229,16 @@ export default function Documentacion() {
     }
   });
 
+  // Auto-rellenar zona cuando se abre el diálogo de crear producto
+  useEffect(() => {
+    if (openCreateProductoQuimicoDialog && user?.zonasIds && user.zonasIds.length > 0) {
+      // Si el usuario solo tiene una zona, pre-seleccionarla automáticamente
+      if (user.zonasIds.length === 1) {
+        productoQuimicoForm.setValue("zonaId", user.zonasIds[0]);
+      }
+    }
+  }, [openCreateProductoQuimicoDialog, user?.zonasIds]);
+
   const handleFileUpload = (formInstance: any) => {
     return async () => {
       const response = await fetch("/api/objects/upload", {
@@ -332,7 +342,7 @@ export default function Documentacion() {
     editProductoQuimicoForm.reset({
       zonaId: producto.zonaId,
       nombre: producto.nombre,
-      ubicacionAlmacen: producto.ubicacionAlmacen,
+      ubicacionAlmacen: producto.ubicacionAlmacen || "",
       cantidad: producto.cantidad,
       nombreComercial: producto.nombreComercial || "",
     });
@@ -347,7 +357,7 @@ export default function Documentacion() {
   const filteredProductosQuimicos = productosQuimicos.filter(producto =>
     producto.nombre.toLowerCase().includes(searchTermProductosQuimicos.toLowerCase()) ||
     (producto.nombreComercial && producto.nombreComercial.toLowerCase().includes(searchTermProductosQuimicos.toLowerCase())) ||
-    producto.ubicacionAlmacen.toLowerCase().includes(searchTermProductosQuimicos.toLowerCase())
+    (producto.ubicacionAlmacen && producto.ubicacionAlmacen.toLowerCase().includes(searchTermProductosQuimicos.toLowerCase()))
   );
 
   if (isLoading) {
@@ -357,6 +367,11 @@ export default function Documentacion() {
       </div>
     );
   }
+
+  // Filtrar zonas disponibles según el tipo de usuario
+  const zonasDisponibles = user?.tipoAcceso === "AdminGral" 
+    ? zonasTrabajoData 
+    : zonasTrabajoData.filter(zona => user?.zonasIds?.includes(zona.id));
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -664,7 +679,7 @@ export default function Documentacion() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {zonasTrabajoData.map((zona) => (
+                                  {zonasDisponibles.map((zona) => (
                                     <SelectItem key={zona.id} value={zona.id}>
                                       {zona.zona}
                                     </SelectItem>
@@ -1017,7 +1032,7 @@ export default function Documentacion() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {zonasTrabajoData.map((zona) => (
+                        {zonasDisponibles.map((zona) => (
                           <SelectItem key={zona.id} value={zona.id}>
                             {zona.zona}
                           </SelectItem>
