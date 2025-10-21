@@ -26,7 +26,7 @@ import {
 } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit, FileText, Eye, Download, Search, FileSignature, ClipboardList, Flask } from "lucide-react";
+import { Plus, Trash2, Edit, FileText, Eye, Download, Search, FileSignature, ClipboardList, Beaker } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -621,7 +621,7 @@ export default function Documentacion() {
         <AccordionItem value="productos-quimicos" className="border rounded-lg px-4">
           <AccordionTrigger className="hover:no-underline py-4">
             <div className="flex items-center gap-2">
-              <Flask className="h-5 w-5" />
+              <Beaker className="h-5 w-5" />
               <span className="text-lg font-semibold">Productos químicos</span>
             </div>
           </AccordionTrigger>
@@ -666,7 +666,7 @@ export default function Documentacion() {
                                 <SelectContent>
                                   {zonasTrabajoData.map((zona) => (
                                     <SelectItem key={zona.id} value={zona.id}>
-                                      {zona.nombre}
+                                      {zona.zona}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -741,7 +741,7 @@ export default function Documentacion() {
               {productosQuimicos.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
-                    <Flask className="h-12 w-12 text-muted-foreground mb-4" />
+                    <Beaker className="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground text-center">
                       No hay productos químicos registrados.
                       <br />
@@ -767,7 +767,7 @@ export default function Documentacion() {
                         <CardHeader>
                           <CardTitle className="text-lg">{producto.nombre}</CardTitle>
                           <CardDescription>
-                            {zona?.nombre || "Sin zona"}
+                            {zona?.zona || "Sin zona"}
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -1019,7 +1019,7 @@ export default function Documentacion() {
                       <SelectContent>
                         {zonasTrabajoData.map((zona) => (
                           <SelectItem key={zona.id} value={zona.id}>
-                            {zona.nombre}
+                            {zona.zona}
                           </SelectItem>
                         ))}
                       </SelectContent>
