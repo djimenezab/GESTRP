@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, date, timestamp, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, date, timestamp, integer, boolean, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -147,10 +147,9 @@ export const productosQuimicos = pgTable("productos_quimicos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   zonaId: varchar("zona_id").notNull().references(() => zonasTrabajo.id),
   nombre: text("nombre").notNull(),
-  ubicacionAlmacen: text("ubicacion_almacen").notNull(),
+  ubicacionAlmacen: text("ubicacion_almacen"),
   cantidad: text("cantidad").notNull(),
-  nombreComercial: text("nombre_comercial").notNull(),
-  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+  nombreComercial: text("nombre_comercial"),
 });
 
 // Insert schemas
@@ -231,12 +230,12 @@ export const insertFichaSeguridadProductoSchema = createInsertSchema(fichasSegur
   nombreArchivo: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
-export const insertProductoQuimicoSchema = createInsertSchema(productosQuimicos).omit({ id: true, fechaCreacion: true }).extend({
+export const insertProductoQuimicoSchema = createInsertSchema(productosQuimicos).omit({ id: true }).extend({
   zonaId: z.string().min(1, "Zona de trabajo es requerida"),
   nombre: z.string().min(1, "Nombre es requerido"),
-  ubicacionAlmacen: z.string().min(1, "Ubicación de almacén es requerida"),
+  ubicacionAlmacen: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
   cantidad: z.string().min(1, "Cantidad es requerida"),
-  nombreComercial: z.string().min(1, "Nombre comercial es requerido"),
+  nombreComercial: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
 // Informes de Aceptación de Uso de Maquinaria
