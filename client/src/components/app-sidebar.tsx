@@ -18,6 +18,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
@@ -137,6 +138,11 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
       </SidebarContent>
+      <SidebarFooter className="p-4">
+        <div className="text-xs text-muted-foreground text-center">
+          Versión 1.4 -OCT 2025-
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }
