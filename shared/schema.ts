@@ -124,6 +124,18 @@ export const equipos = pgTable("equipos", {
   fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
 });
 
+// Registros de mantenimiento de equipos
+export const mantenimientosEquipos = pgTable("mantenimientos_equipos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  equipoId: varchar("equipo_id").notNull().references(() => equipos.id, { onDelete: 'cascade' }),
+  fecha: date("fecha").notNull(),
+  actuacionRealizada: text("actuacion_realizada").notNull(),
+  personaRealiza: text("persona_realiza").notNull(),
+  observaciones: text("observaciones"),
+  firmaUrl: text("firma_url"),
+  fechaCreacion: timestamp("fecha_creacion").defaultNow().notNull(),
+});
+
 // Relación many-to-many: Equipos <-> EPIs Obligatorios
 export const equiposEpisObligatorios = pgTable("equipos_epis_obligatorios", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -222,6 +234,15 @@ export const insertEquipoSchema = createInsertSchema(equipos).omit({ id: true, f
 
 export const insertEquipoEpiObligatorioSchema = createInsertSchema(equiposEpisObligatorios).omit({ id: true });
 
+export const insertMantenimientoEquipoSchema = createInsertSchema(mantenimientosEquipos).omit({ id: true, fechaCreacion: true }).extend({
+  equipoId: z.string().min(1, "Equipo es requerido"),
+  fecha: z.string().min(1, "Fecha es requerida"),
+  actuacionRealizada: z.string().min(1, "Actuación realizada es requerida"),
+  personaRealiza: z.string().min(1, "Persona que realiza es requerida"),
+  observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  firmaUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+});
+
 export const insertFichaSeguridadProductoSchema = createInsertSchema(fichasSeguridadProductos).omit({ id: true, fechaCreacion: true }).extend({
   nombre: z.string().min(1, "Nombre del producto es requerido"),
   marca: z.string().min(1, "Marca es requerida"),
@@ -307,6 +328,9 @@ export type Equipo = typeof equipos.$inferSelect;
 
 export type InsertEquipoEpiObligatorio = z.infer<typeof insertEquipoEpiObligatorioSchema>;
 export type EquipoEpiObligatorio = typeof equiposEpisObligatorios.$inferSelect;
+
+export type InsertMantenimientoEquipo = z.infer<typeof insertMantenimientoEquipoSchema>;
+export type MantenimientoEquipo = typeof mantenimientosEquipos.$inferSelect;
 
 export type InsertFichaSeguridadProducto = z.infer<typeof insertFichaSeguridadProductoSchema>;
 export type FichaSeguridadProducto = typeof fichasSeguridadProductos.$inferSelect;
