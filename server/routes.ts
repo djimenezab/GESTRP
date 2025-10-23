@@ -827,7 +827,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         equipoId: req.params.equipoId
       });
-      const mantenimiento = await storage.createMantenimientoEquipo(data);
+      
+      // Normalizar la URL de la firma si existe
+      let firmaNormalizada = data.firmaUrl;
+      if (data.firmaUrl) {
+        const objectStorageService = new ObjectStorageService();
+        firmaNormalizada = objectStorageService.normalizeObjectEntityPath(data.firmaUrl);
+      }
+      
+      const mantenimiento = await storage.createMantenimientoEquipo({
+        ...data,
+        firmaUrl: firmaNormalizada
+      });
       res.status(201).json(mantenimiento);
     } catch (error) {
       console.error("Error creating mantenimiento:", error);

@@ -188,23 +188,37 @@ export function MaintenanceDialog({ equipoId, equipoNombre, open, onOpenChange }
 
       // Si hay firma, subirla al object storage
       if (data.signatureData) {
-        const blob = await fetch(data.signatureData).then(r => r.blob());
-        const formData = new FormData();
-        formData.append('file', blob, `firma-${Date.now()}.png`);
-        formData.append('folder', '.private/firmas');
-
-        const uploadRes = await fetch('/api/upload', {
+        // Paso 1: Obtener URL de subida firmada desde el servidor
+        const uploadUrlRes = await fetch('/api/objects/upload', {
           method: 'POST',
-          body: formData,
           credentials: 'include',
+        });
+
+        if (!uploadUrlRes.ok) {
+          throw new Error('Error al obtener URL de subida');
+        }
+
+        const { uploadURL } = await uploadUrlRes.json();
+
+        // Paso 2: Subir la firma (imagen PNG) a la URL firmada de Google Cloud Storage
+        const blob = await fetch(data.signatureData).then(r => r.blob());
+        
+        const uploadRes = await fetch(uploadURL, {
+          method: 'PUT',
+          body: blob,
+          headers: {
+            'Content-Type': 'image/png',
+          },
         });
 
         if (!uploadRes.ok) {
           throw new Error('Error al subir la firma');
         }
 
-        const uploadResponse = await uploadRes.json();
-        firmaUrl = uploadResponse.url;
+        // Paso 3: Enviar la URL firmada al backend
+        // El backend la normalizará a una ruta persistente (/objects/...) antes de guardarla
+        // Esto garantiza que la firma permanezca accesible más allá de la expiración de la URL firmada
+        firmaUrl = uploadURL;
       }
 
       return apiRequest('POST', `/api/equipos/${equipoId}/mantenimientos`, { ...data, firmaUrl, signatureData: undefined });
@@ -236,9 +250,18 @@ export function MaintenanceDialog({ equipoId, equipoNombre, open, onOpenChange }
   });
 
   const onSubmit = (data: InsertMantenimientoEquipo) => {
+    if (!signature) {
+      toast({
+        variant: "destructive",
+        title: "Firma requerida",
+        description: "Debe proporcionar una firma para guardar el registro",
+      });
+      return;
+    }
+
     createMantenimientoMutation.mutate({
       ...data,
-      signatureData: signature || undefined,
+      signatureData: signature,
     });
   };
 
@@ -323,7 +346,7 @@ export function MaintenanceDialog({ equipoId, equipoNombre, open, onOpenChange }
                     <FormItem>
                       <FormLabel>Fecha</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} data-testid="input-fecha" />
+                        <Input type="date" {...field} data-testid="input-maintenance-fecha" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -340,7 +363,7 @@ export function MaintenanceDialog({ equipoId, equipoNombre, open, onOpenChange }
                         <Textarea 
                           {...field} 
                           placeholder="Describa la actuación realizada..."
-                          data-testid="input-actuacion"
+                          data-testid="textarea-actuacion"
                         />
                       </FormControl>
                       <FormMessage />
@@ -377,7 +400,7 @@ export function MaintenanceDialog({ equipoId, equipoNombre, open, onOpenChange }
                           {...field} 
                           value={field.value || ""}
                           placeholder="Observaciones adicionales..."
-                          data-testid="input-observaciones"
+                          data-testid="textarea-observaciones"
                         />
                       </FormControl>
                       <FormMessage />
