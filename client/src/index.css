@@ -359,10 +359,6 @@
     margin: 0;
     padding: 0;
   }
-  
-  html, body {
-    height: 100%;
-  }
 
   /* Hide scrollbars in print */
   * {
@@ -372,9 +368,6 @@
   /* Ensure proper page breaks */
   [data-testid="documento-entrega"] {
     page-break-inside: avoid;
-    height: 100%;
-    display: flex;
-    align-items: stretch;
   }
 
   /* Optimización para documento de aceptación de maquinaria en A4 */
