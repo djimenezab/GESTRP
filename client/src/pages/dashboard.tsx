@@ -3,10 +3,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { StatsCard } from "@/components/stats-card";
 import { WorkerCard } from "@/components/worker-card";
 import { WorkerDetailDialog } from "@/components/worker-detail-dialog";
-import { Users, HardHat, GraduationCap, AlertTriangle, Plus, Search } from "lucide-react";
+import { Users, HardHat, GraduationCap, AlertTriangle, Plus, Search, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { WorkerForm } from "@/components/worker-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -70,6 +71,9 @@ export default function Dashboard() {
     worker.dni.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Calcular EPIs sin firma digital
+  const episSinFirma = epis.filter((epi) => !epi.firmaUrl || epi.firmaUrl.trim() === "").length;
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -116,6 +120,17 @@ export default function Dashboard() {
           description="Total registrados"
         />
       </div>
+
+      {/* Alerta de EPIs sin firma digital */}
+      {episSinFirma > 0 && (
+        <Alert variant="default" data-testid="alert-epis-sin-firma">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Atención: Firmas Pendientes</AlertTitle>
+          <AlertDescription>
+            Hay <strong>{episSinFirma}</strong> {episSinFirma === 1 ? "documento de entrega de EPI pendiente" : "documentos de entrega de EPIs pendientes"} de firma digital. Recuerda solicitar las firmas correspondientes.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="space-y-4">
         <div className="flex items-center gap-4">
