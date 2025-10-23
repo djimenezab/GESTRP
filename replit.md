@@ -115,3 +115,18 @@ The application uses Drizzle ORM with PostgreSQL, specifically Neon serverless P
   - Updated `epi-delivery-document.tsx` to accept and display `firmaUrl` prop
   - Optimized print-specific CSS classes for better page positioning
   - Conditional rendering maintains document layout with or without signature
+
+#### Dashboard - Unsigned EPIs Alert
+- **Attention Message for Pending Signatures**:
+  - Dashboard displays an alert when there are EPIs without digital signatures
+  - Shows the exact count of unsigned EPIs with proper Spanish singular/plural grammar
+  - Alert appears between statistics cards and worker search section
+  - Only visible when there is at least one unsigned EPI
+  - Uses AlertCircle icon for visual attention
+
+- **Implementation Details**:
+  - Added shadcn Alert component to dashboard
+  - Calculates unsigned EPIs by filtering where `firmaUrl` is null, undefined, or empty string
+  - Conditional rendering: `{episSinFirma > 0 && <Alert>...}</Alert>`
+  - Proper text formatting: "Hay **X** documento(s) de entrega de EPIs pendientes de firma digital"
+  - Includes `data-testid="alert-epis-sin-firma"` for testing
