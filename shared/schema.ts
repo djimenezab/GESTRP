@@ -64,6 +64,7 @@ export const epis = pgTable("epis", {
   fechaEntrega: date("fecha_entrega").notNull(),
   fechaCaducidad: date("fecha_caducidad"),
   observaciones: text("observaciones"),
+  firmaUrl: text("firma_url"), // URL de la firma digital del trabajador
 });
 
 // Documentos de EPIs (almacenados en Replit App Storage)
@@ -182,6 +183,7 @@ export const insertEpiSchema = createInsertSchema(epis).omit({ id: true, numeroC
   modelo: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
   fechaCaducidad: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
   observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  firmaUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
 export const insertEpiDocumentoSchema = createInsertSchema(epiDocumentos).omit({ id: true, fechaSubida: true });
