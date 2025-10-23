@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, MoreVertical, Pencil, Trash2, FolderOpen } from "lucide-react";
+import { Plus, Search, MoreVertical, Pencil, Trash2, FolderOpen, PenTool } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -45,6 +45,8 @@ export default function Epis() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isDocumentosDialogOpen, setIsDocumentosDialogOpen] = useState(false);
   const [selectedEpiForDocs, setSelectedEpiForDocs] = useState<Epi | null>(null);
+  const [isFirmaDialogOpen, setIsFirmaDialogOpen] = useState(false);
+  const [selectedEpiForFirma, setSelectedEpiForFirma] = useState<Epi | null>(null);
   const { toast } = useToast();
 
   const { data: epis = [], isLoading: episLoading } = useQuery<Epi[]>({
@@ -233,6 +235,7 @@ export default function Epis() {
               <TableHead>Fecha de Entrega</TableHead>
               <TableHead>Fecha de Caducidad</TableHead>
               <TableHead>Observaciones</TableHead>
+              {user?.tipoAcceso === "Usuario" && <TableHead>Firma</TableHead>}
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -258,6 +261,24 @@ export default function Epis() {
                   {epi.fechaCaducidad ? format(new Date(epi.fechaCaducidad), "dd/MM/yyyy", { locale: es }) : "-"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{epi.observaciones || "-"}</TableCell>
+                {user?.tipoAcceso === "Usuario" && (
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedEpiForFirma(epi);
+                        setIsFirmaDialogOpen(true);
+                      }}
+                      disabled={!!epi.firmaUrl}
+                      data-testid={`button-firma-${epi.id}`}
+                    >
+                      <PenTool className="h-3 w-3 mr-1" />
+                      {epi.firmaUrl ? "Firmado" : "Firma"}
+                    </Button>
+                  </TableCell>
+                )}
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

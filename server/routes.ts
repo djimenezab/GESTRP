@@ -218,6 +218,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/epis/:id/firma", async (req, res) => {
+    try {
+      const { firmaUrl } = req.body;
+      
+      if (!firmaUrl) {
+        return res.status(400).json({ error: "firmaUrl es requerido" });
+      }
+
+      // Normalizar la URL de la firma antes de guardarla
+      // Esto convierte la URL firmada temporal a una ruta persistente (/objects/...)
+      const objectStorageService = new ObjectStorageService();
+      const firmaNormalizada = objectStorageService.normalizeObjectEntityPath(firmaUrl);
+      
+      const epi = await storage.updateEpi(req.params.id, { firmaUrl: firmaNormalizada });
+      
+      if (!epi) {
+        return res.status(404).json({ error: "EPI no encontrado" });
+      }
+      
+      res.json(epi);
+    } catch (error) {
+      console.error("Error updating EPI firma:", error);
+      res.status(400).json({ error: "Error al actualizar firma" });
+    }
+  });
+
   app.delete("/api/epis/:id", async (req, res) => {
     try {
       await storage.deleteEpi(req.params.id);
