@@ -44,7 +44,7 @@ export function EpiDeliveryDocument({
 
           {/* Título - Cuadro derecho */}
           <div className="p-4 flex items-center justify-center print:p-3">
-            <h1 className="text-xl font-bold text-center print:text-base">
+            <h1 className="text-2xl font-bold text-center print:text-lg">
               ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL
             </h1>
           </div>
