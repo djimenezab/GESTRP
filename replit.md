@@ -2,7 +2,7 @@
 
 ## Overview
 
-This full-stack web application provides a comprehensive Occupational Safety Management System. Its primary purpose is to help organizations efficiently manage worker information, safety equipment (EPIs), training courses, and workplace accidents. The system aims to enhance workplace safety and ensure regulatory compliance through robust data management, a professional user interface, and streamlined workflows for safety officers and administrators. Key capabilities include tracking employee safety compliance, managing equipment distribution and records, and facilitating incident reporting.
+This full-stack web application is an Occupational Safety Management System designed to help organizations manage worker information, safety equipment (EPIs), training courses, and workplace accidents. The system aims to enhance workplace safety, ensure regulatory compliance, and streamline workflows for safety officers and administrators. Key capabilities include tracking employee safety compliance, managing equipment distribution, facilitating incident reporting, and providing comprehensive documentation management.
 
 ## User Preferences
 
@@ -12,30 +12,32 @@ Preferred communication style: Simple, everyday language (Spanish).
 
 ### Frontend Architecture
 
-The frontend is built with **React** and **TypeScript**, using **Vite** for tooling. **Wouter** manages client-side routing, and **TanStack Query (React Query)** handles server state. The UI is constructed with **shadcn/ui** components, based on Radix UI primitives, and styled with **Tailwind CSS** for a professional, Material Design-inspired theme with light/dark mode. Forms are managed using **React Hook Form** and validated with **Zod** schemas.
+The frontend is built with React and TypeScript, using Vite for tooling and Wouter for client-side routing. TanStack Query handles server state. UI components are developed with shadcn/ui (based on Radix UI) and styled using Tailwind CSS, featuring a Material Design-inspired theme with light/dark mode. Forms are managed with React Hook Form and validated using Zod.
 
 ### Backend Architecture
 
-The backend uses **Express.js** with **Node.js** and **TypeScript**, following a RESTful API design (`/api` prefix). It includes custom middleware for logging and error handling. A storage abstraction layer with `DbStorage` handles persistence using **Drizzle ORM** connected to a **PostgreSQL database**. UUIDs are used for primary keys, and full CRUD operations are supported for all entities. Replit Object Storage is integrated for file uploads. The system implements session-based authentication using `express-session` with `connect-pg-simple` and bcrypt for password hashing, supporting three access levels: AdminGral, Administrador, and Usuario, with role-based and zone-based data filtering.
+The backend utilizes Express.js with Node.js and TypeScript, following a RESTful API design. It incorporates custom middleware for logging and error handling. Data persistence is managed via Drizzle ORM connected to a PostgreSQL database, abstracted through a `DbStorage` layer. UUIDs are used for primary keys, and full CRUD operations are supported across all entities. Replit Object Storage is integrated for file uploads. Authentication is session-based using `express-session` with `connect-pg-simple` and bcrypt for password hashing, supporting three access levels: AdminGral, Administrador, and Usuario, with role-based and zone-based data filtering.
 
 ### Data Storage Solutions
 
-The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, connected via **Neon serverless PostgreSQL**. The database schema includes tables for `trabajadores` (workers), `epis` (safety equipment), `cursos` (training courses), `accidentes` (accidents), `epis_fichas_ev` (EPI evaluation sheets catalog), `zonas_trabajo` (work zones), `usuarios` (system users with hashed passwords and access levels), `equipos` (equipment and machinery), `epiDocumentos` (EPI documentation), and `fichas_seguridad_productos` (product safety data sheets). Type safety is enforced through Zod schemas generated from Drizzle schemas.
+The application uses Drizzle ORM with PostgreSQL, specifically Neon serverless PostgreSQL, for data persistence. The database schema includes tables for workers, safety equipment (EPIs), training courses, accidents, EPI evaluation sheets, work zones, system users, equipment/machinery, EPI documentation, product safety data sheets, chemical products, machinery acceptance reports, and worker digitized documents. Type safety is enforced via Zod schemas generated from Drizzle schemas.
 
 ### System Design Choices
 
-- **Comprehensive Management Modules**: Includes modules for Worker, EPI, Equipment, Training, Accident, and Documentation management with full CRUD operations. Documentation section includes safety data sheets with PDF upload capabilities.
-- **Role-Based Access Control**: Three access levels (AdminGral, Administrador, Usuario) with zone-based and individual user-based data filtering and creation restrictions implemented at both backend and frontend. Users can be assigned to multiple work zones.
-  - **Usuario Role**: View-only access to their own data (trabajador, EPIs, cursos, accidentes) and zone equipment. No creation/deletion permissions. Equipment module is read-only with document viewing capabilities only.
-- **File Uploads**: Integration with Replit Object Storage for documents and images (e.g., EPI documentation, equipment files, evaluation sheets, manuals).
-- **Risk Evaluation Tracking**: Includes comprehensive validation and tracking for worker risk evaluation delivery with printable documents.
+- **Comprehensive Management Modules**: Includes modules for Worker, EPI, Equipment, Training, Accident, and Documentation management with full CRUD operations.
+- **Role-Based Access Control**: Implements three access levels (AdminGral, Administrador, Usuario) with zone-based and individual user-based data filtering and creation restrictions.
+- **File Uploads**: Integrates Replit Object Storage for managing various documents and images (e.g., EPI documentation, equipment files, worker digitized files, signatures).
+- **Risk Evaluation Tracking**: Includes validation and tracking for worker risk evaluation delivery with printable documents.
 - **UI/UX Design**: Professional interface using Shadcn UI and Tailwind CSS, featuring searchable tables, modal dialogs, and consistent design patterns, with light/dark mode support.
+- **Print-Optimized Documents**: Generates print-friendly documents (e.g., EPI delivery, machinery acceptance reports) with adaptive content and A4 formatting.
+- **Digital Signature**: Features canvas-based digital signature capture for maintenance logs, uploaded to object storage.
+- **Dynamic Content**: EPI delivery documents dynamically display administrator signatures, and machinery acceptance reports dynamically list mandatory EPIs.
 
 ## External Dependencies
 
 ### Database & ORM
 
-- **@neondatabase/serverless**: Client for Neon serverless PostgreSQL.
+- **@neondatabase/serverless**: Neon serverless PostgreSQL client.
 - **drizzle-orm**: Type-safe ORM.
 - **drizzle-kit**: CLI for schema migrations.
 
@@ -61,7 +63,7 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 
 ### File Storage
 
-- **Replit Object Storage (Google Cloud Storage)**: For storing documents and images.
+- **Replit Object Storage (Google Cloud Storage)**: For storing documents, images, and digital signatures.
 
 ### Utilities
 
@@ -69,151 +71,3 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - **class-variance-authority**: Type-safe component variants.
 - **clsx** & **tailwind-merge**: Utilities for conditional class names.
 - **nanoid**: Unique ID generation.
-
-## Recent Changes
-
-### Documentación Section (October 2025)
-- Implemented **Fichas de seguridad de productos** (Product Safety Data Sheets) subsection with full CRUD operations
-- Integrated **ObjectUploader** component for PDF file uploads using Replit Object Storage
-- Added view and download capabilities for safety data sheets
-- Uses accordion UI pattern for expandable documentation sections
-- Follows same file upload pattern as Equipment section for consistency
-- Fixed **apiRequest** utility to properly handle 204 No Content responses from DELETE operations
-- Added **real-time search functionality** to filter safety data sheets by name, brand, or model with instant feedback
-- Implemented **role-based access control**: Usuario type users can only view and download fichas (no create/edit/delete permissions)
-
-### Productos Químicos (Chemical Products) Feature (October 2025)
-- **New "Productos Químicos" subsection** in Documentation page with chemical products inventory management
-- Created `productos_quimicos` table with fields: id, zonaId, nombre, nombreComercial, ubicacionAlmacen, cantidad, fechaCreacion
-- Implemented complete CRUD backend with zone-based filtering for all operations
-- **Zone-based access control**:
-  - AdminGral: Full access to all chemical products across all zones
-  - Administrador: Access limited to products in their assigned zones
-  - Usuario: Read-only access to products in their assigned zones (no create/edit/delete)
-- **Frontend features**:
-  - Accordion-based UI following existing Documentation patterns
-  - Create/edit forms with zone selection requirement
-  - Card-based display showing product details (nombre, nombre comercial, ubicación, cantidad)
-  - Zone-specific filtering for administrators
-  - Empty state message when no products exist
-- **API Endpoints**:
-  - GET `/api/productos-quimicos` - List products (filtered by zone for Administrador/Usuario)
-  - POST `/api/productos-quimicos` - Create new product (requires zone selection)
-  - PATCH `/api/productos-quimicos/:id` - Update product
-  - DELETE `/api/productos-quimicos/:id` - Delete product
-- **Data Validation**: Zod schema validation with required fields (zonaId, nombre, cantidad)
-- **Cache Management**: React Query cache invalidation after mutations
-- Uses Beaker icon from lucide-react for chemical products
-- All elements tagged with `data-testid` attributes for automated testing
-
-### EPI Delivery Document Enhancement (October 2025)
-- **Dynamic administrator signature**: EPI delivery documents now display the actual administrator's name who generates the document
-- Added `email` field to `usuarios` table to link administrators with their worker profiles
-- Created `/api/trabajador-nombre-by-email` endpoint to fetch worker names by email
-- Document signature automatically shows administrator's full name from `trabajadores` table based on their email
-- Falls back to "Administrador" if no matching worker is found for the email
-- **Fixed**: Corrected React Query queryKey to properly pass email as query parameter to the API endpoint
-- **Setup requirement**: All administrator users must have their `email` field set to match a `trabajadores.email` for the signature to work correctly
-
-### Machinery Acceptance Report Generator (October 2025)
-- **New "Generador informes" subsection** in Documentation page with machinery acceptance report functionality
-- Created `informes_aceptacion_maquinaria` table to store acceptance reports (trabajadorId, equipoId, fechaAceptacion, observaciones)
-- Implemented complete CRUD backend with zone-based filtering for both workers and equipment
-- Built **MachineryAcceptanceDocument** component with comprehensive data-testid coverage for automated testing
-- Dialog-based report generation interface with selects for worker, equipment, date, and optional observations
-- **Access restrictions**: Report generator only visible to AdminGral and Administrador users (hidden from Usuario type)
-- Reports automatically filtered by administrator's assigned zones for both workers and equipment
-- Document includes worker details, equipment specifications, legal compliance text, obligations list (a, b, c, d), and worker signature
-- **Dynamic EPIs display**: Document automatically shows equipment's mandatory EPIs as **bold centered list** under point c) when available
-- Fetches EPIs from `/api/equipos/:id/epis-obligatorios` endpoint and displays them with stable test IDs (`text-epi-${id}`)
-- **Removed administrator signature**: "Firmado: Administrador" text no longer appears in the document
-- **Print optimizations for A4 format with adaptive content**: 
-  - All dialog UI elements hidden when printing (header title, close X button, toast notifications)
-  - Obligation point e) removed from document
-  - **Adaptive text sizing**: Font size automatically adjusted (0.85rem) with compact line-height (1.3) to accommodate variable content
-  - **Flexible spacing**: Compact margins and paddings (print:space-y-1, print:leading-tight) that adapt to content volume
-  - **Dynamic scaling**: Handles variable content (multiple EPIs, long observations) while maintaining A4 format
-  - **Logo sizing**: Logo reduced to `h-12` with minimal bottom margin (print:mb-1) for compact header
-  - **Title sizing**: Title reduced to `text-base` with tight margins (print:my-2)
-  - **Zero top padding**: Document starts at top of page (print:pt-0) to maximize vertical space
-  - "Atentamente," text hidden when printing (print:hidden)
-  - Separator margin minimized to reduce blank space after obligations (print:my-0.5)
-  - Page break control with `page-break-inside: avoid` to prevent splitting across pages
-  - CSS @page rules configured for A4 size with 1cm-1.5cm margins
-- Print-friendly document layout that automatically adapts to content volume while maintaining A4 format
-- All document elements tagged with data-testid attributes for comprehensive test automation
-
-### Equipment List Interaction Enhancement (October 2025)
-- **Clickable equipment rows for all user types**: Equipment list rows are now clickable with visual hover feedback
-- **Usuario access type**: Clicking an equipment row opens a dialog showing mandatory EPIs (EPIs Obligatorios) for that equipment
-- **Admin access types**: Clicking an equipment row opens the edit dialog (existing behavior)
-- **EPIs visualization dialog**: Displays equipment's mandatory EPIs in a clean list format with visual bullets
-- Empty state message when equipment has no mandatory EPIs registered
-- Uses existing `/api/equipos/:id/epis-obligatorios` endpoint for data fetching
-- All elements tagged with `data-testid` attributes for automated testing (`dialog-epis-equipo`, `text-epi-obligatorio-${id}`, `button-close-epis-dialog`)
-
-### Worker Digitized File (Expediente Digitalizado) Feature (October 2025)
-- **New "Expediente Digitalizado" tab** in Worker Detail page for managing worker's digitized documents
-- Created `documentos_expediente` table with fields: id, trabajadorId, nombreArchivo, rutaArchivo, tipoArchivo, tamanoBytes, descripcion, fechaSubida
-- Implemented complete CRUD backend with storage methods and REST API endpoints
-- **Document Management Features**:
-  - Upload documents using ObjectUploader component integrated with Replit Object Storage
-  - View list of uploaded documents with name, upload date, and file size
-  - Download documents (opens in new tab)
-  - Delete documents with confirmation
-  - Empty state message when no documents are present
-- **Worker Detail Page Refactored**:
-  - Changed from mock data to real API data using React Query
-  - Route fixed from `/trabajador/:id` to `/trabajadores/:id` (plural) for consistency
-  - Proper useRoute configuration to extract trabajadorId parameter
-  - All tabs (EPIs, Cursos, Accidentes, Expediente) now use real data
-  - Lazy loading of tab data (only loads when tab is activated)
-- **API Endpoints**:
-  - GET `/api/trabajadores/:id/documentos-expediente` - List worker's documents
-  - POST `/api/documentos-expediente` - Upload new document
-  - DELETE `/api/documentos-expediente/:id` - Delete document
-- **Data Validation**: Zod schema validation for all document operations
-- **Cache Management**: React Query cache invalidation after mutations to keep UI in sync
-- **E2E Testing**: Comprehensive end-to-end tests verify full upload → view → delete flow
-- All elements tagged with appropriate `data-testid` attributes for automated testing
-
-### Equipment Maintenance Logbook (Cuaderno de Mantenimiento) Feature (October 2025)
-- **New "Mantenimiento" column** in Equipment table with button to access maintenance logbook for each equipment
-- Created `mantenimientos_equipos` table with fields: id, equipoId, fecha, actuacionRealizada, personaRealiza, observaciones, firmaUrl, fechaCreacion
-- Implemented complete CRUD backend with storage methods and REST API endpoints
-- **MaintenanceDialog Component Features**:
-  - Tab-based interface with "Historial" (history view) and "Nuevo Registro" (new record form)
-  - Digital signature capture using HTML5 canvas for mouse and touch input
-  - SignaturePad component with drawing capabilities and clear function
-  - View complete maintenance history with dates, actions, person, observations, and signatures
-  - Delete maintenance records (AdminGral and Administrador only)
-- **Digital Signature Implementation**:
-  - HTML5 canvas-based signature pad with mouse and touch event support
-  - Converts signature to PNG image using canvas.toDataURL()
-  - Uploads signature to Replit Object Storage using signed upload URLs
-  - **URL Normalization**: Backend normalizes signed URLs to persistent paths (/objects/...) before database storage
-  - Ensures signatures remain accessible beyond signed URL expiration (TTL)
-  - Signature images served through authenticated /objects/:path route
-- **Access Control**:
-  - All users can view maintenance history (no permission restrictions)
-  - Only AdminGral and Administrador can create and delete maintenance records
-  - Usuario type users have read-only access to maintenance logbook
-- **Form Validation**:
-  - Fecha (date): Required field
-  - Actuación realizada: Required, minimum 10 characters
-  - Persona que realiza: Required, minimum 3 characters
-  - Observaciones: Optional field
-  - Firma: Required (validated before submission, shows toast if missing)
-- **API Endpoints**:
-  - GET `/api/equipos/:equipoId/mantenimientos` - List all maintenance records for equipment
-  - POST `/api/equipos/:equipoId/mantenimientos` - Create new maintenance record (includes URL normalization)
-  - DELETE `/api/mantenimientos/:id` - Delete maintenance record
-- **Object Storage Integration**:
-  - Follows Replit Object Storage workflow: request signed URL → upload PNG → normalize URL → store normalized path
-  - Uses ObjectStorageService.normalizeObjectEntityPath() to convert signed URLs to durable paths
-  - Signatures stored in private directory (.private/uploads/) and served through /objects/ route
-- **Data Validation**: Zod schema validation for all maintenance operations
-- **Cache Management**: React Query cache invalidation after mutations to keep UI in sync
-- **E2E Testing**: Comprehensive end-to-end tests verify full workflow: login → navigate → open dialog → fill form → draw signature → save → verify in history
-- All elements tagged with appropriate `data-testid` attributes for automated testing
-- **Code Documentation**: Inline comments explain URL normalization process to ensure maintainability
