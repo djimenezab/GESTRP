@@ -50,6 +50,10 @@ export function EpiDeliveryDocument({
           </div>
         </div>
 
+        <div className="mt-6 print:mt-1 mb-3 print:mb-8">
+          &nbsp;  {/* Añadir espacio en blanco visual */}
+        </div>
+        
         {/* Contenido del documento */}
         <div className="p-8 space-y-3 print:p-6 print:space-y-2">
           {/* Datos del trabajador y fecha */}
@@ -73,6 +77,7 @@ export function EpiDeliveryDocument({
               de protección individual:
             </p>
 
+                        
             <p className="text-center my-6 print:my-3 print:py-2">
               <strong className="text-lg print:text-base uppercase">
                 {tipoEquipo}
@@ -99,15 +104,24 @@ export function EpiDeliveryDocument({
 
             <p className="mt-3 print:mt-2">Atentamente,</p>
 
-            <div className="mt-4 print:mt-2 mb-32 print:mb-32">
+            <div className="mt-4 print:mt-2 mb-32 print:mb-320">
               <p>
                 <strong>Firmado:</strong> {nombreAdministrador || "Administrador"}
               </p>
             </div>
           </div>
 
+          <div className="mt-60 print:mt-100 mb-1320 print:mb-1820">
+            &nbsp;  {/* Añadir espacio en blanco visual */}
+          </div>
+
+          <div className="mt-60 print:mt-100 mb-320 print:mb-820">
+            &nbsp;  {/* Añadir espacio en blanco visual */}
+          </div>
+
+          
           {/* Sección de reconocimiento del trabajador */}
-          <div className="space-y-3 print:space-y-2">
+          <div className="space-y-300 print:space-y-2">
             <p>
               D./Dª <strong>{trabajadorNombre}</strong> con D.N.I. nº{" "}
               <strong>{trabajadorDni}</strong> reconoce haber recibido el Equipo de
