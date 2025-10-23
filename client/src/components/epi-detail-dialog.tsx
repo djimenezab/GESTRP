@@ -62,9 +62,24 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
       
       // Para Administrador, abrir automáticamente la ventana de impresión
       if (user?.tipoAcceso === "Administrador") {
-        setTimeout(() => {
-          window.print();
-        }, 100);
+        // Esperar a que todas las imágenes se carguen antes de imprimir
+        const images = document.querySelectorAll('img');
+        const imagePromises = Array.from(images).map(img => {
+          if (img.complete) {
+            return Promise.resolve();
+          }
+          return new Promise((resolve) => {
+            img.onload = () => resolve(null);
+            img.onerror = () => resolve(null);
+          });
+        });
+        
+        Promise.all(imagePromises).then(() => {
+          // Dar un poco más de tiempo adicional para asegurar el renderizado
+          setTimeout(() => {
+            window.print();
+          }, 300);
+        });
       }
     }
   }, [showDocument, user?.tipoAcceso]);
