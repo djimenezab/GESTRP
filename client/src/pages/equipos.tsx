@@ -57,6 +57,7 @@ import { ObjectUploader } from "@/components/ObjectUploader";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
+import { MaintenanceDialog } from "@/components/maintenance-dialog";
 
 export default function Equipos() {
   const { user } = useAuth();
@@ -64,10 +65,12 @@ export default function Equipos() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEpisDialogOpen, setIsEpisDialogOpen] = useState(false);
+  const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingEquipo, setEditingEquipo] = useState<Equipo | null>(null);
   const [deletingEquipo, setDeletingEquipo] = useState<Equipo | null>(null);
   const [viewingEquipo, setViewingEquipo] = useState<Equipo | null>(null);
+  const [maintenanceEquipo, setMaintenanceEquipo] = useState<Equipo | null>(null);
   const { toast } = useToast();
 
   const { data: equipos = [], isLoading } = useQuery<Equipo[]>({
@@ -431,7 +434,8 @@ export default function Equipos() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            // TODO: Open mantenimiento dialog
+                            setMaintenanceEquipo(equipo);
+                            setIsMaintenanceDialogOpen(true);
                           }}
                           data-testid={`button-mantenimiento-${equipo.id}`}
                         >
@@ -1225,6 +1229,16 @@ export default function Equipos() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Maintenance Dialog */}
+      {maintenanceEquipo && (
+        <MaintenanceDialog
+          equipoId={maintenanceEquipo.id}
+          equipoNombre={`${maintenanceEquipo.nombre} - ${maintenanceEquipo.marca} ${maintenanceEquipo.modelo}`}
+          open={isMaintenanceDialogOpen}
+          onOpenChange={setIsMaintenanceDialogOpen}
+        />
+      )}
     </div>
   );
 }
