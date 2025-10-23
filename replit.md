@@ -176,3 +176,44 @@ The application uses **Drizzle ORM** with **PostgreSQL** for data persistence, c
 - **Cache Management**: React Query cache invalidation after mutations to keep UI in sync
 - **E2E Testing**: Comprehensive end-to-end tests verify full upload → view → delete flow
 - All elements tagged with appropriate `data-testid` attributes for automated testing
+
+### Equipment Maintenance Logbook (Cuaderno de Mantenimiento) Feature (October 2025)
+- **New "Mantenimiento" column** in Equipment table with button to access maintenance logbook for each equipment
+- Created `mantenimientos_equipos` table with fields: id, equipoId, fecha, actuacionRealizada, personaRealiza, observaciones, firmaUrl, fechaCreacion
+- Implemented complete CRUD backend with storage methods and REST API endpoints
+- **MaintenanceDialog Component Features**:
+  - Tab-based interface with "Historial" (history view) and "Nuevo Registro" (new record form)
+  - Digital signature capture using HTML5 canvas for mouse and touch input
+  - SignaturePad component with drawing capabilities and clear function
+  - View complete maintenance history with dates, actions, person, observations, and signatures
+  - Delete maintenance records (AdminGral and Administrador only)
+- **Digital Signature Implementation**:
+  - HTML5 canvas-based signature pad with mouse and touch event support
+  - Converts signature to PNG image using canvas.toDataURL()
+  - Uploads signature to Replit Object Storage using signed upload URLs
+  - **URL Normalization**: Backend normalizes signed URLs to persistent paths (/objects/...) before database storage
+  - Ensures signatures remain accessible beyond signed URL expiration (TTL)
+  - Signature images served through authenticated /objects/:path route
+- **Access Control**:
+  - All users can view maintenance history (no permission restrictions)
+  - Only AdminGral and Administrador can create and delete maintenance records
+  - Usuario type users have read-only access to maintenance logbook
+- **Form Validation**:
+  - Fecha (date): Required field
+  - Actuación realizada: Required, minimum 10 characters
+  - Persona que realiza: Required, minimum 3 characters
+  - Observaciones: Optional field
+  - Firma: Required (validated before submission, shows toast if missing)
+- **API Endpoints**:
+  - GET `/api/equipos/:equipoId/mantenimientos` - List all maintenance records for equipment
+  - POST `/api/equipos/:equipoId/mantenimientos` - Create new maintenance record (includes URL normalization)
+  - DELETE `/api/mantenimientos/:id` - Delete maintenance record
+- **Object Storage Integration**:
+  - Follows Replit Object Storage workflow: request signed URL → upload PNG → normalize URL → store normalized path
+  - Uses ObjectStorageService.normalizeObjectEntityPath() to convert signed URLs to durable paths
+  - Signatures stored in private directory (.private/uploads/) and served through /objects/ route
+- **Data Validation**: Zod schema validation for all maintenance operations
+- **Cache Management**: React Query cache invalidation after mutations to keep UI in sync
+- **E2E Testing**: Comprehensive end-to-end tests verify full workflow: login → navigate → open dialog → fill form → draw signature → save → verify in history
+- All elements tagged with appropriate `data-testid` attributes for automated testing
+- **Code Documentation**: Inline comments explain URL normalization process to ensure maintainability
