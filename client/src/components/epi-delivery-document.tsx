@@ -99,18 +99,15 @@ export function EpiDeliveryDocument({
 
             <p className="mt-3 print:mt-2">Atentamente,</p>
 
-            <div className="mt-4 print:mt-2 mb-12 print:mb-8">
+            <div className="mt-4 print:mt-2 mb-8 print:mb-6">
               <p>
                 <strong>Firmado:</strong> {nombreAdministrador || "Administrador"}
               </p>
             </div>
           </div>
 
-          {/* Separador */}
-          <div className="border-t-2 border-black my-6 print:my-4"></div>
-
           {/* Sección de reconocimiento del trabajador */}
-          <div className="space-y-3 print:space-y-2">
+          <div className="space-y-3 print:space-y-2 mt-8 print:mt-6">
             <p>
               D./Dª <strong>{trabajadorNombre}</strong> con D.N.I. nº{" "}
               <strong>{trabajadorDni}</strong> reconoce haber recibido el Equipo de
