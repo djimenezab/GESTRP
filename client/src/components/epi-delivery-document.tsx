@@ -99,7 +99,7 @@ export function EpiDeliveryDocument({
 
             <p className="mt-3 print:mt-2">Atentamente,</p>
 
-            <div className="mt-4 print:mt-2">
+            <div className="mt-4 print:mt-2 mb-12 print:mb-8">
               <p>
                 <strong>Firmado:</strong> {nombreAdministrador || "Administrador"}
               </p>
