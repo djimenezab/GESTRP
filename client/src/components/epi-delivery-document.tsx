@@ -25,113 +25,118 @@ export function EpiDeliveryDocument({
 
   return (
     <div
-      className="space-y-3 p-8 bg-background print:bg-white print:pt-2 print:pb-2 print:px-12 print:space-y-2"
+      className="p-8 bg-background print:bg-white print:p-0"
       data-testid="documento-entrega"
     >
-      {/* Membrete con logo */}
-      <div className="mb-3 print:mb-3">
-        <img
-          src={logoPath}
-          alt="Castilla-La Mancha"
-          className="h-16 w-auto print:h-16"
-          data-testid="logo-membrete"
-        />
-      </div>
+      {/* Contenedor con borde A4 */}
+      <div className="border-2 border-black print:min-h-[277mm]">
+        {/* Header dividido: Logo y Título */}
+        <div className="grid grid-cols-[auto_1fr] border-b-2 border-black">
+          {/* Logo - Cuadro izquierdo */}
+          <div className="border-r-2 border-black p-4 flex items-center justify-center print:p-3">
+            <img
+              src={logoPath}
+              alt="Castilla-La Mancha"
+              className="h-20 w-auto print:h-16"
+              data-testid="logo-membrete"
+            />
+          </div>
 
-      
-      {/* Título */}
-
-      <h1 className="text-2xl font-bold text-center my-8 print:text-lg print:my-4">
-        ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL
-      </h1>
-
-       {/* Separar parrafo */}
-      <div className="print:h-3"></div>
-
-      
-      {/* Datos del trabajador y fecha */}
-      <div className="space-y-2 print:space-y-0.5">
-        <p>
-          <strong>D./Dª {trabajadorNombre}</strong>
-        </p>
-        <p>
-          <strong>Fecha:</strong> {fechaFormateada}
-        </p>
-      </div>
-
-      {/* Saludo */}
-      <p className="mt-3 print:mt-1.5">Muy señor/a nuestro/a:</p>
-
-      {/* Cuerpo del documento */}
-      <div className="space-y-3 print:space-y-1.5">
-        <p>
-          En cumplimiento del art. 17 de la Ley 31/1995 de 8 de noviembre, de
-          Prevención de Riesgos Laborales, se hace entrega del siguiente equipo
-          de protección individual:
-        </p>
-
-        <p className="text-center my-6 print:my-4 print:py-3">
-          <strong className="text-lg print:text-base uppercase">
-            {tipoEquipo}
-          </strong>
-        </p>
-
-        <p>Asimismo, se le comunica la obligatoriedad de:</p>
-
-        <div className="ml-6 space-y-1.5 print:space-y-0.5 print:ml-4">
-          <p>
-            <strong>a)</strong> Utilizar estos equipos durante la jornada de
-            trabajo, en las áreas cuya obligatoriedad de uso se encuentra
-            señalizada.
-          </p>
-          <p>
-            <strong>b)</strong> Consultar cualquier duda sobre su correcta
-            utilización, cuidando su perfecto estado y conservación.
-          </p>
-          <p>
-            <strong>c)</strong> Solicitar un nuevo equipo en el caso de pérdida
-            o deterioro del mismo.
-          </p>
+          {/* Título - Cuadro derecho */}
+          <div className="p-4 flex items-center justify-center print:p-3">
+            <h1 className="text-xl font-bold text-center print:text-base">
+              ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL
+            </h1>
+          </div>
         </div>
 
-        <p className="mt-3 print:mt-2">Atentamente,</p>
+        {/* Contenido del documento */}
+        <div className="p-8 space-y-3 print:p-6 print:space-y-2">
+          {/* Datos del trabajador y fecha */}
+          <div className="space-y-2 print:space-y-1">
+            <p>
+              <strong>D./Dª {trabajadorNombre}</strong>
+            </p>
+            <p>
+              <strong>Fecha:</strong> {fechaFormateada}
+            </p>
+          </div>
 
-        <div className="mt-4 print:mt-3 print:mb-12">
-          <p className="print:mb-16">
-            <strong>Firmado:</strong> {nombreAdministrador || "Administrador"}
-          </p>
-        </div>
-      </div>
+          {/* Saludo */}
+          <p className="mt-3 print:mt-2">Muy señor/a nuestro/a:</p>
 
-      {/* Separador */}
-      <div className="border-t-2 border-border my-6 print:my-3"></div>
+          {/* Cuerpo del documento */}
+          <div className="space-y-3 print:space-y-2">
+            <p>
+              En cumplimiento del art. 17 de la Ley 31/1995 de 8 de noviembre, de
+              Prevención de Riesgos Laborales, se hace entrega del siguiente equipo
+              de protección individual:
+            </p>
 
-      {/* Sección de reconocimiento del trabajador */}
-      <div className="space-y-3 print:space-y-1.5">
-        <p>
-          D./Dª <strong>{trabajadorNombre}</strong> con D.N.I. nº{" "}
-          <strong>{trabajadorDni}</strong> reconoce haber recibido el Equipo de
-          Protección Individual anteriormente citado y haber sido informado de
-          los trabajos y zonas en los que deberá utilizar dichos equipos, así
-          como haber recibido las instrucciones para su correcto uso.
-        </p>
+            <p className="text-center my-6 print:my-3 print:py-2">
+              <strong className="text-lg print:text-base uppercase">
+                {tipoEquipo}
+              </strong>
+            </p>
 
-        <div className="mt-8 print:mt-5">
-          <p>
-            <strong>Firmado:</strong> {trabajadorNombre}
-          </p>
-          {firmaUrl ? (
-            <div className="mt-4 print:mt-3">
-              <img 
-                src={firmaUrl} 
-                alt="Firma digital del trabajador" 
-                className="h-20 print:h-16 border-b border-border"
-                data-testid="img-firma-documento"
-              />
+            <p>Asimismo, se le comunica la obligatoriedad de:</p>
+
+            <div className="ml-6 space-y-1.5 print:space-y-1 print:ml-4">
+              <p>
+                <strong>a)</strong> Utilizar estos equipos durante la jornada de
+                trabajo, en las áreas cuya obligatoriedad de uso se encuentra
+                señalizada.
+              </p>
+              <p>
+                <strong>b)</strong> Consultar cualquier duda sobre su correcta
+                utilización, cuidando su perfecto estado y conservación.
+              </p>
+              <p>
+                <strong>c)</strong> Solicitar un nuevo equipo en el caso de pérdida
+                o deterioro del mismo.
+              </p>
             </div>
-          ) : (
-            <div className="border-b border-border w-64 mt-2 print:mt-3"></div>
-          )}
+
+            <p className="mt-3 print:mt-2">Atentamente,</p>
+
+            <div className="mt-4 print:mt-2">
+              <p>
+                <strong>Firmado:</strong> {nombreAdministrador || "Administrador"}
+              </p>
+            </div>
+          </div>
+
+          {/* Separador */}
+          <div className="border-t-2 border-black my-6 print:my-4"></div>
+
+          {/* Sección de reconocimiento del trabajador */}
+          <div className="space-y-3 print:space-y-2">
+            <p>
+              D./Dª <strong>{trabajadorNombre}</strong> con D.N.I. nº{" "}
+              <strong>{trabajadorDni}</strong> reconoce haber recibido el Equipo de
+              Protección Individual anteriormente citado y haber sido informado de
+              los trabajos y zonas en los que deberá utilizar dichos equipos, así
+              como haber recibido las instrucciones para su correcto uso.
+            </p>
+
+            <div className="mt-6 print:mt-4">
+              <p>
+                <strong>Firmado:</strong> {trabajadorNombre}
+              </p>
+              {firmaUrl ? (
+                <div className="mt-4 print:mt-3">
+                  <img 
+                    src={firmaUrl} 
+                    alt="Firma digital del trabajador" 
+                    className="h-20 print:h-16 border-b border-black"
+                    data-testid="img-firma-documento"
+                  />
+                </div>
+              ) : (
+                <div className="border-b border-black w-64 mt-4 print:mt-3"></div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
