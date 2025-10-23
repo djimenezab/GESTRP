@@ -222,14 +222,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { firmaUrl } = req.body;
       
-      if (!firmaUrl) {
-        return res.status(400).json({ error: "firmaUrl es requerido" });
+      let firmaNormalizada: string | undefined = undefined;
+      
+      // Si firmaUrl está vacío, se borra la firma (undefined)
+      // Si tiene valor, se normaliza antes de guardar
+      if (firmaUrl && firmaUrl.trim() !== "") {
+        // Normalizar la URL de la firma antes de guardarla
+        // Esto convierte la URL firmada temporal a una ruta persistente (/objects/...)
+        const objectStorageService = new ObjectStorageService();
+        firmaNormalizada = objectStorageService.normalizeObjectEntityPath(firmaUrl);
       }
-
-      // Normalizar la URL de la firma antes de guardarla
-      // Esto convierte la URL firmada temporal a una ruta persistente (/objects/...)
-      const objectStorageService = new ObjectStorageService();
-      const firmaNormalizada = objectStorageService.normalizeObjectEntityPath(firmaUrl);
       
       const epi = await storage.updateEpi(req.params.id, { firmaUrl: firmaNormalizada });
       

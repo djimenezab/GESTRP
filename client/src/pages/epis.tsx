@@ -30,6 +30,7 @@ import {
 import { EpiForm } from "@/components/epi-form";
 import { EpiDetailDialog } from "@/components/epi-detail-dialog";
 import { EpiDocumentosDialog } from "@/components/epi-documentos-dialog";
+import { SignaturePad } from "@/components/signature-pad";
 import { type InsertEpi, type Epi, type Trabajador } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +48,7 @@ export default function Epis() {
   const [selectedEpiForDocs, setSelectedEpiForDocs] = useState<Epi | null>(null);
   const [isFirmaDialogOpen, setIsFirmaDialogOpen] = useState(false);
   const [selectedEpiForFirma, setSelectedEpiForFirma] = useState<Epi | null>(null);
+  const [signature, setSignature] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: epis = [], isLoading: episLoading } = useQuery<Epi[]>({
@@ -124,6 +126,77 @@ export default function Epis() {
     },
   });
 
+  const updateFirmaMutation = useMutation({
+    mutationFn: async ({ id, signatureData }: { id: string; signatureData: string }) => {
+      // Paso 1: Obtener URL de subida firmada desde el servidor
+      const uploadUrlRes = await fetch('/api/objects/upload', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!uploadUrlRes.ok) {
+        throw new Error('Error al obtener URL de subida');
+      }
+
+      const { uploadURL } = await uploadUrlRes.json();
+
+      // Paso 2: Subir la firma (imagen PNG) a la URL firmada de Google Cloud Storage
+      const blob = await fetch(signatureData).then(r => r.blob());
+      
+      const uploadRes = await fetch(uploadURL, {
+        method: 'PUT',
+        body: blob,
+        headers: {
+          'Content-Type': 'image/png',
+        },
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Error al subir la firma');
+      }
+
+      // Paso 3: Enviar la URL firmada al backend
+      // El backend la normalizará a una ruta persistente (/objects/...) antes de guardarla
+      return await apiRequest("PATCH", `/api/epis/${id}/firma`, { firmaUrl: uploadURL });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/epis"] });
+      setIsFirmaDialogOpen(false);
+      setSelectedEpiForFirma(null);
+      toast({
+        title: "Firma registrada",
+        description: "La firma ha sido registrada correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo registrar la firma",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteFirmaMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("PATCH", `/api/epis/${id}/firma`, { firmaUrl: "" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/epis"] });
+      toast({
+        title: "Firma eliminada",
+        description: "La firma ha sido eliminada correctamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la firma",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateEpi = (data: InsertEpi) => {
     createMutation.mutate(data);
   };
@@ -156,6 +229,28 @@ export default function Epis() {
     e.stopPropagation();
     setSelectedEpiForDocs(epi);
     setIsDocumentosDialogOpen(true);
+  };
+
+  const handleDeleteFirma = (id: string) => {
+    deleteFirmaMutation.mutate(id);
+  };
+
+  const handleSaveFirma = () => {
+    if (!signature) {
+      toast({
+        title: "Error",
+        description: "Debe proporcionar una firma",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedEpiForFirma) {
+      updateFirmaMutation.mutate({
+        id: selectedEpiForFirma.id,
+        signatureData: signature,
+      });
+    }
   };
 
   // Combinar EPIs con datos de trabajadores
@@ -235,7 +330,7 @@ export default function Epis() {
               <TableHead>Fecha de Entrega</TableHead>
               <TableHead>Fecha de Caducidad</TableHead>
               <TableHead>Observaciones</TableHead>
-              {user?.tipoAcceso === "Usuario" && <TableHead>Firma</TableHead>}
+              {(user?.tipoAcceso === "Usuario" || user?.tipoAcceso === "Administrador") && <TableHead>Firma</TableHead>}
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -261,22 +356,44 @@ export default function Epis() {
                   {epi.fechaCaducidad ? format(new Date(epi.fechaCaducidad), "dd/MM/yyyy", { locale: es }) : "-"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{epi.observaciones || "-"}</TableCell>
-                {user?.tipoAcceso === "Usuario" && (
+                {(user?.tipoAcceso === "Usuario" || user?.tipoAcceso === "Administrador") && (
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedEpiForFirma(epi);
-                        setIsFirmaDialogOpen(true);
-                      }}
-                      disabled={!!epi.firmaUrl}
-                      data-testid={`button-firma-${epi.id}`}
-                    >
-                      <PenTool className="h-3 w-3 mr-1" />
-                      {epi.firmaUrl ? "Firmado" : "Firma"}
-                    </Button>
+                    {user?.tipoAcceso === "Usuario" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEpiForFirma(epi);
+                          setIsFirmaDialogOpen(true);
+                        }}
+                        disabled={!!epi.firmaUrl}
+                        data-testid={`button-firma-${epi.id}`}
+                      >
+                        <PenTool className="h-3 w-3 mr-1" />
+                        {epi.firmaUrl ? "Firmado" : "Firma"}
+                      </Button>
+                    )}
+                    {user?.tipoAcceso === "Administrador" && (
+                      epi.firmaUrl ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm("¿Estás seguro de que deseas borrar esta firma?")) {
+                              handleDeleteFirma(epi.id);
+                            }
+                          }}
+                          data-testid={`button-borrar-firma-${epi.id}`}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Borrar Firma
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Sin firma</span>
+                      )
+                    )}
                   </TableCell>
                 )}
                 <TableCell>
@@ -383,6 +500,56 @@ export default function Epis() {
           numeroCorrelativo={selectedEpiForDocs.numeroCorrelativo}
         />
       )}
+
+      <Dialog open={isFirmaDialogOpen} onOpenChange={(open) => {
+        setIsFirmaDialogOpen(open);
+        if (!open) {
+          setSignature(null);
+          setSelectedEpiForFirma(null);
+        }
+      }}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle data-testid="title-firma-epi">Firma Digital del EPI</DialogTitle>
+          </DialogHeader>
+          {selectedEpiForFirma && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Código EPI:</strong> {selectedEpiForFirma.numeroCorrelativo || "-"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Tipo:</strong> {selectedEpiForFirma.tipoEquipo}
+                </p>
+              </div>
+              
+              <SignaturePad onSignatureChange={setSignature} />
+              
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsFirmaDialogOpen(false);
+                    setSignature(null);
+                  }}
+                  data-testid="button-cancel-firma"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSaveFirma}
+                  disabled={!signature || updateFirmaMutation.isPending}
+                  data-testid="button-save-firma"
+                >
+                  {updateFirmaMutation.isPending ? "Guardando..." : "Guardar Firma"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
