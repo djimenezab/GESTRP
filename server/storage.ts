@@ -10,6 +10,7 @@ import {
   usuarios,
   equipos,
   equiposEpisObligatorios,
+  mantenimientosEquipos,
   fichasSeguridadProductos,
   productosQuimicos,
   informesAceptacionMaquinaria,
@@ -41,7 +42,9 @@ import {
   type InformeAceptacionMaquinaria,
   type InsertInformeAceptacionMaquinaria,
   type DocumentoExpediente,
-  type InsertDocumentoExpediente
+  type InsertDocumentoExpediente,
+  type MantenimientoEquipo,
+  type InsertMantenimientoEquipo
 } from "@shared/schema";
 import { eq, desc, or, ilike, asc, inArray } from "drizzle-orm";
 
@@ -122,6 +125,11 @@ export interface IStorage {
   addEquipoEpiObligatorio(data: InsertEquipoEpiObligatorio): Promise<EquipoEpiObligatorio>;
   removeEquipoEpiObligatorio(equipoId: string, epiFichaEvId: string): Promise<void>;
   setEquipoEpisObligatorios(equipoId: string, epiIds: string[]): Promise<void>;
+
+  // Mantenimientos de Equipos
+  getMantenimientosEquipo(equipoId: string): Promise<MantenimientoEquipo[]>;
+  createMantenimientoEquipo(data: InsertMantenimientoEquipo): Promise<MantenimientoEquipo>;
+  deleteMantenimientoEquipo(id: string): Promise<void>;
 
   // Fichas de Seguridad de Productos
   getFichasSeguridadProductos(): Promise<FichaSeguridadProducto[]>;
@@ -506,6 +514,22 @@ export class DbStorage implements IStorage {
         epiIds.map(epiId => ({ equipoId, epiFichaEvId: epiId }))
       );
     }
+  }
+
+  // Mantenimientos de Equipos
+  async getMantenimientosEquipo(equipoId: string): Promise<MantenimientoEquipo[]> {
+    return await db.select().from(mantenimientosEquipos)
+      .where(eq(mantenimientosEquipos.equipoId, equipoId))
+      .orderBy(desc(mantenimientosEquipos.fecha));
+  }
+
+  async createMantenimientoEquipo(data: InsertMantenimientoEquipo): Promise<MantenimientoEquipo> {
+    const result = await db.insert(mantenimientosEquipos).values(data).returning();
+    return result[0];
+  }
+
+  async deleteMantenimientoEquipo(id: string): Promise<void> {
+    await db.delete(mantenimientosEquipos).where(eq(mantenimientosEquipos.id, id));
   }
 
   // Fichas de Seguridad de Productos

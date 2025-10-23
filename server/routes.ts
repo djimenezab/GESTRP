@@ -12,6 +12,7 @@ import {
   insertZonaTrabajoSchema,
   insertUsuarioSchema,
   insertEquipoSchema,
+  insertMantenimientoEquipoSchema,
   insertFichaSeguridadProductoSchema,
   insertProductoQuimicoSchema,
   insertInformeAceptacionMaquinariaSchema,
@@ -806,6 +807,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error setting equipo EPIs obligatorios:", error);
       res.status(400).json({ error: "Error al actualizar EPIs obligatorios" });
+    }
+  });
+
+  // Mantenimientos de Equipos routes
+  app.get("/api/equipos/:equipoId/mantenimientos", async (req, res) => {
+    try {
+      const mantenimientos = await storage.getMantenimientosEquipo(req.params.equipoId);
+      res.json(mantenimientos);
+    } catch (error) {
+      console.error("Error getting mantenimientos:", error);
+      res.status(500).json({ error: "Error al obtener mantenimientos" });
+    }
+  });
+
+  app.post("/api/equipos/:equipoId/mantenimientos", async (req, res) => {
+    try {
+      const data = insertMantenimientoEquipoSchema.parse({
+        ...req.body,
+        equipoId: req.params.equipoId
+      });
+      const mantenimiento = await storage.createMantenimientoEquipo(data);
+      res.status(201).json(mantenimiento);
+    } catch (error) {
+      console.error("Error creating mantenimiento:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  app.delete("/api/mantenimientos/:id", async (req, res) => {
+    try {
+      await storage.deleteMantenimientoEquipo(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting mantenimiento:", error);
+      res.status(500).json({ error: "Error al eliminar mantenimiento" });
     }
   });
 
