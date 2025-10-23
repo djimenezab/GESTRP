@@ -29,7 +29,7 @@ export function EpiDeliveryDocument({
       data-testid="documento-entrega"
     >
       {/* Contenedor con borde A4 */}
-      <div className="border-2 border-black min-h-[600px] print:min-h-[285mm]">
+      <div className="border-2 border-black min-h-[600px] print:min-h-[287mm]">
         {/* Header dividido: Logo y Título */}
         <div className="grid grid-cols-[auto_1fr] border-b-2 border-black">
           {/* Logo - Cuadro izquierdo */}
