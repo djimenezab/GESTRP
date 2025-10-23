@@ -91,3 +91,20 @@ The application uses Drizzle ORM with PostgreSQL, specifically Neon serverless P
   - Updated `epi-detail-dialog.tsx` to conditionally render based on user role
   - Modified `epis.tsx` to pass `firmaUrl` to detail dialog and hide column based on role
   - Maintains full backward compatibility for other roles
+
+#### EPIs Module - Administrador Print Enhancement and Signature Integration
+- **Auto-Print for Administrador Role**:
+  - When Administrador clicks "Generar Documento de Entrega", print dialog opens automatically
+  - AdminGral users retain preview-before-print workflow
+  - Implemented with 100ms delay to ensure DOM is ready
+
+- **Digital Signature in Delivery Document**:
+  - EPI delivery documents now display digital signature below "Firmado: {trabajadorNombre}"
+  - Signature image appears when worker has signed the EPI
+  - Falls back to traditional signature line when no digital signature exists
+  - Print-optimized sizing: h-20 on screen, h-16 for print
+
+- **Implementation Details**:
+  - Enhanced `epi-detail-dialog.tsx` with role-based auto-print trigger
+  - Updated `epi-delivery-document.tsx` to accept and display `firmaUrl` prop
+  - Conditional rendering maintains document layout with or without signature
