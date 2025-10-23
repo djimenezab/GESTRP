@@ -25,15 +25,15 @@ export function EpiDeliveryDocument({
 
   return (
     <div
-      className="space-y-3 p-8 bg-background print:bg-white print:pt-0 print:pb-2 print:px-12 print:space-y-2"
+      className="space-y-3 p-8 bg-background print:bg-white print:pt-2 print:pb-2 print:px-12 print:space-y-2"
       data-testid="documento-entrega"
     >
       {/* Membrete con logo */}
-      <div className="mb-3 print:mb-6">
+      <div className="mb-3 print:mb-3">
         <img
           src={logoPath}
           alt="Castilla-La Mancha"
-          className="h-16 w-auto print:h-20"
+          className="h-16 w-auto print:h-16"
           data-testid="logo-membrete"
         />
       </div>
@@ -41,12 +41,12 @@ export function EpiDeliveryDocument({
       
       {/* Título */}
 
-      <h1 className="text-2xl font-bold text-center my-8 print:text-lg print:my-16">
+      <h1 className="text-2xl font-bold text-center my-8 print:text-lg print:my-4">
         ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL
       </h1>
 
        {/* Separar parrafo */}
-      <div className="print:h-10"></div>
+      <div className="print:h-3"></div>
 
       
       {/* Datos del trabajador y fecha */}
