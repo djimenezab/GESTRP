@@ -130,3 +130,28 @@ The application uses Drizzle ORM with PostgreSQL, specifically Neon serverless P
   - Conditional rendering: `{episSinFirma > 0 && <Alert>...}</Alert>`
   - Proper text formatting: "Hay **X** documento(s) de entrega de EPIs pendientes de firma digital"
   - Includes `data-testid="alert-epis-sin-firma"` for testing
+
+#### EPIs Module - Document Layout Redesign
+- **Professional Bordered A4 Layout**:
+  - Complete redesign of EPI delivery document with full-page border
+  - Two-section header design: logo in left bordered box, title in right bordered box
+  - Outer border (2px black) surrounds entire A4 page content
+  - Professional appearance matching official document standards
+
+- **Header Structure**:
+  - Left section: Contains Castilla-La Mancha logo with right border separator
+  - Right section: Centered title "ENTREGA DE EQUIPOS DE PROTECCIÓN INDIVIDUAL"
+  - Uses CSS Grid layout (grid-cols-[auto_1fr]) for responsive design
+  - Header has bottom border separating it from document content
+
+- **Print Optimization**:
+  - Maintains bordered design in print mode
+  - A4 page sizing enforced with `print:min-h-[277mm]`
+  - All borders print correctly (border-2 border-black)
+  - Content properly spaced within bordered container
+
+- **Implementation Details**:
+  - Complete rewrite of `epi-delivery-document.tsx` structure
+  - Grid-based header layout with bordered sections
+  - Full-page border container with print-specific height
+  - All existing functionality preserved (signatures, dynamic content, etc.)
