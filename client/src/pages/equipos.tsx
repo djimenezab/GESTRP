@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Search, FileText, File, Image as ImageIcon, AlertCircle, Eye, Download } from "lucide-react";
+import { Plus, Trash2, Search, FileText, File, Image as ImageIcon, AlertCircle, Eye, Download, Wrench } from "lucide-react";
 import { z } from "zod";
 import {
   Table,
@@ -353,6 +353,7 @@ export default function Equipos() {
                   <TableHead>Fecha Adquisición</TableHead>
                   <TableHead>Zona</TableHead>
                   <TableHead>Documentos</TableHead>
+                  <TableHead>Mantenimiento</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -423,6 +424,20 @@ export default function Equipos() {
                             </Badge>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: Open mantenimiento dialog
+                          }}
+                          data-testid={`button-mantenimiento-${equipo.id}`}
+                        >
+                          <Wrench className="h-4 w-4 mr-1" />
+                          Ver
+                        </Button>
                       </TableCell>
                       <TableCell className="text-right">
                         {!isUsuario && (
