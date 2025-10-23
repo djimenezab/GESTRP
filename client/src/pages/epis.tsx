@@ -322,7 +322,7 @@ export default function Epis() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Código EPI</TableHead>
+              {user?.tipoAcceso !== "Usuario" && <TableHead>Código EPI</TableHead>}
               <TableHead>Trabajador</TableHead>
               <TableHead>Tipo de Equipo</TableHead>
               <TableHead>Marca</TableHead>
@@ -342,9 +342,11 @@ export default function Epis() {
                 className="cursor-pointer hover-elevate"
                 onClick={() => handleEpiClick(epi)}
               >
-                <TableCell className="font-mono text-sm" data-testid={`text-correlativo-${epi.id}`}>
-                  {epi.numeroCorrelativo || "-"}
-                </TableCell>
+                {user?.tipoAcceso !== "Usuario" && (
+                  <TableCell className="font-mono text-sm" data-testid={`text-correlativo-${epi.id}`}>
+                    {epi.numeroCorrelativo || "-"}
+                  </TableCell>
+                )}
                 <TableCell className="font-medium" data-testid={`text-worker-${epi.id}`}>
                   {epi.trabajador}
                 </TableCell>
@@ -487,7 +489,8 @@ export default function Epis() {
             fechaCaducidad: selectedEpi.fechaCaducidad || undefined,
             observaciones: selectedEpi.observaciones || undefined,
             trabajador: episWithWorkers.find(e => e.id === selectedEpi.id)?.trabajador || "Desconocido",
-            trabajadorDni: episWithWorkers.find(e => e.id === selectedEpi.id)?.trabajadorDni || ""
+            trabajadorDni: episWithWorkers.find(e => e.id === selectedEpi.id)?.trabajadorDni || "",
+            firmaUrl: selectedEpi.firmaUrl || undefined
           }}
         />
       )}

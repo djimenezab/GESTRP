@@ -27,6 +27,7 @@ interface EpiDetailDialogProps {
     observaciones?: string;
     trabajador: string;
     trabajadorDni?: string;
+    firmaUrl?: string;
   };
 }
 
@@ -156,15 +157,45 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
             </CardContent>
           </Card>
 
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setShowDocument(true)}
-              data-testid="button-generar-documento"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Generar Documento de Entrega
-            </Button>
-          </div>
+          {user?.tipoAcceso === "Usuario" ? (
+            // Para usuarios tipo "Usuario", mostrar la firma si existe
+            epi.firmaUrl ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Firma Digital</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-center">
+                    <img 
+                      src={epi.firmaUrl} 
+                      alt="Firma digital" 
+                      className="max-w-md border rounded-md"
+                      data-testid="img-firma-epi"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="py-6 text-center">
+                  <p className="text-sm text-muted-foreground" data-testid="text-sin-firma">
+                    Este EPI aún no ha sido firmado
+                  </p>
+                </CardContent>
+              </Card>
+            )
+          ) : (
+            // Para Administrador y AdminGral, mostrar el botón de generar documento
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setShowDocument(true)}
+                data-testid="button-generar-documento"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Generar Documento de Entrega
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
