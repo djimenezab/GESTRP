@@ -104,7 +104,14 @@ The application uses Drizzle ORM with PostgreSQL, specifically Neon serverless P
   - Falls back to traditional signature line when no digital signature exists
   - Print-optimized sizing: h-20 on screen, h-16 for print
 
+- **Print Layout Optimization**:
+  - Fixed excessive top margin in printed documents
+  - Content now starts near the top of the page instead of middle
+  - Adjusted print spacing: reduced title margin (my-16 → my-4), logo margin (mb-6 → mb-3), and separator height (h-10 → h-3)
+  - Document remains readable and fits comfortably on A4 page
+
 - **Implementation Details**:
   - Enhanced `epi-detail-dialog.tsx` with role-based auto-print trigger
   - Updated `epi-delivery-document.tsx` to accept and display `firmaUrl` prop
+  - Optimized print-specific CSS classes for better page positioning
   - Conditional rendering maintains document layout with or without signature
