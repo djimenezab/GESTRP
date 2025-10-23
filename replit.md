@@ -71,3 +71,23 @@ The application uses Drizzle ORM with PostgreSQL, specifically Neon serverless P
 - **class-variance-authority**: Type-safe component variants.
 - **clsx** & **tailwind-merge**: Utilities for conditional class names.
 - **nanoid**: Unique ID generation.
+
+## Recent Changes
+
+### October 23, 2025
+
+#### EPIs Module - Usuario Role UI Customization
+- **Modified EPI Detail Dialog for Usuario Role**:
+  - Hidden "Generar Documento de Entrega" button for Usuario users
+  - Added digital signature display in detail dialog when signature exists
+  - Shows "Este EPI aún no ha sido firmado" message when no signature is present
+  - Administrador and AdminGral roles continue to see the document generation button
+
+- **EPI List Table Customization for Usuario Role**:
+  - Hidden "Código EPI" column for Usuario users to simplify their view
+  - Column remains visible for Administrador and AdminGral roles
+
+- **Implementation Details**:
+  - Updated `epi-detail-dialog.tsx` to conditionally render based on user role
+  - Modified `epis.tsx` to pass `firmaUrl` to detail dialog and hide column based on role
+  - Maintains full backward compatibility for other roles
