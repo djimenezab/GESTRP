@@ -59,8 +59,15 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
       if (dialogContent) {
         dialogContent.scrollTop = 0;
       }
+      
+      // Para Administrador, abrir automáticamente la ventana de impresión
+      if (user?.tipoAcceso === "Administrador") {
+        setTimeout(() => {
+          window.print();
+        }, 100);
+      }
     }
-  }, [showDocument]);
+  }, [showDocument, user?.tipoAcceso]);
 
   const handlePrint = () => {
     window.print();
@@ -80,6 +87,7 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
               fechaEntrega={epi.fechaEntrega}
               tipoEquipo={epi.tipoEquipo}
               nombreAdministrador={adminData?.nombreCompleto || undefined}
+              firmaUrl={epi.firmaUrl}
             />
             <div className="flex justify-end gap-2 print:hidden">
               <Button
