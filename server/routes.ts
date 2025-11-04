@@ -351,6 +351,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para firmar Comisión de Servicio
+  app.post("/api/cursos/:id/sign-comision", async (req, res) => {
+    try {
+      const { firmaDataUrl } = req.body;
+      
+      if (!firmaDataUrl) {
+        return res.status(400).json({ error: "Se requiere la firma" });
+      }
+
+      const curso = await storage.getCurso(req.params.id);
+      if (!curso) {
+        return res.status(404).json({ error: "Curso no encontrado" });
+      }
+
+      if (!curso.comisionServicioUrl) {
+        return res.status(400).json({ error: "Este curso no tiene Comisión de Servicio" });
+      }
+
+      if (curso.comisionServicioFirmadoUrl) {
+        return res.status(400).json({ error: "La Comisión de Servicio ya está firmada" });
+      }
+
+      const { signPdfWithSignature } = await import("./pdfProcessor");
+      const objectStorageService = new ObjectStorageService();
+
+      const result = await signPdfWithSignature(
+        curso.comisionServicioUrl,
+        firmaDataUrl,
+        objectStorageService
+      );
+
+      await storage.updateCurso(req.params.id, {
+        comisionServicioFirmadoUrl: result.signedPdfPath,
+        firmaUrl: result.signaturePath,
+      });
+
+      res.json({ 
+        success: true, 
+        comisionServicioFirmadoUrl: result.signedPdfPath,
+        firmaUrl: result.signaturePath 
+      });
+    } catch (error) {
+      console.error("Error signing Comisión de Servicio:", error);
+      res.status(500).json({ error: "Error al firmar el documento" });
+    }
+  });
+
   // Accidentes routes
   app.get("/api/accidentes", async (req, res) => {
     try {
