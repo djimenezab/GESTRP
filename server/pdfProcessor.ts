@@ -106,8 +106,8 @@ export async function signPdfWithSignature(
         x = 1 * CM_TO_POINTS;
         yFromTop = 25 * CM_TO_POINTS;
       } else if (pageIndex === 1) {
-        // Página 2: 18 cm desde izquierda, 10 cm desde arriba
-        x = 18 * CM_TO_POINTS;
+        // Página 2: 17 cm desde izquierda, 10 cm desde arriba
+        x = 17 * CM_TO_POINTS;
         yFromTop = 10 * CM_TO_POINTS;
       } else {
         // Fallback para otras páginas (no debería ocurrir normalmente)
