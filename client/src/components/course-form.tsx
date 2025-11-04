@@ -8,6 +8,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import { FileText, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface CourseFormProps {
   onSubmit: (data: InsertCurso) => void;
@@ -28,6 +32,8 @@ interface CourseFormProps {
 }
 
 export function CourseForm({ onSubmit, trabajadores, initialData, isLoading }: CourseFormProps) {
+  const { toast } = useToast();
+  
   const form = useForm<InsertCurso>({
     resolver: zodResolver(insertCursoSchema),
     defaultValues: {
@@ -36,8 +42,46 @@ export function CourseForm({ onSubmit, trabajadores, initialData, isLoading }: C
       fechaRealizacion: initialData?.fechaRealizacion || "",
       duracionHoras: initialData?.duracionHoras || 0,
       observaciones: initialData?.observaciones || "",
+      comisionServicioUrl: initialData?.comisionServicioUrl || "",
     },
   });
+
+  const handleFileUpload = async () => {
+    const response = await fetch("/api/objects/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    
+    if (!response.ok) {
+      throw new Error("Error al obtener URL de subida");
+    }
+    
+    const data = await response.json();
+    return {
+      method: "PUT" as const,
+      url: data.uploadURL,
+    };
+  };
+
+  const handleUploadComplete = (result: any) => {
+    if (result.successful && result.successful.length > 0) {
+      const file = result.successful[0];
+      const uploadUrl = file.uploadURL || file.response?.uploadURL;
+      if (uploadUrl) {
+        const urlParts = new URL(uploadUrl).pathname.split('/');
+        const uploadsIndex = urlParts.indexOf('uploads');
+        if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
+          const objectId = urlParts[uploadsIndex + 1];
+          const objectPath = `/objects/uploads/${objectId}`;
+          form.setValue("comisionServicioUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+          toast({
+            title: "PDF subido",
+            description: "La Comisión de Servicio ha sido subida correctamente",
+          });
+        }
+      }
+    }
+  };
 
   return (
     <Form {...form}>
@@ -138,6 +182,49 @@ export function CourseForm({ onSubmit, trabajadores, initialData, isLoading }: C
                   data-testid="input-observaciones-curso"
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="comisionServicioUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Comisión de Servicio (PDF - Opcional)</FormLabel>
+              <FormDescription>
+                Sube el PDF de la Comisión de Servicio que el trabajador deberá firmar
+              </FormDescription>
+              <div className="space-y-2">
+                {field.value ? (
+                  <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
+                    <FileText className="h-5 w-5 text-primary" />
+                    <span className="flex-1 text-sm">PDF Comisión de Servicio subido</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        form.setValue("comisionServicioUrl", "", { shouldDirty: true });
+                      }}
+                      data-testid="button-remove-pdf"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <ObjectUploader
+                    maxNumberOfFiles={1}
+                    maxFileSize={20971520}
+                    onGetUploadParameters={handleFileUpload}
+                    onComplete={handleUploadComplete}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Subir PDF
+                  </ObjectUploader>
+                )}
+              </div>
               <FormMessage />
             </FormItem>
           )}
