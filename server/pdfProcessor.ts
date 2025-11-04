@@ -82,13 +82,19 @@ export async function signPdfWithSignature(
     // 6. Obtener las páginas donde colocar la firma (últimas 2 páginas)
     const pagesToSign = getSignaturePages(pdfDoc);
     
+    console.log(`[PDF Signature] Total de páginas: ${pdfDoc.getPageCount()}`);
+    console.log(`[PDF Signature] Páginas a firmar: ${pagesToSign.join(", ")}`);
+    console.log(`[PDF Signature] Dimensiones de firma: ${signatureDims.width}x${signatureDims.height}`);
+    
     // 7. Colocar la firma en cada página con posiciones específicas
     // Constante de conversión: 1 cm = 28.35 puntos
     const CM_TO_POINTS = 28.35;
     
     for (const pageIndex of pagesToSign) {
       const page = pdfDoc.getPages()[pageIndex];
-      const { height } = page.getSize();
+      const { height, width } = page.getSize();
+      
+      console.log(`[PDF Signature] Página ${pageIndex + 1} tamaño: ${width}x${height} puntos`);
       
       let x: number;
       let yFromTop: number;
@@ -110,6 +116,8 @@ export async function signPdfWithSignature(
       
       // Convertir Y desde arriba a coordenadas PDF (desde abajo)
       const y = height - yFromTop - signatureDims.height;
+      
+      console.log(`[PDF Signature] Página ${pageIndex + 1} - Posición: x=${x.toFixed(2)} (${(x/CM_TO_POINTS).toFixed(2)}cm), y=${y.toFixed(2)} (${(yFromTop/CM_TO_POINTS).toFixed(2)}cm desde arriba)`);
       
       page.drawImage(signatureImage, {
         x,
