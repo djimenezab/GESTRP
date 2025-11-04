@@ -55,8 +55,11 @@ export async function signPdfWithSignature(
   objectStorageService: ObjectStorageService
 ): Promise<SignPdfResult> {
   try {
-    // 1. Descargar el PDF original desde object storage
-    const pdfFile = await objectStorageService.getObjectEntityFile(pdfPath);
+    // 1. Normalizar la ruta del PDF (convertir URL completa a ruta relativa)
+    const normalizedPdfPath = objectStorageService.normalizeObjectEntityPath(pdfPath);
+    
+    // 2. Descargar el PDF original desde object storage
+    const pdfFile = await objectStorageService.getObjectEntityFile(normalizedPdfPath);
     const [pdfBuffer] = await pdfFile.download();
     
     // 2. Cargar el PDF con pdf-lib
@@ -66,14 +69,17 @@ export async function signPdfWithSignature(
     const signatureBuffer = dataUrlToBuffer(signatureDataUrl);
     
     // 4. Subir la imagen de la firma a object storage
-    const signatureId = crypto.randomUUID();
-    const signaturePath = `/objects/uploads/${signatureId}`;
-    const signatureUploadUrl = await objectStorageService.getObjectEntityUploadURL();
+    const signatureObjectId = crypto.randomUUID();
+    const signaturePath = `/objects/uploads/${signatureObjectId}`;
     
-    // Subir la firma
-    const signatureFile = await objectStorageService.getObjectEntityFile(signaturePath);
+    // Crear el File usando el helper del servicio
+    const signatureFile = objectStorageService.createObjectEntityFile(signaturePath);
+    
     await signatureFile.save(signatureBuffer, {
       contentType: "image/png",
+      metadata: {
+        contentType: "image/png",
+      },
     });
     
     // 5. Incrustar la firma en el PDF
@@ -110,12 +116,17 @@ export async function signPdfWithSignature(
     const signedPdfBytes = await pdfDoc.save();
     
     // 8. Subir el PDF firmado a object storage
-    const signedPdfId = crypto.randomUUID();
-    const signedPdfPath = `/objects/uploads/${signedPdfId}`;
-    const signedPdfFile = await objectStorageService.getObjectEntityFile(signedPdfPath);
+    const signedPdfObjectId = crypto.randomUUID();
+    const signedPdfPath = `/objects/uploads/${signedPdfObjectId}`;
+    
+    // Crear el File usando el helper del servicio
+    const signedPdfFile = objectStorageService.createObjectEntityFile(signedPdfPath);
     
     await signedPdfFile.save(Buffer.from(signedPdfBytes), {
       contentType: "application/pdf",
+      metadata: {
+        contentType: "application/pdf",
+      },
     });
     
     return {

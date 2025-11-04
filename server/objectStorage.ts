@@ -176,6 +176,29 @@ export class ObjectStorageService {
     return objectFile;
   }
 
+  // Creates a new object entity file (for writing new files)
+  // Similar to getObjectEntityFile but doesn't check if file exists
+  createObjectEntityFile(objectPath: string): File {
+    if (!objectPath.startsWith("/objects/")) {
+      throw new Error("Invalid object path");
+    }
+
+    const parts = objectPath.slice(1).split("/");
+    if (parts.length < 2) {
+      throw new Error("Invalid object path");
+    }
+
+    const entityId = parts.slice(1).join("/");
+    let entityDir = this.getPrivateObjectDir();
+    if (!entityDir.endsWith("/")) {
+      entityDir = `${entityDir}/`;
+    }
+    const objectEntityPath = `${entityDir}${entityId}`;
+    const { bucketName, objectName } = parseObjectPath(objectEntityPath);
+    const bucket = objectStorageClient.bucket(bucketName);
+    return bucket.file(objectName);
+  }
+
   normalizeObjectEntityPath(rawPath: string): string {
     if (!rawPath.startsWith("https://storage.googleapis.com/")) {
       return rawPath;
@@ -230,7 +253,7 @@ export class ObjectStorageService {
   }
 }
 
-function parseObjectPath(path: string): {
+export function parseObjectPath(path: string): {
   bucketName: string;
   objectName: string;
 } {

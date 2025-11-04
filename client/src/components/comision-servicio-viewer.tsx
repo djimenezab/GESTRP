@@ -25,9 +25,35 @@ export function ComisionServicioViewer({ curso }: ComisionServicioViewerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const pdfUrl = curso.comisionServicioFirmadoUrl || curso.comisionServicioUrl;
-  const hasPdf = !!pdfUrl;
+  const rawPdfUrl = curso.comisionServicioFirmadoUrl || curso.comisionServicioUrl;
+  const hasPdf = !!rawPdfUrl;
   const isSigned = !!curso.comisionServicioFirmadoUrl;
+  
+  // Normalizar URL de Google Storage a ruta relativa /objects/...
+  const normalizeUrl = (url: string | null): string => {
+    if (!url) return "";
+    
+    // Si ya es una ruta relativa, devolverla tal cual
+    if (url.startsWith("/objects/")) {
+      return url;
+    }
+    
+    // Si es una URL de Google Storage, extraer la ruta del objeto
+    if (url.startsWith("https://storage.googleapis.com/")) {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split("/");
+      // Formato: /bucket-name/.private/uploads/xxxxx
+      // Queremos: /objects/uploads/xxxxx
+      const uploadsIndex = pathParts.findIndex(part => part === "uploads");
+      if (uploadsIndex !== -1) {
+        return "/objects/" + pathParts.slice(uploadsIndex).join("/");
+      }
+    }
+    
+    return url;
+  };
+  
+  const pdfUrl = normalizeUrl(rawPdfUrl);
 
   const handleSubmitSignature = async () => {
     if (!signature) {
