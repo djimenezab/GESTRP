@@ -106,10 +106,9 @@ export async function signPdfWithSignature(
         x = 1 * CM_TO_POINTS;
         yFromTop = 25 * CM_TO_POINTS;
       } else if (pageIndex === 1) {
-        // Página 2: Ajustada temporalmente para que quede dentro de los límites
-        // (El ancho de la página es ~21 cm, por lo que 21 cm desde izquierda está fuera)
-        x = 11 * CM_TO_POINTS; // Centro-derecha de la página
-        yFromTop = 16 * CM_TO_POINTS;
+        // Página 2: 16 cm desde izquierda, 10 cm desde arriba
+        x = 16 * CM_TO_POINTS;
+        yFromTop = 10 * CM_TO_POINTS;
       } else {
         // Fallback para otras páginas (no debería ocurrir normalmente)
         x = 1 * CM_TO_POINTS;
@@ -121,8 +120,7 @@ export async function signPdfWithSignature(
       
       console.log(`[PDF Signature] Página ${pageIndex + 1} - Posición: x=${x.toFixed(2)} (${(x/CM_TO_POINTS).toFixed(2)}cm), y=${y.toFixed(2)} (${(yFromTop/CM_TO_POINTS).toFixed(2)}cm desde arriba)`);
       
-      // Configurar la imagen con rotación si es necesario
-      // Si la página tiene rotación de 90° o 270°, debemos compensar
+      // Configurar la imagen
       const imageOptions: any = {
         x,
         y,
@@ -130,8 +128,19 @@ export async function signPdfWithSignature(
         height: signatureDims.height,
       };
       
-      // Si la página está rotada, NO rotar la imagen (para mantenerla horizontal)
-      // pdf-lib automáticamente ajusta las coordenadas según la rotación de la página
+      // Si la página está rotada 90° o 270°, necesitamos rotar la firma en sentido contrario
+      // para que aparezca horizontal
+      if (rotation === 90) {
+        // Página rotada 90° en sentido horario
+        // Rotar la firma -90° (sentido antihorario) para compensar
+        imageOptions.rotate = { type: 'degrees', angle: -90 };
+        console.log(`[PDF Signature] Aplicando rotación -90° a la firma para compensar rotación de página`);
+      } else if (rotation === 270) {
+        // Página rotada 270° (o -90°)
+        // Rotar la firma 90° para compensar
+        imageOptions.rotate = { type: 'degrees', angle: 90 };
+        console.log(`[PDF Signature] Aplicando rotación 90° a la firma para compensar rotación de página`);
+      }
       
       page.drawImage(signatureImage, imageOptions);
     }
