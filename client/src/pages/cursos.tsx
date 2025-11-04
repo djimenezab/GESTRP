@@ -230,48 +230,60 @@ export default function Cursos() {
                 <TableCell>{curso.duracionHoras}h</TableCell>
                 <TableCell className="text-muted-foreground">{curso.observaciones || "-"}</TableCell>
                 <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                  {user?.tipoAcceso === "Usuario" ? (
+                    // Para usuarios: mostrar icono de documento directo si hay comisión
+                    curso.comisionServicioUrl ? (
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        data-testid={`button-options-${curso.id}`}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => handleOpenComisionDialog(curso, e)}
+                        data-testid={`button-view-comision-${curso.id}`}
+                        title="Ver Comisión de Servicio"
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <FileText className="h-4 w-4" />
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {curso.comisionServicioUrl && (
-                        <DropdownMenuItem 
-                          onClick={(e) => handleOpenComisionDialog(curso, e)}
-                          data-testid={`button-view-comision-${curso.id}`}
+                    ) : null
+                  ) : (
+                    // Para administradores: mantener menú desplegable
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          data-testid={`button-options-${curso.id}`}
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Ver Comisión de Servicio
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {curso.comisionServicioUrl && (
+                          <DropdownMenuItem 
+                            onClick={(e) => handleOpenComisionDialog(curso, e)}
+                            data-testid={`button-view-comision-${curso.id}`}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Ver Comisión de Servicio
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem 
+                          onClick={(e) => handleOpenEditDialog(curso, e)}
+                          data-testid={`button-edit-${curso.id}`}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
                         </DropdownMenuItem>
-                      )}
-                      {user?.tipoAcceso !== "Usuario" && (
-                        <>
-                          <DropdownMenuItem 
-                            onClick={(e) => handleOpenEditDialog(curso, e)}
-                            data-testid={`button-edit-${curso.id}`}
-                          >
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={(e) => handleDeleteCurso(curso.id, e)}
-                            className="text-destructive"
-                            data-testid={`button-delete-${curso.id}`}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Eliminar
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <DropdownMenuItem 
+                          onClick={(e) => handleDeleteCurso(curso.id, e)}
+                          className="text-destructive"
+                          data-testid={`button-delete-${curso.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
