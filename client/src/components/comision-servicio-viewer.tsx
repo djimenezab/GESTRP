@@ -120,13 +120,22 @@ export function ComisionServicioViewer({ curso }: ComisionServicioViewerProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="border rounded-md overflow-hidden">
-            <iframe
-              src={pdfUrl}
-              className="w-full h-[600px]"
-              title="Comisión de Servicio"
-              data-testid="iframe-comision-servicio"
-            />
+          <div className="text-center py-8 border rounded-md bg-muted/20">
+            <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground mb-4">
+              {isSigned 
+                ? "Documento firmado disponible para visualización"
+                : "Documento disponible para visualización y firma"
+              }
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => window.open(pdfUrl, '_blank')}
+              data-testid="button-view-pdf"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Ver PDF en nueva pestaña
+            </Button>
           </div>
           
           <div className="flex gap-2 flex-wrap">
