@@ -93,16 +93,17 @@ export async function signPdfWithSignature(
     for (const pageIndex of pagesToSign) {
       const page = pdfDoc.getPages()[pageIndex];
       const { height, width } = page.getSize();
+      const rotation = page.getRotation().angle; // Obtener la rotación de la página
       
-      console.log(`[PDF Signature] Página ${pageIndex + 1} tamaño: ${width}x${height} puntos`);
+      console.log(`[PDF Signature] Página ${pageIndex + 1} tamaño: ${width}x${height} puntos, rotación: ${rotation}°`);
       
       let x: number;
       let yFromTop: number;
       
       // Posiciones específicas para cada página de la Comisión de Servicio
       if (pageIndex === 0) {
-        // Página 1: 2 cm desde izquierda, 25 cm desde arriba
-        x = 2 * CM_TO_POINTS;
+        // Página 1: 1 cm desde izquierda, 25 cm desde arriba
+        x = 1 * CM_TO_POINTS;
         yFromTop = 25 * CM_TO_POINTS;
       } else if (pageIndex === 1) {
         // Página 2: Ajustada temporalmente para que quede dentro de los límites
@@ -111,7 +112,7 @@ export async function signPdfWithSignature(
         yFromTop = 16 * CM_TO_POINTS;
       } else {
         // Fallback para otras páginas (no debería ocurrir normalmente)
-        x = 2 * CM_TO_POINTS;
+        x = 1 * CM_TO_POINTS;
         yFromTop = 25 * CM_TO_POINTS;
       }
       
@@ -120,12 +121,19 @@ export async function signPdfWithSignature(
       
       console.log(`[PDF Signature] Página ${pageIndex + 1} - Posición: x=${x.toFixed(2)} (${(x/CM_TO_POINTS).toFixed(2)}cm), y=${y.toFixed(2)} (${(yFromTop/CM_TO_POINTS).toFixed(2)}cm desde arriba)`);
       
-      page.drawImage(signatureImage, {
+      // Configurar la imagen con rotación si es necesario
+      // Si la página tiene rotación de 90° o 270°, debemos compensar
+      const imageOptions: any = {
         x,
         y,
         width: signatureDims.width,
         height: signatureDims.height,
-      });
+      };
+      
+      // Si la página está rotada, NO rotar la imagen (para mantenerla horizontal)
+      // pdf-lib automáticamente ajusta las coordenadas según la rotación de la página
+      
+      page.drawImage(signatureImage, imageOptions);
     }
     
     // 7. Guardar el PDF modificado
