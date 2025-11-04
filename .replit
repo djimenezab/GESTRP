@@ -43,10 +43,6 @@ localPort = 43743
 externalPort = 6800
 
 [[ports]]
-localPort = 43935
-externalPort = 8008
-
-[[ports]]
 localPort = 44683
 externalPort = 3000
 
@@ -84,3 +80,6 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_database:1.0.0", "javascript_object_storage:1.0.0"]
+
+[objectStorage]
+defaultBucketID = "replit-objstore-3e903fb9-6351-4cb2-9dd8-9252bf6cc77d"
