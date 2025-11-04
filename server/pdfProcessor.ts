@@ -11,30 +11,23 @@ function dataUrlToBuffer(dataUrl: string): Buffer {
 }
 
 /**
- * Busca el texto "EL INTERESADO" en el PDF y devuelve su posición
+ * Obtiene las páginas donde debe colocarse la firma
+ * Para Comisión de Servicio, típicamente son las últimas 2 páginas
  */
-async function findTextPosition(
-  pdfDoc: PDFDocument,
-  searchText: string
-): Promise<{ pageIndex: number; x: number; y: number } | null> {
-  const pages = pdfDoc.getPages();
+function getSignaturePages(pdfDoc: PDFDocument): number[] {
+  const totalPages = pdfDoc.getPageCount();
+  const signaturePages: number[] = [];
   
-  for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-    const page = pages[pageIndex];
-    const { height } = page.getSize();
-    
-    // Buscar en la segunda mitad inferior de cada página
-    // (normalmente "EL INTERESADO" está hacia el final del documento)
-    if (pageIndex >= pages.length - 2) {
-      return {
-        pageIndex,
-        x: 100, // Margen izquierdo
-        y: height * 0.25, // 25% desde abajo
-      };
-    }
+  // Si hay 2 o más páginas, firmar las últimas 2
+  if (totalPages >= 2) {
+    signaturePages.push(totalPages - 2); // Penúltima página
+    signaturePages.push(totalPages - 1); // Última página
+  } else if (totalPages === 1) {
+    // Si solo hay 1 página, firmar esa página
+    signaturePages.push(0);
   }
   
-  return null;
+  return signaturePages;
 }
 
 interface SignPdfResult {
@@ -84,29 +77,25 @@ export async function signPdfWithSignature(
     
     // 5. Incrustar la firma en el PDF
     const signatureImage = await pdfDoc.embedPng(signatureBuffer);
-    const signatureDims = signatureImage.scale(0.5); // Escalar al 50%
+    const signatureDims = signatureImage.scale(0.35); // Escalar al 35% para un tamaño más apropiado
     
-    // 6. Encontrar la posición donde colocar la firma
-    const position = await findTextPosition(pdfDoc, "EL INTERESADO");
+    // 6. Obtener las páginas donde colocar la firma (últimas 2 páginas)
+    const pagesToSign = getSignaturePages(pdfDoc);
     
-    if (position) {
-      const page = pdfDoc.getPages()[position.pageIndex];
+    // 7. Colocar la firma en cada página
+    for (const pageIndex of pagesToSign) {
+      const page = pdfDoc.getPages()[pageIndex];
+      const { height, width } = page.getSize();
       
-      // Dibujar la firma debajo del texto "EL INTERESADO"
+      // Posición típica de "EL INTERESADO" en Comisión de Servicio:
+      // - Centrado horizontalmente (o ligeramente a la derecha)
+      // - En la parte inferior, aproximadamente 150-180 puntos desde abajo
+      const x = (width / 2) - (signatureDims.width / 2); // Centrado horizontalmente
+      const y = 150; // 150 puntos desde abajo (debajo de "EL INTERESADO")
+      
       page.drawImage(signatureImage, {
-        x: position.x,
-        y: position.y - signatureDims.height - 10, // 10px debajo del texto
-        width: signatureDims.width,
-        height: signatureDims.height,
-      });
-    } else {
-      // Si no se encuentra "EL INTERESADO", colocar en la última página
-      const lastPage = pdfDoc.getPages()[pdfDoc.getPageCount() - 1];
-      const { height } = lastPage.getSize();
-      
-      lastPage.drawImage(signatureImage, {
-        x: 100,
-        y: height * 0.25 - signatureDims.height,
+        x,
+        y,
         width: signatureDims.width,
         height: signatureDims.height,
       });
