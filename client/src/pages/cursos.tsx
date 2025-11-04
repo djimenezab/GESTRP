@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, MoreVertical, Pencil, Trash2, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CourseForm } from "@/components/course-form";
+import { ComisionServicioViewer } from "@/components/comision-servicio-viewer";
 import { type InsertCurso, type Curso, type Trabajador } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -37,8 +38,10 @@ export default function Cursos() {
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isComisionDialogOpen, setIsComisionDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingCurso, setEditingCurso] = useState<Curso | null>(null);
+  const [viewingComisionCurso, setViewingComisionCurso] = useState<Curso | null>(null);
   const { toast } = useToast();
 
   const { data: cursos = [], isLoading: cursosLoading } = useQuery<Curso[]>({
@@ -133,6 +136,12 @@ export default function Cursos() {
     if (confirm("¿Estás seguro de que deseas eliminar este curso?")) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const handleOpenComisionDialog = (curso: Curso, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setViewingComisionCurso(curso);
+    setIsComisionDialogOpen(true);
   };
 
   // Combinar cursos con datos de trabajadores
@@ -233,21 +242,34 @@ export default function Cursos() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
-                        onClick={(e) => handleOpenEditDialog(curso, e)}
-                        data-testid={`button-edit-${curso.id}`}
-                      >
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={(e) => handleDeleteCurso(curso.id, e)}
-                        className="text-destructive"
-                        data-testid={`button-delete-${curso.id}`}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Eliminar
-                      </DropdownMenuItem>
+                      {curso.comisionServicioUrl && (
+                        <DropdownMenuItem 
+                          onClick={(e) => handleOpenComisionDialog(curso, e)}
+                          data-testid={`button-view-comision-${curso.id}`}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Ver Comisión de Servicio
+                        </DropdownMenuItem>
+                      )}
+                      {user?.tipoAcceso !== "Usuario" && (
+                        <>
+                          <DropdownMenuItem 
+                            onClick={(e) => handleOpenEditDialog(curso, e)}
+                            data-testid={`button-edit-${curso.id}`}
+                          >
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => handleDeleteCurso(curso.id, e)}
+                            className="text-destructive"
+                            data-testid={`button-delete-${curso.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -278,8 +300,20 @@ export default function Cursos() {
                 fechaRealizacion: editingCurso.fechaRealizacion,
                 duracionHoras: editingCurso.duracionHoras,
                 observaciones: editingCurso.observaciones || "",
+                comisionServicioUrl: editingCurso.comisionServicioUrl || "",
               }}
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isComisionDialogOpen} onOpenChange={setIsComisionDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Comisión de Servicio</DialogTitle>
+          </DialogHeader>
+          {viewingComisionCurso && (
+            <ComisionServicioViewer curso={viewingComisionCurso} />
           )}
         </DialogContent>
       </Dialog>
