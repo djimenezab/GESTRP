@@ -77,21 +77,39 @@ export async function signPdfWithSignature(
     
     // 5. Incrustar la firma en el PDF
     const signatureImage = await pdfDoc.embedPng(signatureBuffer);
-    const signatureDims = signatureImage.scale(0.35); // Escalar al 35% para un tamaño más apropiado
+    const signatureDims = signatureImage.scale(0.35); // Escalar al 35%
     
     // 6. Obtener las páginas donde colocar la firma (últimas 2 páginas)
     const pagesToSign = getSignaturePages(pdfDoc);
     
-    // 7. Colocar la firma en cada página
+    // 7. Colocar la firma en cada página con posiciones específicas
+    // Constante de conversión: 1 cm = 28.35 puntos
+    const CM_TO_POINTS = 28.35;
+    
     for (const pageIndex of pagesToSign) {
       const page = pdfDoc.getPages()[pageIndex];
-      const { height, width } = page.getSize();
+      const { height } = page.getSize();
       
-      // Posición típica de "EL INTERESADO" en Comisión de Servicio:
-      // - Centrado horizontalmente (o ligeramente a la derecha)
-      // - En la parte inferior, aproximadamente 150-180 puntos desde abajo
-      const x = (width / 2) - (signatureDims.width / 2); // Centrado horizontalmente
-      const y = 150; // 150 puntos desde abajo (debajo de "EL INTERESADO")
+      let x: number;
+      let yFromTop: number;
+      
+      // Posiciones específicas para cada página de la Comisión de Servicio
+      if (pageIndex === 0) {
+        // Página 1: 3 cm desde izquierda, 25 cm desde arriba
+        x = 3 * CM_TO_POINTS;
+        yFromTop = 25 * CM_TO_POINTS;
+      } else if (pageIndex === 1) {
+        // Página 2: 21 cm desde izquierda, 16 cm desde arriba
+        x = 21 * CM_TO_POINTS;
+        yFromTop = 16 * CM_TO_POINTS;
+      } else {
+        // Fallback para otras páginas (no debería ocurrir normalmente)
+        x = 3 * CM_TO_POINTS;
+        yFromTop = 25 * CM_TO_POINTS;
+      }
+      
+      // Convertir Y desde arriba a coordenadas PDF (desde abajo)
+      const y = height - yFromTop - signatureDims.height;
       
       page.drawImage(signatureImage, {
         x,
