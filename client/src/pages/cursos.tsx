@@ -216,7 +216,7 @@ export default function Cursos() {
               <TableHead>Fecha</TableHead>
               <TableHead>Duración (h)</TableHead>
               <TableHead>Observaciones</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[50px]">Comisión</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
