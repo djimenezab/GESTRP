@@ -365,6 +365,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Curso no encontrado" });
       }
 
+      // Verificar autorización: solo el trabajador del curso o administradores pueden firmar
+      const tipoAcceso = req.session.tipoAcceso;
+      const trabajadorId = req.session.trabajadorId;
+      
+      if (tipoAcceso === "Usuario") {
+        // Usuario solo puede firmar sus propios cursos
+        if (trabajadorId !== curso.trabajadorId) {
+          return res.status(403).json({ error: "No tiene permisos para firmar este curso" });
+        }
+      } else if (tipoAcceso === "Administrador") {
+        // Administrador solo puede firmar cursos de trabajadores de sus zonas
+        const trabajador = await storage.getTrabajador(curso.trabajadorId);
+        if (!trabajador) {
+          return res.status(404).json({ error: "Trabajador no encontrado" });
+        }
+        
+        const zonasIds = req.session.zonasIds;
+        if (!zonasIds || !zonasIds.includes(trabajador.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para firmar cursos de esta zona" });
+        }
+      }
+      // AdminGral puede firmar cualquier curso
+
       if (!curso.comisionServicioUrl) {
         return res.status(400).json({ error: "Este curso no tiene Comisión de Servicio" });
       }
