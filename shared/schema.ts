@@ -86,6 +86,9 @@ export const cursos = pgTable("cursos", {
   fechaRealizacion: date("fecha_realizacion").notNull(),
   duracionHoras: integer("duracion_horas").notNull(),
   observaciones: text("observaciones"),
+  comisionServicioUrl: text("comision_servicio_url"),
+  comisionServicioFirmadoUrl: text("comision_servicio_firmado_url"),
+  firmaUrl: text("firma_url"),
 });
 
 // Accidentes laborales
@@ -193,6 +196,9 @@ export const insertCursoSchema = createInsertSchema(cursos).omit({ id: true }).e
   fechaRealizacion: z.string().min(1, "Fecha de realización es requerida"),
   duracionHoras: z.number().min(1, "Duración debe ser al menos 1 hora"),
   observaciones: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  comisionServicioUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  comisionServicioFirmadoUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
+  firmaUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()),
 });
 
 export const insertAccidenteSchema = createInsertSchema(accidentes).omit({ id: true }).extend({
