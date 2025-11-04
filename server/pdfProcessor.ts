@@ -128,18 +128,18 @@ export async function signPdfWithSignature(
         height: signatureDims.height,
       };
       
-      // Si la página está rotada 90° o 270°, necesitamos rotar la firma en sentido contrario
-      // para que aparezca horizontal
+      // Si la página está rotada 90° o 270°, necesitamos rotar la firma
+      // para que aparezca horizontal y en la orientación correcta
       if (rotation === 90) {
         // Página rotada 90° en sentido horario
-        // Rotar la firma -90° (sentido antihorario) para compensar
-        imageOptions.rotate = { type: 'degrees', angle: -90 };
-        console.log(`[PDF Signature] Aplicando rotación -90° a la firma para compensar rotación de página`);
-      } else if (rotation === 270) {
-        // Página rotada 270° (o -90°)
-        // Rotar la firma 90° para compensar
+        // Rotar la firma 90° (sentido horario) para que quede horizontal
         imageOptions.rotate = { type: 'degrees', angle: 90 };
         console.log(`[PDF Signature] Aplicando rotación 90° a la firma para compensar rotación de página`);
+      } else if (rotation === 270) {
+        // Página rotada 270° (o -90°)
+        // Rotar la firma -90° para compensar
+        imageOptions.rotate = { type: 'degrees', angle: -90 };
+        console.log(`[PDF Signature] Aplicando rotación -90° a la firma para compensar rotación de página`);
       }
       
       page.drawImage(signatureImage, imageOptions);
