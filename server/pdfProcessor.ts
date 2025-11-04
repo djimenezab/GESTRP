@@ -101,16 +101,17 @@ export async function signPdfWithSignature(
       
       // Posiciones específicas para cada página de la Comisión de Servicio
       if (pageIndex === 0) {
-        // Página 1: 3 cm desde izquierda, 25 cm desde arriba
-        x = 3 * CM_TO_POINTS;
+        // Página 1: 2 cm desde izquierda, 25 cm desde arriba
+        x = 2 * CM_TO_POINTS;
         yFromTop = 25 * CM_TO_POINTS;
       } else if (pageIndex === 1) {
-        // Página 2: 21 cm desde izquierda, 16 cm desde arriba
-        x = 21 * CM_TO_POINTS;
+        // Página 2: Ajustada temporalmente para que quede dentro de los límites
+        // (El ancho de la página es ~21 cm, por lo que 21 cm desde izquierda está fuera)
+        x = 11 * CM_TO_POINTS; // Centro-derecha de la página
         yFromTop = 16 * CM_TO_POINTS;
       } else {
         // Fallback para otras páginas (no debería ocurrir normalmente)
-        x = 3 * CM_TO_POINTS;
+        x = 2 * CM_TO_POINTS;
         yFromTop = 25 * CM_TO_POINTS;
       }
       
