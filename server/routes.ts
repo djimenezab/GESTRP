@@ -18,7 +18,8 @@ import {
   insertInformeAceptacionMaquinariaSchema,
   insertDocumentoExpedienteSchema,
   trabajadores,
-  CATEGORIAS
+  CATEGORIAS,
+  type InsertEpi
 } from "@shared/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -222,18 +223,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { firmaUrl } = req.body;
       
-      let firmaNormalizada: string | undefined = undefined;
+      // Construir objeto de actualización condicionalmente
+      let updateData: Partial<InsertEpi>;
       
-      // Si firmaUrl está vacío, se borra la firma (undefined)
+      // Si firmaUrl está vacío, se borra la firma (null)
       // Si tiene valor, se normaliza antes de guardar
       if (firmaUrl && firmaUrl.trim() !== "") {
         // Normalizar la URL de la firma antes de guardarla
         // Esto convierte la URL firmada temporal a una ruta persistente (/objects/...)
         const objectStorageService = new ObjectStorageService();
-        firmaNormalizada = objectStorageService.normalizeObjectEntityPath(firmaUrl);
+        const firmaNormalizada = objectStorageService.normalizeObjectEntityPath(firmaUrl);
+        updateData = { firmaUrl: firmaNormalizada };
+      } else {
+        // Para borrar la firma, usamos null con un cast explícito
+        updateData = { firmaUrl: null as any };
       }
       
-      const epi = await storage.updateEpi(req.params.id, { firmaUrl: firmaNormalizada });
+      const epi = await storage.updateEpi(req.params.id, updateData);
       
       if (!epi) {
         return res.status(404).json({ error: "EPI no encontrado" });
@@ -382,7 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         const zonasIds = req.session.zonasIds;
-        if (!zonasIds || !zonasIds.includes(trabajador.zonaId)) {
+        if (!zonasIds || !trabajador.zonaId || !zonasIds.includes(trabajador.zonaId)) {
           return res.status(403).json({ error: "No tiene permisos para firmar cursos de esta zona" });
         }
       }
