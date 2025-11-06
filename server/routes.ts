@@ -1360,36 +1360,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Obtener nombre del trabajador por email (para documentos firmados por administradores)
-  app.get("/api/trabajador-nombre-by-email", async (req, res) => {
+  // Obtener nombre del usuario actual (para documentos firmados por administradores)
+  app.get("/api/current-user-name", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ error: "No autorizado" });
     }
 
     try {
-      const { email } = req.query;
+      const usuario = await storage.getUsuario(req.session.userId);
       
-      if (!email || typeof email !== 'string') {
-        return res.status(400).json({ error: "Email es requerido" });
+      if (!usuario) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
       }
 
-      // Primero intentar buscar en trabajadores por email
-      const trabajador = await storage.getTrabajadorByEmail(email);
-      
-      if (trabajador) {
-        return res.json({ nombreCompleto: trabajador.nombreCompleto });
+      // Si el usuario tiene email, intentar buscar en trabajadores
+      if (usuario.email) {
+        const trabajador = await storage.getTrabajadorByEmail(usuario.email);
+        
+        if (trabajador) {
+          return res.json({ nombreCompleto: trabajador.nombreCompleto });
+        }
       }
 
-      // Si no se encuentra trabajador, usar nombreUsuario de la sesión como fallback
-      // Esto es útil para administradores que no tienen registro en trabajadores
-      if (req.session.nombreUsuario) {
-        return res.json({ nombreCompleto: req.session.nombreUsuario });
+      // Si el usuario no tiene email o no se encuentra en trabajadores,
+      // también intentar buscar por nombreUsuario (que puede ser el email)
+      if (usuario.nombreUsuario) {
+        const trabajador = await storage.getTrabajadorByEmail(usuario.nombreUsuario);
+        
+        if (trabajador) {
+          return res.json({ nombreCompleto: trabajador.nombreCompleto });
+        }
       }
 
-      return res.json({ nombreCompleto: null });
+      // Como último recurso, usar nombreUsuario del usuario
+      return res.json({ nombreCompleto: usuario.nombreUsuario || null });
     } catch (error) {
-      console.error("Error getting trabajador by email:", error);
-      res.status(500).json({ error: "Error al obtener trabajador" });
+      console.error("Error getting current user name:", error);
+      res.status(500).json({ error: "Error al obtener nombre del usuario" });
     }
   });
 

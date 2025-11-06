@@ -35,10 +35,10 @@ export function EpiDetailDialog({ open, onOpenChange, epi }: EpiDetailDialogProp
   const [showDocument, setShowDocument] = useState(false);
   const { user } = useAuth();
 
-  // Obtener nombre del administrador basado en su email
+  // Obtener nombre completo del usuario actual (administrador o trabajador)
   const { data: adminData } = useQuery<{ nombreCompleto: string | null }>({
-    queryKey: [`/api/trabajador-nombre-by-email?email=${user?.email}`],
-    enabled: !!user?.email,
+    queryKey: ['/api/current-user-name'],
+    enabled: !!user,
   });
 
   // Reset document view when dialog closes or EPI changes
