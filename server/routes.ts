@@ -1373,13 +1373,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email es requerido" });
       }
 
+      // Primero intentar buscar en trabajadores por email
       const trabajador = await storage.getTrabajadorByEmail(email);
       
-      if (!trabajador) {
-        return res.json({ nombreCompleto: null });
+      if (trabajador) {
+        return res.json({ nombreCompleto: trabajador.nombreCompleto });
       }
 
-      res.json({ nombreCompleto: trabajador.nombreCompleto });
+      // Si no se encuentra trabajador, usar nombreUsuario de la sesión como fallback
+      // Esto es útil para administradores que no tienen registro en trabajadores
+      if (req.session.nombreUsuario) {
+        return res.json({ nombreCompleto: req.session.nombreUsuario });
+      }
+
+      return res.json({ nombreCompleto: null });
     } catch (error) {
       console.error("Error getting trabajador by email:", error);
       res.status(500).json({ error: "Error al obtener trabajador" });
