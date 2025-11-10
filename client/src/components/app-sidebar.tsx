@@ -140,7 +140,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4">
         <div className="text-xs text-muted-foreground text-center">
-          Versión 1.5 -NOV 2025-
+          Versión 1.52 -NOV 2025-
         </div>
       </SidebarFooter>
     </Sidebar>
