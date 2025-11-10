@@ -52,6 +52,7 @@ export interface IStorage {
   // Trabajadores
   getTrabajadores(): Promise<Trabajador[]>;
   getTrabajadoresByZonas(zonasIds: string[]): Promise<Trabajador[]>;
+  getTrabajadoresByZona(zonaId: string): Promise<Trabajador[]>;
   getTrabajador(id: string): Promise<Trabajador | undefined>;
   getTrabajadorByEmail(email: string): Promise<Trabajador | undefined>;
   createTrabajador(data: InsertTrabajador): Promise<Trabajador>;
@@ -192,6 +193,10 @@ export class DbStorage implements IStorage {
   async getTrabajadoresByZonas(zonasIds: string[]): Promise<Trabajador[]> {
     if (zonasIds.length === 0) return [];
     return await db.select().from(trabajadores).where(inArray(trabajadores.zonaId, zonasIds));
+  }
+
+  async getTrabajadoresByZona(zonaId: string): Promise<Trabajador[]> {
+    return await db.select().from(trabajadores).where(eq(trabajadores.zonaId, zonaId)).orderBy(asc(trabajadores.nombreCompleto));
   }
 
   // EPIs

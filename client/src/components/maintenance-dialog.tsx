@@ -19,6 +19,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -30,7 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertMantenimientoEquipoSchema, type InsertMantenimientoEquipo, type MantenimientoEquipo } from "@shared/schema";
+import { insertMantenimientoEquipoSchema, type InsertMantenimientoEquipo, type MantenimientoEquipo, type Trabajador } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -42,11 +49,12 @@ import { SignaturePad } from "@/components/signature-pad";
 interface MaintenanceDialogProps {
   equipoId: string;
   equipoNombre: string;
+  equipoZonaId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function MaintenanceDialog({ equipoId, equipoNombre, open, onOpenChange }: MaintenanceDialogProps) {
+export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, onOpenChange }: MaintenanceDialogProps) {
   const { toast } = useToast();
   const [signature, setSignature] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("historial");
@@ -67,6 +75,12 @@ export function MaintenanceDialog({ equipoId, equipoNombre, open, onOpenChange }
   const { data: mantenimientos = [], isLoading } = useQuery<MantenimientoEquipo[]>({
     queryKey: ["/api/equipos", equipoId, "mantenimientos"],
     enabled: open,
+  });
+
+  // Query para obtener trabajadores de la zona del equipo
+  const { data: trabajadores = [] } = useQuery<Trabajador[]>({
+    queryKey: ["/api/zonas", equipoZonaId, "trabajadores"],
+    enabled: open && !!equipoZonaId,
   });
 
   // Mutation para crear mantenimiento
@@ -265,13 +279,24 @@ export function MaintenanceDialog({ equipoId, equipoNombre, open, onOpenChange }
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Persona que realiza</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="Nombre completo"
-                          data-testid="input-persona"
-                        />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-persona">
+                            <SelectValue placeholder="Seleccionar trabajador" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {trabajadores.map((trabajador) => (
+                            <SelectItem 
+                              key={trabajador.id} 
+                              value={trabajador.nombreCompleto}
+                              data-testid={`option-trabajador-${trabajador.id}`}
+                            >
+                              {trabajador.nombreCompleto}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

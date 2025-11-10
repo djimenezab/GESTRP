@@ -59,6 +59,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/zonas/:zonaId/trabajadores", async (req, res) => {
+    try {
+      const trabajadores = await storage.getTrabajadoresByZona(req.params.zonaId);
+      res.json(trabajadores);
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener trabajadores de la zona" });
+    }
+  });
+
   app.get("/api/trabajadores/:id", async (req, res) => {
     try {
       const trabajador = await storage.getTrabajador(req.params.id);

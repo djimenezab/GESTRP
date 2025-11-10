@@ -1237,6 +1237,7 @@ export default function Equipos() {
         <MaintenanceDialog
           equipoId={maintenanceEquipo.id}
           equipoNombre={`${maintenanceEquipo.nombre} - ${maintenanceEquipo.marca} ${maintenanceEquipo.modelo}`}
+          equipoZonaId={maintenanceEquipo.zonaId || ""}
           open={isMaintenanceDialogOpen}
           onOpenChange={setIsMaintenanceDialogOpen}
         />
