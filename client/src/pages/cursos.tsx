@@ -211,7 +211,7 @@ export default function Cursos() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Trabajador</TableHead>
+              {user?.tipoAcceso !== "Usuario" && <TableHead>Trabajador</TableHead>}
               <TableHead>Nombre del Curso</TableHead>
               <TableHead>Fecha</TableHead>
               <TableHead>Duración (h)</TableHead>
@@ -222,9 +222,11 @@ export default function Cursos() {
           <TableBody>
             {filteredCursos.map((curso) => (
               <TableRow key={curso.id} data-testid={`row-curso-${curso.id}`}>
-                <TableCell className="font-medium" data-testid={`text-worker-${curso.id}`}>
-                  {curso.trabajador}
-                </TableCell>
+                {user?.tipoAcceso !== "Usuario" && (
+                  <TableCell className="font-medium" data-testid={`text-worker-${curso.id}`}>
+                    {curso.trabajador}
+                  </TableCell>
+                )}
                 <TableCell data-testid={`text-nombre-curso-${curso.id}`}>{curso.nombreCurso}</TableCell>
                 <TableCell>{format(new Date(curso.fechaRealizacion), "dd/MM/yyyy", { locale: es })}</TableCell>
                 <TableCell>{curso.duracionHoras}h</TableCell>

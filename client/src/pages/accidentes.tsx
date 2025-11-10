@@ -211,7 +211,7 @@ export default function Accidentes() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Trabajador</TableHead>
+                {user?.tipoAcceso !== "Usuario" && <TableHead>Trabajador</TableHead>}
                 <TableHead>Tipo</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Hora</TableHead>
@@ -223,9 +223,11 @@ export default function Accidentes() {
             <TableBody>
               {sortedAccidentes.map((accidente) => (
                 <TableRow key={accidente.id} data-testid={`row-accidente-${accidente.id}`}>
-                  <TableCell className="font-medium" data-testid={`text-worker-${accidente.id}`}>
-                    {trabajadorMap.get(accidente.trabajadorId) || "Desconocido"}
-                  </TableCell>
+                  {user?.tipoAcceso !== "Usuario" && (
+                    <TableCell className="font-medium" data-testid={`text-worker-${accidente.id}`}>
+                      {trabajadorMap.get(accidente.trabajadorId) || "Desconocido"}
+                    </TableCell>
+                  )}
                   <TableCell data-testid={`text-tipo-${accidente.id}`}>
                     {tipoAccidenteLabels[accidente.tipoAccidente as keyof typeof tipoAccidenteLabels]}
                   </TableCell>

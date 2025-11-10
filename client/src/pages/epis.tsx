@@ -323,7 +323,7 @@ export default function Epis() {
           <TableHeader>
             <TableRow>
               {user?.tipoAcceso !== "Usuario" && <TableHead>Código EPI</TableHead>}
-              <TableHead>Trabajador</TableHead>
+              {user?.tipoAcceso !== "Usuario" && <TableHead>Trabajador</TableHead>}
               <TableHead>Tipo de Equipo</TableHead>
               <TableHead>Marca</TableHead>
               <TableHead>Modelo</TableHead>
@@ -347,9 +347,11 @@ export default function Epis() {
                     {epi.numeroCorrelativo || "-"}
                   </TableCell>
                 )}
-                <TableCell className="font-medium" data-testid={`text-worker-${epi.id}`}>
-                  {epi.trabajador}
-                </TableCell>
+                {user?.tipoAcceso !== "Usuario" && (
+                  <TableCell className="font-medium" data-testid={`text-worker-${epi.id}`}>
+                    {epi.trabajador}
+                  </TableCell>
+                )}
                 <TableCell data-testid={`text-tipo-equipo-${epi.id}`}>{epi.tipoEquipo}</TableCell>
                 <TableCell className="text-muted-foreground">{epi.marca || "-"}</TableCell>
                 <TableCell className="text-muted-foreground">{epi.modelo || "-"}</TableCell>
