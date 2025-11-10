@@ -7,6 +7,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,6 +55,14 @@ import { es } from "date-fns/locale";
 import { Pen, Trash2, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SignaturePad } from "@/components/signature-pad";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 
 interface MaintenanceDialogProps {
   equipoId: string;
@@ -55,9 +73,12 @@ interface MaintenanceDialogProps {
 }
 
 export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, onOpenChange }: MaintenanceDialogProps) {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [signature, setSignature] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("historial");
+  const [editingMantenimiento, setEditingMantenimiento] = useState<MantenimientoEquipo | null>(null);
+  const [deletingMantenimiento, setDeletingMantenimiento] = useState<MantenimientoEquipo | null>(null);
 
   const form = useForm<InsertMantenimientoEquipo>({
     resolver: zodResolver(insertMantenimientoEquipoSchema),
@@ -71,17 +92,30 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
     },
   });
 
+  // Query para obtener el nombre del usuario actual
+  const { data: currentUserData } = useQuery<{ nombreCompleto: string }>({
+    queryKey: ["/api/current-user-name"],
+    enabled: open && user?.tipoAcceso === "Usuario",
+  });
+
   // Query para obtener mantenimientos
   const { data: mantenimientos = [], isLoading } = useQuery<MantenimientoEquipo[]>({
     queryKey: ["/api/equipos", equipoId, "mantenimientos"],
     enabled: open,
   });
 
-  // Query para obtener trabajadores de la zona del equipo
+  // Query para obtener trabajadores de la zona del equipo (solo para administradores)
   const { data: trabajadores = [] } = useQuery<Trabajador[]>({
     queryKey: ["/api/zonas", equipoZonaId, "trabajadores"],
-    enabled: open && !!equipoZonaId,
+    enabled: open && !!equipoZonaId && user?.tipoAcceso !== "Usuario",
   });
+
+  // Si el usuario es tipo "Usuario", auto-rellenar su nombre
+  useEffect(() => {
+    if (user?.tipoAcceso === "Usuario" && currentUserData?.nombreCompleto) {
+      form.setValue("personaRealiza", currentUserData.nombreCompleto);
+    }
+  }, [user, currentUserData, form, activeTab]);
 
   // Mutation para crear mantenimiento
   const createMantenimientoMutation = useMutation({
@@ -127,14 +161,15 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/equipos", equipoId, "mantenimientos"] });
-      form.reset({
+      const resetData = {
         equipoId,
         fecha: format(new Date(), "yyyy-MM-dd"),
         actuacionRealizada: "",
-        personaRealiza: "",
+        personaRealiza: user?.tipoAcceso === "Usuario" && currentUserData?.nombreCompleto ? currentUserData.nombreCompleto : "",
         observaciones: "",
         firmaUrl: "",
-      });
+      };
+      form.reset(resetData);
       setSignature(null);
       setActiveTab("historial");
       toast({
@@ -147,6 +182,26 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
         variant: "destructive",
         title: "Error",
         description: error instanceof Error ? error.message : "No se pudo crear el registro",
+      });
+    },
+  });
+
+  // Mutation para eliminar mantenimiento
+  const deleteMantenimientoMutation = useMutation({
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/mantenimientos/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/equipos", equipoId, "mantenimientos"] });
+      setDeletingMantenimiento(null);
+      toast({
+        title: "Registro eliminado",
+        description: "El registro de mantenimiento se ha eliminado correctamente",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "No se pudo eliminar el registro",
       });
     },
   });
@@ -167,7 +222,14 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
     });
   };
 
+  const handleDelete = () => {
+    if (deletingMantenimiento) {
+      deleteMantenimientoMutation.mutate(deletingMantenimiento.id);
+    }
+  };
+
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -206,8 +268,34 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
                   <Card key={mantenimiento.id}>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center justify-between">
-                        <span>{format(new Date(mantenimiento.fecha), "dd/MM/yyyy", { locale: es })}</span>
-                        <Badge variant="outline">{mantenimiento.personaRealiza}</Badge>
+                        <div className="flex items-center gap-2">
+                          <span>{format(new Date(mantenimiento.fecha), "dd/MM/yyyy", { locale: es })}</span>
+                          <Badge variant="outline">{mantenimiento.personaRealiza}</Badge>
+                        </div>
+                        {user?.tipoAcceso !== "Usuario" && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="h-6 w-6"
+                                data-testid={`button-menu-${mantenimiento.id}`}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => setDeletingMantenimiento(mantenimiento)}
+                                className="text-destructive"
+                                data-testid={`button-delete-${mantenimiento.id}`}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
@@ -273,34 +361,55 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="personaRealiza"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Persona que realiza</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                {user?.tipoAcceso === "Usuario" ? (
+                  <FormField
+                    control={form.control}
+                    name="personaRealiza"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Persona que realiza</FormLabel>
                         <FormControl>
-                          <SelectTrigger data-testid="select-persona">
-                            <SelectValue placeholder="Seleccionar trabajador" />
-                          </SelectTrigger>
+                          <Input 
+                            {...field} 
+                            readOnly
+                            className="bg-muted"
+                            data-testid="input-persona-readonly"
+                          />
                         </FormControl>
-                        <SelectContent>
-                          {trabajadores.map((trabajador) => (
-                            <SelectItem 
-                              key={trabajador.id} 
-                              value={trabajador.nombreCompleto}
-                              data-testid={`option-trabajador-${trabajador.id}`}
-                            >
-                              {trabajador.nombreCompleto}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="personaRealiza"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Persona que realiza</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-persona">
+                              <SelectValue placeholder="Seleccionar trabajador" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {trabajadores.map((trabajador) => (
+                              <SelectItem 
+                                key={trabajador.id} 
+                                value={trabajador.nombreCompleto}
+                                data-testid={`option-trabajador-${trabajador.id}`}
+                              >
+                                {trabajador.nombreCompleto}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
@@ -346,5 +455,28 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
         </Tabs>
       </DialogContent>
     </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingMantenimiento} onOpenChange={() => setDeletingMantenimiento(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar registro de mantenimiento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. El registro de mantenimiento será eliminado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
