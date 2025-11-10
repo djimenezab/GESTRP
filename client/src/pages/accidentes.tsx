@@ -211,34 +211,34 @@ export default function Accidentes() {
           <Table>
             <TableHeader>
               <TableRow>
-                {user?.tipoAcceso !== "Usuario" && <TableHead>Trabajador</TableHead>}
-                <TableHead>Tipo</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Hora</TableHead>
                 <TableHead>Lugar</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Gravedad</TableHead>
+                {user?.tipoAcceso !== "Usuario" && <TableHead>Trabajador</TableHead>}
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedAccidentes.map((accidente) => (
                 <TableRow key={accidente.id} data-testid={`row-accidente-${accidente.id}`}>
-                  {user?.tipoAcceso !== "Usuario" && (
-                    <TableCell className="font-medium" data-testid={`text-worker-${accidente.id}`}>
-                      {trabajadorMap.get(accidente.trabajadorId) || "Desconocido"}
-                    </TableCell>
-                  )}
-                  <TableCell data-testid={`text-tipo-${accidente.id}`}>
-                    {tipoAccidenteLabels[accidente.tipoAccidente as keyof typeof tipoAccidenteLabels]}
-                  </TableCell>
                   <TableCell>{format(new Date(accidente.fecha), "dd/MM/yyyy", { locale: es })}</TableCell>
                   <TableCell>{accidente.horaAccidente}</TableCell>
                   <TableCell>{accidente.lugarAccidente}</TableCell>
+                  <TableCell data-testid={`text-tipo-${accidente.id}`}>
+                    {tipoAccidenteLabels[accidente.tipoAccidente as keyof typeof tipoAccidenteLabels]}
+                  </TableCell>
                   <TableCell>
                     <Badge className={gravedadColors[accidente.gravedad as keyof typeof gravedadColors]}>
                       {accidente.gravedad}
                     </Badge>
                   </TableCell>
+                  {user?.tipoAcceso !== "Usuario" && (
+                    <TableCell className="font-medium" data-testid={`text-worker-${accidente.id}`}>
+                      {trabajadorMap.get(accidente.trabajadorId) || "Desconocido"}
+                    </TableCell>
+                  )}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
