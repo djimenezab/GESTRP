@@ -354,7 +354,7 @@ export default function Equipos() {
                   <TableHead>Modelo</TableHead>
                   <TableHead>Nº Serie</TableHead>
                   <TableHead>Fecha Adquisición</TableHead>
-                  <TableHead>Zona</TableHead>
+                  {user?.tipoAcceso !== "Usuario" && <TableHead>Zona</TableHead>}
                   <TableHead>Documentos</TableHead>
                   <TableHead>Mantenimiento</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -382,9 +382,11 @@ export default function Equipos() {
                       <TableCell data-testid={`text-fecha-${equipo.id}`}>
                         {format(new Date(equipo.fechaAdquisicion), "dd/MM/yyyy", { locale: es })}
                       </TableCell>
-                      <TableCell data-testid={`text-zona-${equipo.id}`}>
-                        {zona?.zona || "-"}
-                      </TableCell>
+                      {user?.tipoAcceso !== "Usuario" && (
+                        <TableCell data-testid={`text-zona-${equipo.id}`}>
+                          {zona?.zona || "-"}
+                        </TableCell>
+                      )}
                       <TableCell>
                         <div className="flex gap-1">
                           {equipo.imagenUrl && (
