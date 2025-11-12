@@ -426,10 +426,10 @@ function DashboardAdministrador() {
 
       {/* Alerta de EPIs sin firma digital */}
       {episSinFirma > 0 && (
-        <Alert variant="default" data-testid="alert-epis-sin-firma">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Atención: Firmas Pendientes</AlertTitle>
-          <AlertDescription>
+        <Alert variant="default" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20" data-testid="alert-epis-sin-firma">
+          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500" />
+          <AlertTitle className="text-amber-900 dark:text-amber-100 font-semibold">Atención: Firmas Pendientes</AlertTitle>
+          <AlertDescription className="text-amber-800 dark:text-amber-200">
             Hay <strong>{episSinFirma}</strong> {episSinFirma === 1 ? "documento de entrega de EPI pendiente" : "documentos de entrega de EPIs pendientes"} de firma digital. Recuerda solicitar las firmas correspondientes.
           </AlertDescription>
         </Alert>
