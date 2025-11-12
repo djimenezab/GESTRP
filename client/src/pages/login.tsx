@@ -72,12 +72,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         description: `Bienvenido, ${response.nombreUsuario}`,
       });
       onLoginSuccess(response);
-      // Redirigir a la página inicial según el tipo de usuario
-      if (response.tipoAcceso === "AdminGral" || response.tipoAcceso === "Administrador") {
-        window.location.href = "/";
-      } else {
-        window.location.href = "/trabajadores";
-      }
+      // Redirigir al Dashboard
+      window.location.href = "/";
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -122,12 +118,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         password: data.newPassword,
       });
       onLoginSuccess(response);
-      // Redirigir a la página inicial según el tipo de usuario
-      if (response.tipoAcceso === "AdminGral" || response.tipoAcceso === "Administrador") {
-        window.location.href = "/";
-      } else {
-        window.location.href = "/trabajadores";
-      }
+      // Redirigir al Dashboard
+      window.location.href = "/";
     } catch (error: any) {
       toast({
         variant: "destructive",
