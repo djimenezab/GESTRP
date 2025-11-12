@@ -29,7 +29,7 @@ const allMenuItems = [
     title: "Dashboard",
     url: "/",
     icon: LayoutDashboard,
-    roles: ["AdminGral", "Administrador"], // Usuario NO tiene acceso
+    roles: ["AdminGral", "Administrador", "Usuario"],
   },
   {
     title: "Trabajadores",
