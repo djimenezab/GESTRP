@@ -99,20 +99,27 @@ export function AppSidebar() {
           <SidebarGroupLabel>Gestión</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location === item.url}
-                    data-testid={`link-${item.title.toLowerCase()}`}
-                  >
-                    <a href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {menuItems.map((item) => {
+                // Cambiar "Trabajadores" por "Mis datos" cuando el usuario es tipo "Usuario"
+                const displayTitle = item.title === "Trabajadores" && user?.tipoAcceso === "Usuario" 
+                  ? "Mis datos" 
+                  : item.title;
+                
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location === item.url}
+                      data-testid={`link-${displayTitle.toLowerCase().replace(/\s+/g, '-')}`}
+                    >
+                      <a href={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{displayTitle}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
