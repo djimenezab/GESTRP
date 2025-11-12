@@ -74,6 +74,54 @@ The application uses Drizzle ORM with PostgreSQL, specifically Neon serverless P
 
 ## Recent Changes
 
+### November 12, 2025
+
+#### Dashboard - Usuario Role Personalized View
+- **Usuario-Specific Dashboard Implementation**:
+  - Created personalized dashboard view for users with "Usuario" role
+  - Displays "Mi Dashboard" title instead of generic "Dashboard"
+  - Shows worker's personal safety activity and compliance status
+  - Two-tier architecture: separate views for Usuario vs Administrador/AdminGral roles
+
+- **Dashboard Statistics Cards**:
+  - EPIs Entregados: Total count of safety equipment received by the worker
+  - Cursos Realizados: Total training courses completed
+  - Accidentes: Total workplace incidents registered
+  - Firmas Pendientes/Firmas al Día: Dynamic card showing pending signatures or confirmation all documents are signed
+
+- **Pending Signatures Alert**:
+  - Prominent amber-colored alert when worker has unsigned documents
+  - Lists specific EPIs and courses requiring signature (shows first 3 items with "... y X más" if more exist)
+  - Displays document type, name, and date for each pending item
+  - Alert only appears when firmasPendientes > 0
+
+- **Recent Activity Sections**:
+  - Three cards showing last 5 EPIs, courses, and accidents
+  - Each recent item displays relevant details (tipo/nombre, marca/duración, fecha)
+  - Visual indicators for unsigned items ("Sin firmar" badge)
+  - "Ver todos..." buttons navigate to full listing pages (/epis, /cursos, /accidentes)
+  - Empty states with friendly messages when no data exists
+
+- **Backend Implementation**:
+  - New endpoint: `GET /api/dashboard/usuario` (session-authenticated)
+  - Storage method: `getDashboardData(trabajadorId)` aggregates counts and recent activity
+  - Usuario-trabajador linkage via email matching (usuario.email or usuario.nombreUsuario)
+  - Returns 404 if no trabajador found for logged-in usuario
+  - Efficient parallel queries for EPIs, cursos, and accidentes
+
+- **Signature Detection Logic**:
+  - EPIs: Pending if `firmaUrl` is null
+  - Cursos: Pending if both `firmaUrl` AND `comisionServicioFirmadoUrl` are null
+  - Total count displayed in alert and statistics card
+
+- **Implementation Details**:
+  - Modified `dashboard.tsx` to branch on `user.tipoAcceso === "Usuario"`
+  - Component structure: DashboardUsuario and DashboardAdministrador
+  - Uses shadcn Card, Alert, and Button components
+  - Date formatting with date-fns (es locale)
+  - Navigation integration with wouter
+  - E2E tested with Usuario role workflow
+
 ### October 23, 2025
 
 #### EPIs Module - Usuario Role UI Customization
