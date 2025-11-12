@@ -158,6 +158,19 @@ export interface IStorage {
   getDocumentoExpediente(id: string): Promise<DocumentoExpediente | undefined>;
   createDocumentoExpediente(data: InsertDocumentoExpediente): Promise<DocumentoExpediente>;
   deleteDocumentoExpediente(id: string): Promise<void>;
+
+  // Dashboard Usuario
+  getDashboardData(trabajadorId: string): Promise<{
+    episEntregados: number;
+    cursosRealizados: number;
+    accidentes: number;
+    firmasPendientes: number;
+    episPendientes: Array<{ id: string; tipoEquipo: string; fechaEntrega: string }>;
+    cursosPendientes: Array<{ id: string; nombreCurso: string; fechaRealizacion: string }>;
+    episRecientes: Epi[];
+    cursosRecientes: Curso[];
+    accidentesRecientes: Accidente[];
+  }>;
 }
 
 export class DbStorage implements IStorage {
@@ -630,6 +643,52 @@ export class DbStorage implements IStorage {
 
   async deleteDocumentoExpediente(id: string): Promise<void> {
     await db.delete(documentosExpediente).where(eq(documentosExpediente.id, id));
+  }
+
+  // Dashboard Usuario
+  async getDashboardData(trabajadorId: string): Promise<{
+    episEntregados: number;
+    cursosRealizados: number;
+    accidentes: number;
+    firmasPendientes: number;
+    episPendientes: Array<{ id: string; tipoEquipo: string; fechaEntrega: string }>;
+    cursosPendientes: Array<{ id: string; nombreCurso: string; fechaRealizacion: string }>;
+    episRecientes: Epi[];
+    cursosRecientes: Curso[];
+    accidentesRecientes: Accidente[];
+  }> {
+    const [episData, cursosData, accidentesData] = await Promise.all([
+      db.select().from(epis).where(eq(epis.trabajadorId, trabajadorId)).orderBy(desc(epis.fechaEntrega)),
+      db.select().from(cursos).where(eq(cursos.trabajadorId, trabajadorId)).orderBy(desc(cursos.fechaRealizacion)),
+      db.select().from(accidentes).where(eq(accidentes.trabajadorId, trabajadorId)).orderBy(desc(accidentes.fecha)),
+    ]);
+
+    const episSinFirma = episData.filter(epi => !epi.firmaUrl);
+    const cursosSinFirma = cursosData.filter(curso => !curso.firmaUrl && !curso.comisionServicioFirmadoUrl);
+
+    const episPendientes = episSinFirma.map(epi => ({
+      id: epi.id,
+      tipoEquipo: epi.tipoEquipo,
+      fechaEntrega: epi.fechaEntrega,
+    }));
+
+    const cursosPendientes = cursosSinFirma.map(curso => ({
+      id: curso.id,
+      nombreCurso: curso.nombreCurso,
+      fechaRealizacion: curso.fechaRealizacion,
+    }));
+
+    return {
+      episEntregados: episData.length,
+      cursosRealizados: cursosData.length,
+      accidentes: accidentesData.length,
+      firmasPendientes: episSinFirma.length + cursosSinFirma.length,
+      episPendientes,
+      cursosPendientes,
+      episRecientes: episData.slice(0, 5),
+      cursosRecientes: cursosData.slice(0, 5),
+      accidentesRecientes: accidentesData.slice(0, 5),
+    };
   }
 }
 

@@ -1369,6 +1369,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dashboard para usuarios tipo Usuario
+  app.get("/api/dashboard/usuario", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "No autorizado" });
+    }
+
+    try {
+      const usuario = await storage.getUsuario(req.session.userId);
+      
+      if (!usuario) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      // Buscar trabajador asociado por email
+      let trabajador = null;
+      if (usuario.email) {
+        trabajador = await storage.getTrabajadorByEmail(usuario.email);
+      }
+      
+      // Si no se encuentra por email, intentar por nombreUsuario
+      if (!trabajador && usuario.nombreUsuario) {
+        trabajador = await storage.getTrabajadorByEmail(usuario.nombreUsuario);
+      }
+
+      if (!trabajador) {
+        return res.status(404).json({ error: "No se encontró trabajador asociado" });
+      }
+
+      const dashboardData = await storage.getDashboardData(trabajador.id);
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("Error getting dashboard data:", error);
+      res.status(500).json({ error: "Error al obtener datos del dashboard" });
+    }
+  });
+
   // Obtener nombre del usuario actual (para documentos firmados por administradores)
   app.get("/api/current-user-name", async (req, res) => {
     if (!req.session.userId) {
