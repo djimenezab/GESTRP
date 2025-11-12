@@ -374,8 +374,51 @@ function DashboardAdministrador() {
     worker.dni.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Calcular EPIs sin firma digital
-  const episSinFirma = epis.filter((epi) => !epi.firmaUrl || epi.firmaUrl.trim() === "").length;
+  // Calcular firmas pendientes (EPIs y cursos sin firma)
+  const episSinFirma = epis.filter((epi) => !epi.firmaUrl || epi.firmaUrl.trim() === "");
+  const cursosSinFirma = cursos.filter((curso) => !curso.firmaUrl && !curso.comisionServicioFirmadoUrl);
+  
+  // Agrupar por trabajador
+  const trabajadoresConFirmasPendientes = new Map<string, {
+    trabajador: Trabajador;
+    episPendientes: number;
+    cursosPendientes: number;
+  }>();
+
+  episSinFirma.forEach((epi) => {
+    const trabajador = trabajadores.find(t => t.id === epi.trabajadorId);
+    if (trabajador) {
+      const existing = trabajadoresConFirmasPendientes.get(trabajador.id);
+      if (existing) {
+        existing.episPendientes++;
+      } else {
+        trabajadoresConFirmasPendientes.set(trabajador.id, {
+          trabajador,
+          episPendientes: 1,
+          cursosPendientes: 0,
+        });
+      }
+    }
+  });
+
+  cursosSinFirma.forEach((curso) => {
+    const trabajador = trabajadores.find(t => t.id === curso.trabajadorId);
+    if (trabajador) {
+      const existing = trabajadoresConFirmasPendientes.get(trabajador.id);
+      if (existing) {
+        existing.cursosPendientes++;
+      } else {
+        trabajadoresConFirmasPendientes.set(trabajador.id, {
+          trabajador,
+          episPendientes: 0,
+          cursosPendientes: 1,
+        });
+      }
+    }
+  });
+
+  const totalFirmasPendientes = episSinFirma.length + cursosSinFirma.length;
+  const listaTrabajadoresConFirmasPendientes = Array.from(trabajadoresConFirmasPendientes.values());
 
   return (
     <div className="p-6 space-y-6">
@@ -424,13 +467,35 @@ function DashboardAdministrador() {
         />
       </div>
 
-      {/* Alerta de EPIs sin firma digital */}
-      {episSinFirma > 0 && (
+      {/* Alerta de firmas pendientes */}
+      {totalFirmasPendientes > 0 && (
         <Alert variant="default" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20" data-testid="alert-epis-sin-firma">
           <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500" />
           <AlertTitle className="text-amber-900 dark:text-amber-100 font-semibold">Atención: Firmas Pendientes</AlertTitle>
-          <AlertDescription className="text-amber-800 dark:text-amber-200">
-            Hay <strong>{episSinFirma}</strong> {episSinFirma === 1 ? "documento de entrega de EPI pendiente" : "documentos de entrega de EPIs pendientes"} de firma digital. Recuerda solicitar las firmas correspondientes.
+          <AlertDescription className="text-amber-800 dark:text-amber-200 space-y-3">
+            <p>
+              Hay <strong>{totalFirmasPendientes}</strong> {totalFirmasPendientes === 1 ? "firma pendiente" : "firmas pendientes"} ({episSinFirma.length} EPIs, {cursosSinFirma.length} cursos). Recuerda solicitar las firmas correspondientes.
+            </p>
+            
+            {listaTrabajadoresConFirmasPendientes.length > 0 && (
+              <div>
+                <p className="font-medium mb-2">Trabajadores con firmas pendientes:</p>
+                <ul className="list-disc list-inside ml-4 space-y-1">
+                  {listaTrabajadoresConFirmasPendientes.map((item) => (
+                    <li key={item.trabajador.id} data-testid={`trabajador-firma-pendiente-${item.trabajador.id}`}>
+                      <strong>{item.trabajador.nombreCompleto}</strong>
+                      {item.episPendientes > 0 && item.cursosPendientes > 0 ? (
+                        <span> - {item.episPendientes} EPI{item.episPendientes > 1 ? 's' : ''}, {item.cursosPendientes} curso{item.cursosPendientes > 1 ? 's' : ''}</span>
+                      ) : item.episPendientes > 0 ? (
+                        <span> - {item.episPendientes} EPI{item.episPendientes > 1 ? 's' : ''}</span>
+                      ) : (
+                        <span> - {item.cursosPendientes} curso{item.cursosPendientes > 1 ? 's' : ''}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </AlertDescription>
         </Alert>
       )}
