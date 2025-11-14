@@ -92,7 +92,7 @@ export function CourseForm({ onSubmit, trabajadores, initialData, isLoading }: C
           render={({ field }) => (
             <FormItem>
               <FormLabel>Trabajador</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger data-testid="select-trabajador-curso">
                     <SelectValue placeholder="Selecciona un trabajador" />

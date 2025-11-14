@@ -51,7 +51,7 @@ export function EpiForm({ onSubmit, trabajadores, episFichasEv, initialData, isL
           render={({ field }) => (
             <FormItem>
               <FormLabel>Trabajador</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger data-testid="select-trabajador-epi">
                     <SelectValue placeholder="Selecciona un trabajador" />
@@ -76,7 +76,7 @@ export function EpiForm({ onSubmit, trabajadores, episFichasEv, initialData, isL
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tipo de Equipo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger data-testid="select-tipo-equipo">
                     <SelectValue placeholder="Selecciona un tipo de equipo" />

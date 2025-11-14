@@ -102,7 +102,7 @@ export function AccidentForm({ onSubmit, initialData, isLoading }: AccidentFormP
                     field.onChange(value);
                     setSelectedTrabajadorId(value);
                   }} 
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger data-testid="select-trabajador">
@@ -162,7 +162,7 @@ export function AccidentForm({ onSubmit, initialData, isLoading }: AccidentFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tipo de Accidente</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl>
                     <SelectTrigger data-testid="select-tipo-accidente">
                       <SelectValue placeholder="Selecciona tipo" />
@@ -244,7 +244,7 @@ export function AccidentForm({ onSubmit, initialData, isLoading }: AccidentFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Gravedad</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl>
                     <SelectTrigger data-testid="select-gravedad">
                       <SelectValue placeholder="Selecciona gravedad" />
@@ -306,7 +306,7 @@ export function AccidentForm({ onSubmit, initialData, isLoading }: AccidentFormP
           render={({ field }) => (
             <FormItem>
               <FormLabel>Persona que Hace el Parte de Accidente (Opcional)</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value ?? ""}>
                 <FormControl>
                   <SelectTrigger data-testid="select-trabajador-parte">
                     <SelectValue placeholder="Selecciona encargado" />
