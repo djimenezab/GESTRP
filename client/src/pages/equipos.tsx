@@ -397,17 +397,19 @@ export default function Equipos() {
                           {equipo.imagenUrl && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Badge 
-                                  variant="outline" 
-                                  className="cursor-pointer hover-elevate"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.open(equipo.imagenUrl!, '_blank');
-                                  }}
-                                  data-testid={`button-view-imagen-${equipo.id}`}
-                                >
-                                  <ImageIcon className="h-3 w-3" />
-                                </Badge>
+                                <span className="inline-block">
+                                  <Badge 
+                                    variant="outline" 
+                                    className="cursor-pointer hover-elevate"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(equipo.imagenUrl!, '_blank');
+                                    }}
+                                    data-testid={`button-view-imagen-${equipo.id}`}
+                                  >
+                                    <ImageIcon className="h-3 w-3" />
+                                  </Badge>
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>Imagen</p>
@@ -417,17 +419,19 @@ export default function Equipos() {
                           {equipo.fichaEvaluacionUrl && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Badge 
-                                  variant="outline" 
-                                  className="cursor-pointer hover-elevate"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.open(equipo.fichaEvaluacionUrl!, '_blank');
-                                  }}
-                                  data-testid={`button-view-ficha-${equipo.id}`}
-                                >
-                                  <FileText className="h-3 w-3" />
-                                </Badge>
+                                <span className="inline-block">
+                                  <Badge 
+                                    variant="outline" 
+                                    className="cursor-pointer hover-elevate"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(equipo.fichaEvaluacionUrl!, '_blank');
+                                    }}
+                                    data-testid={`button-view-ficha-${equipo.id}`}
+                                  >
+                                    <FileText className="h-3 w-3" />
+                                  </Badge>
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>Ficha Ev.</p>
@@ -437,17 +441,19 @@ export default function Equipos() {
                           {equipo.manualUrl && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Badge 
-                                  variant="outline" 
-                                  className="cursor-pointer hover-elevate"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.open(equipo.manualUrl!, '_blank');
-                                  }}
-                                  data-testid={`button-view-manual-${equipo.id}`}
-                                >
-                                  <File className="h-3 w-3" />
-                                </Badge>
+                                <span className="inline-block">
+                                  <Badge 
+                                    variant="outline" 
+                                    className="cursor-pointer hover-elevate"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(equipo.manualUrl!, '_blank');
+                                    }}
+                                    data-testid={`button-view-manual-${equipo.id}`}
+                                  >
+                                    <File className="h-3 w-3" />
+                                  </Badge>
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>Manual</p>
