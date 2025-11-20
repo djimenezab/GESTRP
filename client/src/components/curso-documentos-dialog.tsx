@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, Trash2, Download } from "lucide-react";
+import { Upload, FileText, Trash2, Download, Eye } from "lucide-react";
 import { ObjectUploader } from "./ObjectUploader";
 import type { CursoDocumento } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -104,6 +104,10 @@ export function CursoDocumentosDialog({
     }
   };
 
+  const handleView = (rutaArchivo: string) => {
+    window.open(rutaArchivo, '_blank');
+  };
+
   const handleDownload = (rutaArchivo: string, nombreArchivo: string) => {
     const link = document.createElement('a');
     link.href = rutaArchivo;
@@ -165,10 +169,13 @@ export function CursoDocumentosDialog({
                   className="flex items-center justify-between p-3 border rounded-md hover-elevate"
                   data-testid={`documento-${doc.id}`}
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div 
+                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                    onClick={() => handleView(doc.rutaArchivo)}
+                  >
                     <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" data-testid={`text-nombre-${doc.id}`}>
+                      <p className="text-sm font-medium truncate hover:text-primary transition-colors" data-testid={`text-nombre-${doc.id}`}>
                         {doc.nombreArchivo}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -177,6 +184,15 @@ export function CursoDocumentosDialog({
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleView(doc.rutaArchivo)}
+                      title="Ver documento"
+                      data-testid={`button-view-doc-${doc.id}`}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
