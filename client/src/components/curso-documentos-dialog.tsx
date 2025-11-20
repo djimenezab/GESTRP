@@ -131,7 +131,7 @@ export function CursoDocumentosDialog({
         <DialogHeader>
           <DialogTitle>Documentación del Curso</DialogTitle>
           <DialogDescription>
-            {nombreCurso}
+            Listado documentos
           </DialogDescription>
         </DialogHeader>
 
