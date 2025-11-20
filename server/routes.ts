@@ -8,6 +8,7 @@ import {
   insertCursoSchema,
   insertAccidenteSchema,
   insertEpiDocumentoSchema,
+  insertCursoDocumentoSchema,
   insertEpiFichaEvSchema,
   insertZonaTrabajoSchema,
   insertUsuarioSchema,
@@ -600,6 +601,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting EPI document:", error);
+      res.status(500).json({ error: "Error al eliminar documento" });
+    }
+  });
+
+  // Curso Documentos routes
+  // Crea un registro de documento de curso después de subirlo al object storage
+  app.post("/api/curso-documentos", async (req, res) => {
+    try {
+      const data = insertCursoDocumentoSchema.parse(req.body);
+      const objectStorageService = new ObjectStorageService();
+      
+      // Normalizar la ruta del archivo si viene como URL completa
+      const rutaNormalizada = objectStorageService.normalizeObjectEntityPath(data.rutaArchivo);
+      
+      const documento = await storage.createCursoDocumento({
+        ...data,
+        rutaArchivo: rutaNormalizada
+      });
+      
+      res.status(201).json(documento);
+    } catch (error) {
+      console.error("Error creating curso document:", error);
+      res.status(400).json({ error: "Datos inválidos" });
+    }
+  });
+
+  // Obtiene todos los documentos de un curso
+  app.get("/api/cursos/:cursoId/documentos", async (req, res) => {
+    try {
+      const documentos = await storage.getCursoDocumentos(req.params.cursoId);
+      res.json(documentos);
+    } catch (error) {
+      console.error("Error getting curso documents:", error);
+      res.status(500).json({ error: "Error al obtener documentos" });
+    }
+  });
+
+  // Elimina un documento de curso
+  app.delete("/api/curso-documentos/:id", async (req, res) => {
+    try {
+      await storage.deleteCursoDocumento(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting curso document:", error);
       res.status(500).json({ error: "Error al eliminar documento" });
     }
   });

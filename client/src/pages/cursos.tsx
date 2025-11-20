@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CourseForm } from "@/components/course-form";
 import { ComisionServicioViewer } from "@/components/comision-servicio-viewer";
+import { CursoDocumentosDialog } from "@/components/curso-documentos-dialog";
 import { type InsertCurso, type Curso, type Trabajador } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -39,9 +40,11 @@ export default function Cursos() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isComisionDialogOpen, setIsComisionDialogOpen] = useState(false);
+  const [isDocumentosDialogOpen, setIsDocumentosDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingCurso, setEditingCurso] = useState<Curso | null>(null);
   const [viewingComisionCurso, setViewingComisionCurso] = useState<Curso | null>(null);
+  const [viewingDocumentosCurso, setViewingDocumentosCurso] = useState<Curso | null>(null);
   const { toast } = useToast();
 
   const { data: cursos = [], isLoading: cursosLoading } = useQuery<Curso[]>({
@@ -144,6 +147,12 @@ export default function Cursos() {
     setIsComisionDialogOpen(true);
   };
 
+  const handleOpenDocumentosDialog = (curso: Curso, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setViewingDocumentosCurso(curso);
+    setIsDocumentosDialogOpen(true);
+  };
+
   // Combinar cursos con datos de trabajadores
   const cursosWithWorkers = cursos.map(curso => {
     const trabajador = trabajadores.find(t => t.id === curso.trabajadorId);
@@ -217,6 +226,7 @@ export default function Cursos() {
               <TableHead>Duración (h)</TableHead>
               <TableHead>Observaciones</TableHead>
               <TableHead className="w-[50px]">Comisión</TableHead>
+              <TableHead className="w-[50px]">Documentación</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -287,6 +297,17 @@ export default function Cursos() {
                     </DropdownMenu>
                   )}
                 </TableCell>
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={(e) => handleOpenDocumentosDialog(curso, e)}
+                    data-testid={`button-view-documentos-${curso.id}`}
+                    title="Ver Documentación"
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -331,6 +352,15 @@ export default function Cursos() {
           )}
         </DialogContent>
       </Dialog>
+
+      {viewingDocumentosCurso && (
+        <CursoDocumentosDialog 
+          open={isDocumentosDialogOpen}
+          onOpenChange={setIsDocumentosDialogOpen}
+          cursoId={viewingDocumentosCurso.id}
+          nombreCurso={viewingDocumentosCurso.nombreCurso}
+        />
+      )}
     </div>
   );
 }

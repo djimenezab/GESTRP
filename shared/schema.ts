@@ -91,6 +91,17 @@ export const cursos = pgTable("cursos", {
   firmaUrl: text("firma_url"),
 });
 
+// Documentos de Cursos (almacenados en Replit App Storage)
+export const cursoDocumentos = pgTable("curso_documentos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cursoId: varchar("curso_id").notNull().references(() => cursos.id, { onDelete: 'cascade' }),
+  nombreArchivo: text("nombre_archivo").notNull(),
+  rutaArchivo: text("ruta_archivo").notNull(), // Path en object storage (/objects/...)
+  tipoArchivo: text("tipo_archivo"), // MIME type
+  tamanoBytes: integer("tamano_bytes"),
+  fechaSubida: timestamp("fecha_subida").defaultNow().notNull(),
+});
+
 // Accidentes laborales
 export const accidentes = pgTable("accidentes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -190,6 +201,8 @@ export const insertEpiSchema = createInsertSchema(epis).omit({ id: true, numeroC
 });
 
 export const insertEpiDocumentoSchema = createInsertSchema(epiDocumentos).omit({ id: true, fechaSubida: true });
+
+export const insertCursoDocumentoSchema = createInsertSchema(cursoDocumentos).omit({ id: true, fechaSubida: true });
 
 export const insertCursoSchema = createInsertSchema(cursos).omit({ id: true }).extend({
   nombreCurso: z.string().min(1, "Nombre del curso es requerido"),
@@ -317,6 +330,9 @@ export type EpiDocumento = typeof epiDocumentos.$inferSelect;
 
 export type InsertCurso = z.infer<typeof insertCursoSchema>;
 export type Curso = typeof cursos.$inferSelect;
+
+export type InsertCursoDocumento = z.infer<typeof insertCursoDocumentoSchema>;
+export type CursoDocumento = typeof cursoDocumentos.$inferSelect;
 
 export type InsertAccidente = z.infer<typeof insertAccidenteSchema>;
 export type Accidente = typeof accidentes.$inferSelect;
