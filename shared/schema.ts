@@ -117,6 +117,17 @@ export const accidentes = pgTable("accidentes", {
   trabajadorParteId: varchar("trabajador_parte_id").references(() => trabajadores.id),
 });
 
+// Documentos de Accidentes (almacenados en Replit App Storage)
+export const accidenteDocumentos = pgTable("accidente_documentos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  accidenteId: varchar("accidente_id").notNull().references(() => accidentes.id, { onDelete: 'cascade' }),
+  nombreArchivo: text("nombre_archivo").notNull(),
+  rutaArchivo: text("ruta_archivo").notNull(), // Path en object storage (/objects/...)
+  tipoArchivo: text("tipo_archivo"), // MIME type
+  tamanoBytes: integer("tamano_bytes"),
+  fechaSubida: timestamp("fecha_subida").defaultNow().notNull(),
+});
+
 // Catálogo de EPIs (Fichas EV) - para selección en otros módulos
 export const episFichasEv = pgTable("epis_fichas_ev", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -203,6 +214,8 @@ export const insertEpiSchema = createInsertSchema(epis).omit({ id: true, numeroC
 export const insertEpiDocumentoSchema = createInsertSchema(epiDocumentos).omit({ id: true, fechaSubida: true });
 
 export const insertCursoDocumentoSchema = createInsertSchema(cursoDocumentos).omit({ id: true, fechaSubida: true });
+
+export const insertAccidenteDocumentoSchema = createInsertSchema(accidenteDocumentos).omit({ id: true, fechaSubida: true });
 
 export const insertCursoSchema = createInsertSchema(cursos).omit({ id: true }).extend({
   nombreCurso: z.string().min(1, "Nombre del curso es requerido"),
@@ -336,6 +349,9 @@ export type CursoDocumento = typeof cursoDocumentos.$inferSelect;
 
 export type InsertAccidente = z.infer<typeof insertAccidenteSchema>;
 export type Accidente = typeof accidentes.$inferSelect;
+
+export type InsertAccidenteDocumento = z.infer<typeof insertAccidenteDocumentoSchema>;
+export type AccidenteDocumento = typeof accidenteDocumentos.$inferSelect;
 
 export type InsertEpiFichaEv = z.infer<typeof insertEpiFichaEvSchema>;
 export type EpiFichaEv = typeof episFichasEv.$inferSelect;
