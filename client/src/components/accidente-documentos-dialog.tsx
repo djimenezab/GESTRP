@@ -10,7 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, Download, Trash2 } from "lucide-react";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { AccidenteDocumento } from "@shared/schema";
@@ -26,6 +27,8 @@ export function AccidenteDocumentosDialog({
   open,
   onOpenChange,
 }: AccidenteDocumentosDialogProps) {
+  const { toast } = useToast();
+  const { user } = useAuth();
   const { data: documentos = [], isLoading } = useQuery<AccidenteDocumento[]>({
     queryKey: ["/api/accidente-documentos", accidenteId],
     queryFn: () => apiRequest("GET", `/api/accidente-documentos/${accidenteId}`),
@@ -116,6 +119,16 @@ export function AccidenteDocumentosDialog({
     return `${mb.toFixed(2)} MB`;
   };
 
+  const handleView = (rutaArchivo: string) => {
+    window.open(rutaArchivo, '_blank');
+  };
+
+  const handleDelete = (documentoId: string, nombreArchivo: string) => {
+    if (confirm(`¿Estás seguro de que deseas eliminar "${nombreArchivo}"?`)) {
+      deleteDocumentoMutation.mutate(documentoId);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -160,7 +173,10 @@ export function AccidenteDocumentosDialog({
                   className="flex items-center justify-between p-3 border rounded-md hover-elevate"
                   data-testid={`documento-${doc.id}`}
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div 
+                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                    onClick={() => handleView(doc.rutaArchivo)}
+                  >
                     <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate" data-testid={`text-nombre-${doc.id}`}>
@@ -183,15 +199,17 @@ export function AccidenteDocumentosDialog({
                         <Download className="h-4 w-4" />
                       </a>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteDocumentoMutation.mutate(doc.id)}
-                      disabled={deleteDocumentoMutation.isPending}
-                      data-testid={`button-delete-${doc.id}`}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {user?.tipoAcceso !== "Usuario" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(doc.id, doc.nombreArchivo)}
+                        disabled={deleteDocumentoMutation.isPending}
+                        data-testid={`button-delete-${doc.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
