@@ -25,6 +25,7 @@ interface DashboardData {
   firmasPendientes: number;
   episPendientes: Array<{ id: string; tipoEquipo: string; fechaEntrega: string }>;
   cursosPendientes: Array<{ id: string; nombreCurso: string; fechaRealizacion: string }>;
+  episCaducados: Array<{ id: string; tipoEquipo: string; fechaCaducidad: string }>;
   episRecientes: Epi[];
   cursosRecientes: Curso[];
   accidentesRecientes: Accidente[];
@@ -60,6 +61,7 @@ function DashboardUsuario() {
   }
 
   const hasPendingSignatures = dashboardData.firmasPendientes > 0;
+  const hasExpiredEpis = dashboardData.episCaducados.length > 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -94,7 +96,7 @@ function DashboardUsuario() {
             )}
             {dashboardData.cursosPendientes.length > 0 && (
               <div>
-                <p className="font-medium">Cursos sin firmar ({dashboardData.cursosPendientes.length}):</p>
+                <p className="font-medium">Comisiones de servicio sin firmar ({dashboardData.cursosPendientes.length}):</p>
                 <ul className="list-disc list-inside ml-4 space-y-1">
                   {dashboardData.cursosPendientes.slice(0, 3).map((curso) => (
                     <li key={curso.id}>
@@ -107,6 +109,29 @@ function DashboardUsuario() {
                 </ul>
               </div>
             )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Alerta de EPIs caducados */}
+      {hasExpiredEpis && (
+        <Alert variant="default" className="border-red-500 bg-red-50 dark:bg-red-950/20" data-testid="alert-epis-caducados">
+          <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-500" />
+          <AlertTitle className="text-red-900 dark:text-red-100 font-semibold">
+            ¡Atención! Tienes {dashboardData.episCaducados.length} EPI{dashboardData.episCaducados.length === 1 ? "" : "s"} caducado{dashboardData.episCaducados.length === 1 ? "" : "s"}
+          </AlertTitle>
+          <AlertDescription className="text-red-800 dark:text-red-200 mt-2">
+            <p className="mb-2">Los siguientes EPIs han superado su fecha de caducidad y deben ser renovados:</p>
+            <ul className="list-disc list-inside ml-4 space-y-1">
+              {dashboardData.episCaducados.slice(0, 5).map((epi) => (
+                <li key={epi.id}>
+                  <strong>{epi.tipoEquipo}</strong> - Caducado el {format(new Date(epi.fechaCaducidad), "dd/MM/yyyy", { locale: es })}
+                </li>
+              ))}
+              {dashboardData.episCaducados.length > 5 && (
+                <li className="text-sm">... y {dashboardData.episCaducados.length - 5} más</li>
+              )}
+            </ul>
           </AlertDescription>
         </Alert>
       )}
@@ -376,7 +401,8 @@ function DashboardAdministrador() {
 
   // Calcular firmas pendientes (EPIs y cursos sin firma)
   const episSinFirma = epis.filter((epi) => !epi.firmaUrl || epi.firmaUrl.trim() === "");
-  const cursosSinFirma = cursos.filter((curso) => !curso.firmaUrl && !curso.comisionServicioFirmadoUrl);
+  // Solo contar cursos que tienen comisión de servicio subida pero no firmada
+  const cursosSinFirma = cursos.filter((curso) => curso.comisionServicioUrl && !curso.comisionServicioFirmadoUrl);
   
   // Agrupar por trabajador
   const trabajadoresConFirmasPendientes = new Map<string, {
@@ -419,6 +445,38 @@ function DashboardAdministrador() {
 
   const totalFirmasPendientes = episSinFirma.length + cursosSinFirma.length;
   const listaTrabajadoresConFirmasPendientes = Array.from(trabajadoresConFirmasPendientes.values());
+
+  // Calcular EPIs caducados
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const episCaducados = epis.filter((epi) => {
+    if (!epi.fechaCaducidad) return false;
+    const fechaCad = new Date(epi.fechaCaducidad);
+    return fechaCad < hoy;
+  });
+
+  // Agrupar EPIs caducados por trabajador
+  const trabajadoresConEpisCaducados = new Map<string, {
+    trabajador: Trabajador;
+    episCaducados: Array<{ tipoEquipo: string; fechaCaducidad: string }>;
+  }>();
+
+  episCaducados.forEach((epi) => {
+    const trabajador = trabajadores.find(t => t.id === epi.trabajadorId);
+    if (trabajador) {
+      const existing = trabajadoresConEpisCaducados.get(trabajador.id);
+      if (existing) {
+        existing.episCaducados.push({ tipoEquipo: epi.tipoEquipo, fechaCaducidad: epi.fechaCaducidad! });
+      } else {
+        trabajadoresConEpisCaducados.set(trabajador.id, {
+          trabajador,
+          episCaducados: [{ tipoEquipo: epi.tipoEquipo, fechaCaducidad: epi.fechaCaducidad! }],
+        });
+      }
+    }
+  });
+
+  const listaTrabajadoresConEpisCaducados = Array.from(trabajadoresConEpisCaducados.values());
 
   return (
     <div className="p-6 space-y-6">
@@ -474,7 +532,7 @@ function DashboardAdministrador() {
           <AlertTitle className="text-amber-900 dark:text-amber-100 font-semibold">Atención: Firmas Pendientes</AlertTitle>
           <AlertDescription className="text-amber-800 dark:text-amber-200 space-y-3">
             <p>
-              Hay <strong>{totalFirmasPendientes}</strong> {totalFirmasPendientes === 1 ? "firma pendiente" : "firmas pendientes"} ({episSinFirma.length} EPIs, {cursosSinFirma.length} cursos). Recuerda solicitar las firmas correspondientes.
+              Hay <strong>{totalFirmasPendientes}</strong> {totalFirmasPendientes === 1 ? "firma pendiente" : "firmas pendientes"} ({episSinFirma.length} EPIs, {cursosSinFirma.length} comisiones de servicio). Recuerda solicitar las firmas correspondientes.
             </p>
             
             {listaTrabajadoresConFirmasPendientes.length > 0 && (
@@ -485,12 +543,48 @@ function DashboardAdministrador() {
                     <li key={item.trabajador.id} data-testid={`trabajador-firma-pendiente-${item.trabajador.id}`}>
                       <strong>{item.trabajador.nombreCompleto}</strong>
                       {item.episPendientes > 0 && item.cursosPendientes > 0 ? (
-                        <span> - {item.episPendientes} EPI{item.episPendientes > 1 ? 's' : ''}, {item.cursosPendientes} curso{item.cursosPendientes > 1 ? 's' : ''}</span>
+                        <span> - {item.episPendientes} EPI{item.episPendientes > 1 ? 's' : ''}, {item.cursosPendientes} comisión{item.cursosPendientes > 1 ? 'es' : ''}</span>
                       ) : item.episPendientes > 0 ? (
                         <span> - {item.episPendientes} EPI{item.episPendientes > 1 ? 's' : ''}</span>
                       ) : (
-                        <span> - {item.cursosPendientes} curso{item.cursosPendientes > 1 ? 's' : ''}</span>
+                        <span> - {item.cursosPendientes} comisión{item.cursosPendientes > 1 ? 'es de servicio' : ' de servicio'}</span>
                       )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Alerta de EPIs caducados */}
+      {episCaducados.length > 0 && (
+        <Alert variant="default" className="border-red-500 bg-red-50 dark:bg-red-950/20" data-testid="alert-epis-caducados-admin">
+          <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-500" />
+          <AlertTitle className="text-red-900 dark:text-red-100 font-semibold">Atención: EPIs Caducados</AlertTitle>
+          <AlertDescription className="text-red-800 dark:text-red-200 space-y-3">
+            <p>
+              Hay <strong>{episCaducados.length}</strong> EPI{episCaducados.length === 1 ? "" : "s"} caducado{episCaducados.length === 1 ? "" : "s"} que necesitan renovación.
+            </p>
+            
+            {listaTrabajadoresConEpisCaducados.length > 0 && (
+              <div>
+                <p className="font-medium mb-2">Trabajadores con EPIs caducados:</p>
+                <ul className="list-disc list-inside ml-4 space-y-1">
+                  {listaTrabajadoresConEpisCaducados.map((item) => (
+                    <li key={item.trabajador.id} data-testid={`trabajador-epi-caducado-${item.trabajador.id}`}>
+                      <strong>{item.trabajador.nombreCompleto}</strong> - {item.episCaducados.length} EPI{item.episCaducados.length > 1 ? 's' : ''}
+                      <ul className="ml-6 mt-1 space-y-0.5">
+                        {item.episCaducados.slice(0, 3).map((epi, idx) => (
+                          <li key={idx} className="text-sm">
+                            {epi.tipoEquipo} (caducó {format(new Date(epi.fechaCaducidad), "dd/MM/yyyy", { locale: es })})
+                          </li>
+                        ))}
+                        {item.episCaducados.length > 3 && (
+                          <li className="text-sm">... y {item.episCaducados.length - 3} más</li>
+                        )}
+                      </ul>
                     </li>
                   ))}
                 </ul>

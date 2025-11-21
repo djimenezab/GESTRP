@@ -175,6 +175,7 @@ export interface IStorage {
     firmasPendientes: number;
     episPendientes: Array<{ id: string; tipoEquipo: string; fechaEntrega: string }>;
     cursosPendientes: Array<{ id: string; nombreCurso: string; fechaRealizacion: string }>;
+    episCaducados: Array<{ id: string; tipoEquipo: string; fechaCaducidad: string }>;
     episRecientes: Epi[];
     cursosRecientes: Curso[];
     accidentesRecientes: Accidente[];
@@ -675,6 +676,7 @@ export class DbStorage implements IStorage {
     firmasPendientes: number;
     episPendientes: Array<{ id: string; tipoEquipo: string; fechaEntrega: string }>;
     cursosPendientes: Array<{ id: string; nombreCurso: string; fechaRealizacion: string }>;
+    episCaducados: Array<{ id: string; tipoEquipo: string; fechaCaducidad: string }>;
     episRecientes: Epi[];
     cursosRecientes: Curso[];
     accidentesRecientes: Accidente[];
@@ -686,7 +688,17 @@ export class DbStorage implements IStorage {
     ]);
 
     const episSinFirma = episData.filter(epi => !epi.firmaUrl);
-    const cursosSinFirma = cursosData.filter(curso => !curso.firmaUrl && !curso.comisionServicioFirmadoUrl);
+    // Solo contar cursos que tienen comisión de servicio subida pero no firmada
+    const cursosSinFirma = cursosData.filter(curso => curso.comisionServicioUrl && !curso.comisionServicioFirmadoUrl);
+    
+    // Calcular EPIs caducados (fecha de caducidad pasada)
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0); // Normalizar a medianoche para comparación precisa
+    const episCaducadosData = episData.filter(epi => {
+      if (!epi.fechaCaducidad) return false;
+      const fechaCad = new Date(epi.fechaCaducidad);
+      return fechaCad < hoy;
+    });
 
     const episPendientes = episSinFirma.map(epi => ({
       id: epi.id,
@@ -699,6 +711,12 @@ export class DbStorage implements IStorage {
       nombreCurso: curso.nombreCurso,
       fechaRealizacion: curso.fechaRealizacion,
     }));
+    
+    const episCaducados = episCaducadosData.map(epi => ({
+      id: epi.id,
+      tipoEquipo: epi.tipoEquipo,
+      fechaCaducidad: epi.fechaCaducidad!,
+    }));
 
     return {
       episEntregados: episData.length,
@@ -707,6 +725,7 @@ export class DbStorage implements IStorage {
       firmasPendientes: episSinFirma.length + cursosSinFirma.length,
       episPendientes,
       cursosPendientes,
+      episCaducados,
       episRecientes: episData.slice(0, 5),
       cursosRecientes: cursosData.slice(0, 5),
       accidentesRecientes: accidentesData.slice(0, 5),
