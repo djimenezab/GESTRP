@@ -537,6 +537,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Accidente Documentos routes
   app.get("/api/accidente-documentos/:accidenteId", async (req, res) => {
     try {
+      // Validar acceso al accidente
+      const accidente = await storage.getAccidente(req.params.accidenteId);
+      if (!accidente) {
+        return res.status(404).json({ error: "Accidente no encontrado" });
+      }
+      
+      // Validar acceso para Usuario: solo puede ver documentos de sus propios accidentes
+      if (req.session.tipoAcceso === "Usuario" && req.session.trabajadorId !== accidente.trabajadorId) {
+        return res.status(403).json({ error: "No tiene permisos para ver estos documentos" });
+      }
+      
+      // Validar acceso para Administrador: solo puede ver documentos de accidentes de trabajadores de sus zonas
+      if (req.session.tipoAcceso === "Administrador" && req.session.zonasIds) {
+        const trabajador = await storage.getTrabajador(accidente.trabajadorId);
+        if (!trabajador || !trabajador.zonaId || !req.session.zonasIds.includes(trabajador.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para ver estos documentos" });
+        }
+      }
+      
       const documentos = await storage.getAccidenteDocumentos(req.params.accidenteId);
       res.json(documentos);
     } catch (error) {
@@ -548,6 +567,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/accidente-documentos", async (req, res) => {
     try {
       const data = insertAccidenteDocumentoSchema.parse(req.body);
+      
+      // Validar acceso al accidente
+      const accidente = await storage.getAccidente(data.accidenteId);
+      if (!accidente) {
+        return res.status(404).json({ error: "Accidente no encontrado" });
+      }
+      
+      // Bloquear creación para usuarios tipo Usuario
+      if (req.session.tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No tiene permisos para subir documentos" });
+      }
+      
+      // Validar acceso para Administrador: solo puede añadir documentos a accidentes de trabajadores de sus zonas
+      if (req.session.tipoAcceso === "Administrador" && req.session.zonasIds) {
+        const trabajador = await storage.getTrabajador(accidente.trabajadorId);
+        if (!trabajador || !trabajador.zonaId || !req.session.zonasIds.includes(trabajador.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para añadir documentos a este accidente" });
+        }
+      }
+      
       const objectStorageService = new ObjectStorageService();
       
       // Normalizar la ruta del archivo si viene como URL completa
@@ -570,6 +609,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/accidente-documentos/:id", async (req, res) => {
     try {
+      // Bloquear eliminación para usuarios tipo Usuario
+      if (req.session.tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No tiene permisos para eliminar documentos" });
+      }
+      
       await storage.deleteAccidenteDocumento(req.params.id);
       res.status(204).send();
     } catch (error) {

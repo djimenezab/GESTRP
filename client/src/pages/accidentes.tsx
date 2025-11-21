@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Plus, Search, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, MoreVertical, Pencil, Trash2, FileText } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -25,6 +25,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { AccidentForm } from "@/components/accident-form";
+import { AccidenteDocumentosDialog } from "@/components/accidente-documentos-dialog";
 import type { Accidente, Trabajador, InsertAccidente } from "@shared/schema";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -45,6 +46,8 @@ export default function Accidentes() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingAccidente, setEditingAccidente] = useState<Accidente | null>(null);
+  const [documentosDialogOpen, setDocumentosDialogOpen] = useState(false);
+  const [selectedAccidenteId, setSelectedAccidenteId] = useState<string>("");
   const { toast } = useToast();
 
   // Fetch accidents
@@ -252,6 +255,17 @@ export default function Accidentes() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAccidenteId(accidente.id);
+                            setDocumentosDialogOpen(true);
+                          }}
+                          data-testid={`button-documentos-${accidente.id}`}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Documentación
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
                           onClick={(e) => handleOpenEditDialog(accidente, e)}
                           data-testid={`button-edit-${accidente.id}`}
                         >
@@ -297,6 +311,15 @@ export default function Accidentes() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Documentos Dialog */}
+      {selectedAccidenteId && (
+        <AccidenteDocumentosDialog
+          accidenteId={selectedAccidenteId}
+          open={documentosDialogOpen}
+          onOpenChange={setDocumentosDialogOpen}
+        />
+      )}
     </div>
   );
 }
