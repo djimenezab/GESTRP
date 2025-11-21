@@ -9,6 +9,7 @@ import {
   insertAccidenteSchema,
   insertEpiDocumentoSchema,
   insertCursoDocumentoSchema,
+  insertAccidenteDocumentoSchema,
   insertEpiFichaEvSchema,
   insertZonaTrabajoSchema,
   insertUsuarioSchema,
@@ -530,6 +531,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Error al eliminar accidente" });
+    }
+  });
+
+  // Accidente Documentos routes
+  app.get("/api/accidente-documentos/:accidenteId", async (req, res) => {
+    try {
+      const documentos = await storage.getAccidenteDocumentos(req.params.accidenteId);
+      res.json(documentos);
+    } catch (error) {
+      console.error("Error getting accidente documents:", error);
+      res.status(500).json({ error: "Error al obtener documentos" });
+    }
+  });
+
+  app.post("/api/accidente-documentos", async (req, res) => {
+    try {
+      const data = insertAccidenteDocumentoSchema.parse(req.body);
+      const objectStorageService = new ObjectStorageService();
+      
+      // Normalizar la ruta del archivo si viene como URL completa
+      const rutaNormalizada = objectStorageService.normalizeObjectEntityPath(data.rutaArchivo);
+      
+      const documento = await storage.createAccidenteDocumento({
+        ...data,
+        rutaArchivo: rutaNormalizada
+      });
+      
+      res.status(201).json(documento);
+    } catch (error) {
+      console.error("Error creating accidente document:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: "Error al crear documento" });
+    }
+  });
+
+  app.delete("/api/accidente-documentos/:id", async (req, res) => {
+    try {
+      await storage.deleteAccidenteDocumento(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting accidente document:", error);
+      res.status(500).json({ error: "Error al eliminar documento" });
     }
   });
 

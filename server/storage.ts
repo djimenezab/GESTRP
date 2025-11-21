@@ -6,6 +6,7 @@ import {
   accidentes,
   epiDocumentos,
   cursoDocumentos,
+  accidenteDocumentos,
   episFichasEv,
   zonasTrabajo,
   usuarios,
@@ -28,6 +29,8 @@ import {
   type InsertEpiDocumento,
   type CursoDocumento,
   type InsertCursoDocumento,
+  type AccidenteDocumento,
+  type InsertAccidenteDocumento,
   type EpiFichaEv,
   type InsertEpiFichaEv,
   type ZonaTrabajo,
@@ -98,6 +101,11 @@ export interface IStorage {
   getCursoDocumentos(cursoId: string): Promise<CursoDocumento[]>;
   createCursoDocumento(data: InsertCursoDocumento): Promise<CursoDocumento>;
   deleteCursoDocumento(id: string): Promise<void>;
+
+  // Accidente Documentos
+  getAccidenteDocumentos(accidenteId: string): Promise<AccidenteDocumento[]>;
+  createAccidenteDocumento(data: InsertAccidenteDocumento): Promise<AccidenteDocumento>;
+  deleteAccidenteDocumento(id: string): Promise<void>;
 
   // EPIs Fichas EV (Catálogo)
   getEpisFichasEv(): Promise<EpiFichaEv[]>;
@@ -408,6 +416,20 @@ export class DbStorage implements IStorage {
 
   async deleteCursoDocumento(id: string): Promise<void> {
     await db.delete(cursoDocumentos).where(eq(cursoDocumentos.id, id));
+  }
+
+  // Accidente Documentos
+  async getAccidenteDocumentos(accidenteId: string): Promise<AccidenteDocumento[]> {
+    return await db.select().from(accidenteDocumentos).where(eq(accidenteDocumentos.accidenteId, accidenteId)).orderBy(desc(accidenteDocumentos.fechaSubida));
+  }
+
+  async createAccidenteDocumento(data: InsertAccidenteDocumento): Promise<AccidenteDocumento> {
+    const result = await db.insert(accidenteDocumentos).values(data).returning();
+    return result[0];
+  }
+
+  async deleteAccidenteDocumento(id: string): Promise<void> {
+    await db.delete(accidenteDocumentos).where(eq(accidenteDocumentos.id, id));
   }
 
   // EPIs Fichas EV (Catálogo)
