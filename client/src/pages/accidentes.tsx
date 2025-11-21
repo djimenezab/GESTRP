@@ -3,16 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Plus, Search, MoreVertical, Pencil, Trash2, FileText } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, FileText } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -45,7 +39,9 @@ export default function Accidentes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editingAccidente, setEditingAccidente] = useState<Accidente | null>(null);
+  const [viewingAccidente, setViewingAccidente] = useState<Accidente | null>(null);
   const [documentosDialogOpen, setDocumentosDialogOpen] = useState(false);
   const [selectedAccidenteId, setSelectedAccidenteId] = useState<string>("");
   const { toast } = useToast();
@@ -145,6 +141,13 @@ export default function Accidentes() {
     }
   };
 
+  const handleRowClick = (accidente: Accidente) => {
+    if (user?.tipoAcceso === "Usuario") {
+      setViewingAccidente(accidente);
+      setViewDialogOpen(true);
+    }
+  };
+
   // Create a map of trabajador IDs to names
   const trabajadorMap = new Map(trabajadores.map(t => [t.id, t.nombreCompleto]));
 
@@ -182,6 +185,9 @@ export default function Accidentes() {
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Registrar Nuevo Accidente</DialogTitle>
+                <DialogDescription>
+                  Complete los datos del accidente laboral
+                </DialogDescription>
               </DialogHeader>
               <AccidentForm
                 onSubmit={(data) => createAccidenteMutation.mutate(data)}
@@ -225,7 +231,12 @@ export default function Accidentes() {
             </TableHeader>
             <TableBody>
               {sortedAccidentes.map((accidente) => (
-                <TableRow key={accidente.id} data-testid={`row-accidente-${accidente.id}`}>
+                <TableRow 
+                  key={accidente.id} 
+                  data-testid={`row-accidente-${accidente.id}`}
+                  onClick={() => handleRowClick(accidente)}
+                  className={user?.tipoAcceso === "Usuario" ? "cursor-pointer" : ""}
+                >
                   <TableCell>{format(new Date(accidente.fecha), "dd/MM/yyyy", { locale: es })}</TableCell>
                   <TableCell>{accidente.horaAccidente}</TableCell>
                   <TableCell>{accidente.lugarAccidente}</TableCell>
@@ -242,46 +253,41 @@ export default function Accidentes() {
                       {trabajadorMap.get(accidente.trabajadorId) || "Desconocido"}
                     </TableCell>
                   )}
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          data-testid={`button-options-${accidente.id}`}
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedAccidenteId(accidente.id);
-                            setDocumentosDialogOpen(true);
-                          }}
-                          data-testid={`button-documentos-${accidente.id}`}
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Documentación
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={(e) => handleOpenEditDialog(accidente, e)}
-                          data-testid={`button-edit-${accidente.id}`}
-                        >
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={(e) => handleDeleteAccidente(accidente.id, e)}
-                          className="text-destructive"
-                          data-testid={`button-delete-${accidente.id}`}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAccidenteId(accidente.id);
+                          setDocumentosDialogOpen(true);
+                        }}
+                        data-testid={`button-documentos-${accidente.id}`}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                      {user?.tipoAcceso !== "Usuario" && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={(e) => handleOpenEditDialog(accidente, e)}
+                            data-testid={`button-edit-${accidente.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={(e) => handleDeleteAccidente(accidente.id, e)}
+                            data-testid={`button-delete-${accidente.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -295,6 +301,9 @@ export default function Accidentes() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Accidente</DialogTitle>
+            <DialogDescription>
+              Modifique los datos del accidente laboral
+            </DialogDescription>
           </DialogHeader>
           {editingAccidente && (
             <AccidentForm
@@ -308,6 +317,77 @@ export default function Accidentes() {
               }}
               isLoading={updateMutation.isPending}
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog (solo lectura para Usuario) */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Detalles del Accidente</DialogTitle>
+            <DialogDescription>
+              Información completa del accidente laboral
+            </DialogDescription>
+          </DialogHeader>
+          {viewingAccidente && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Fecha</label>
+                  <p className="text-base">{format(new Date(viewingAccidente.fecha), "dd/MM/yyyy", { locale: es })}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Hora</label>
+                  <p className="text-base">{viewingAccidente.horaAccidente}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Lugar del accidente</label>
+                <p className="text-base">{viewingAccidente.lugarAccidente}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Tipo de accidente</label>
+                  <p className="text-base">{tipoAccidenteLabels[viewingAccidente.tipoAccidente as keyof typeof tipoAccidenteLabels]}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Gravedad</label>
+                  <div className="mt-1">
+                    <Badge className={gravedadColors[viewingAccidente.gravedad as keyof typeof gravedadColors]}>
+                      {viewingAccidente.gravedad}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Descripción</label>
+                <p className="text-base whitespace-pre-wrap">{viewingAccidente.descripcion}</p>
+              </div>
+
+              {viewingAccidente.observaciones && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Observaciones</label>
+                  <p className="text-base whitespace-pre-wrap">{viewingAccidente.observaciones}</p>
+                </div>
+              )}
+
+              {viewingAccidente.trabajadorParteId && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Trabajador que dio parte</label>
+                  <p className="text-base">{trabajadorMap.get(viewingAccidente.trabajadorParteId) || "Desconocido"}</p>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4">
+                <Button onClick={() => setViewDialogOpen(false)}>
+                  Cerrar
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
