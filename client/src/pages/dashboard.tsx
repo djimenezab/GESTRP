@@ -269,7 +269,7 @@ function DashboardUsuario() {
                         {format(new Date(curso.fechaRealizacion), "dd/MM/yyyy", { locale: es })}
                       </p>
                     </div>
-                    {!curso.firmaUrl && !curso.comisionServicioFirmadoUrl && (
+                    {curso.comisionServicioUrl && !curso.comisionServicioFirmadoUrl && (
                       <span className="text-xs text-amber-600 dark:text-amber-500 font-medium whitespace-nowrap">
                         Sin firmar
                       </span>
