@@ -45,6 +45,7 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
       email: initialData?.email || "",
       zonaId: initialData?.zonaId || "",
       fechaNacimiento: initialData?.fechaNacimiento || "",
+      fechaIncorporacion: initialData?.fechaIncorporacion || "",
       fichaEvaluacionRiesgosUrl: initialData?.fichaEvaluacionRiesgosUrl || "",
     },
   });
@@ -157,25 +158,25 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="dni"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>DNI</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ej: 12345678A"
-                    {...field}
-                    data-testid="input-dni"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="dni"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>DNI</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ej: 12345678A"
+                  {...field}
+                  data-testid="input-dni"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="fechaNacimiento"
@@ -187,6 +188,24 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
                     type="date"
                     {...field}
                     data-testid="input-fecha-nacimiento"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="fechaIncorporacion"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fecha de Incorporación</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    {...field}
+                    data-testid="input-fecha-incorporacion"
                   />
                 </FormControl>
                 <FormMessage />
