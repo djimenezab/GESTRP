@@ -461,12 +461,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Resetear los campos de comisión de servicio
-      await storage.updateCurso(req.params.id, {
-        comisionServicioUrl: undefined,
-        comisionServicioFirmadoUrl: undefined,
-        firmaUrl: undefined,
-      });
+      // Resetear los campos de comisión de servicio usando SQL directo
+      await storage.resetComisionServicio(req.params.id);
 
       res.json({ success: true, message: "Comisión de Servicio eliminada correctamente" });
     } catch (error) {

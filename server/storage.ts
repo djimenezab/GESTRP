@@ -52,7 +52,7 @@ import {
   type MantenimientoEquipo,
   type InsertMantenimientoEquipo
 } from "@shared/schema";
-import { eq, desc, or, ilike, asc, inArray } from "drizzle-orm";
+import { eq, desc, or, ilike, asc, inArray, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Trabajadores
@@ -82,6 +82,7 @@ export interface IStorage {
   createCurso(data: InsertCurso): Promise<Curso>;
   updateCurso(id: string, data: Partial<InsertCurso>): Promise<Curso | undefined>;
   deleteCurso(id: string): Promise<void>;
+  resetComisionServicio(id: string): Promise<void>;
 
   // Accidentes
   getAccidentes(): Promise<Accidente[]>;
@@ -342,6 +343,12 @@ export class DbStorage implements IStorage {
       .from(cursos)
       .where(inArray(cursos.trabajadorId, trabajadorIds))
       .orderBy(desc(cursos.fechaRealizacion));
+  }
+
+  async resetComisionServicio(id: string): Promise<void> {
+    await db.execute(
+      sql`UPDATE cursos SET comision_servicio_url = NULL, comision_servicio_firmado_url = NULL, firma_url = NULL WHERE id = ${id}`
+    );
   }
 
   // Accidentes

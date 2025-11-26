@@ -229,7 +229,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
       {/* Footer */}
       <footer className="absolute bottom-4 right-4 text-sm text-muted-foreground">
-        Desarrollado por David Jiménez, Versión 1.61 -NOV 2025-
+        Desarrollado por David Jiménez, Versión 1.62 -NOV 2025-
       </footer>
 
       {/* Change Password Dialog */}
