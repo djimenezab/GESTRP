@@ -117,6 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dni: z.string().min(1, "DNI es requerido").optional(),
         nombreCompleto: z.string().min(1, "Nombre completo es requerido").optional(),
         fechaNacimiento: z.string().min(1, "Fecha de nacimiento es requerida").optional(),
+        fechaIncorporacion: z.preprocess(val => val === "" ? undefined : val, z.string().optional()).optional(),
         email: z.preprocess(val => val === "" ? undefined : val, z.string().email("Email inválido").optional()).optional(),
         zonaId: z.preprocess(val => val === "" ? undefined : val, z.string().optional()).optional(),
         fichaEvaluacionRiesgosUrl: z.preprocess(val => val === "" ? undefined : val, z.string().optional()).optional(),
@@ -1569,6 +1570,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting dashboard data:", error);
       res.status(500).json({ error: "Error al obtener datos del dashboard" });
+    }
+  });
+
+  // Obtener el último accidente global (para administradores)
+  app.get("/api/dashboard/ultimo-accidente", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "No autorizado" });
+    }
+
+    try {
+      const usuario = await storage.getUsuario(req.session.userId);
+      
+      if (!usuario) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      // Solo administradores pueden ver esta información
+      if (usuario.tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No autorizado" });
+      }
+
+      const ultimoAccidente = await storage.getUltimoAccidenteGlobal();
+      res.json({ ultimoAccidente });
+    } catch (error) {
+      console.error("Error getting ultimo accidente:", error);
+      res.status(500).json({ error: "Error al obtener datos" });
     }
   });
 

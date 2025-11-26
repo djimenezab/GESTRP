@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { StatsCard } from "@/components/stats-card";
 import { WorkerCard } from "@/components/worker-card";
 import { WorkerDetailDialog } from "@/components/worker-detail-dialog";
-import { Users, HardHat, GraduationCap, AlertTriangle, Plus, Search, AlertCircle, CheckCircle, Calendar } from "lucide-react";
+import { Users, HardHat, GraduationCap, AlertTriangle, Plus, Search, AlertCircle, CheckCircle, Calendar, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { WorkerForm } from "@/components/worker-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { useLocation } from "wouter";
 import type { InsertTrabajador, Trabajador, Epi, Curso, Accidente } from "@shared/schema";
@@ -29,6 +29,8 @@ interface DashboardData {
   episRecientes: Epi[];
   cursosRecientes: Curso[];
   accidentesRecientes: Accidente[];
+  fechaUltimoAccidente: string | null;
+  fechaIncorporacion: string | null;
 }
 
 function DashboardUsuario() {
@@ -135,6 +137,53 @@ function DashboardUsuario() {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Contador de días sin accidente */}
+      {(() => {
+        const hoy = new Date();
+        let diasSinAccidente: number | null = null;
+        let mensajeContador = "";
+        let esDesdeIncorporacion = false;
+
+        if (dashboardData.fechaUltimoAccidente) {
+          diasSinAccidente = differenceInDays(hoy, new Date(dashboardData.fechaUltimoAccidente));
+          mensajeContador = `Hace ${diasSinAccidente} ${diasSinAccidente === 1 ? "día" : "días"} que no tienes ningún accidente`;
+        } else if (dashboardData.fechaIncorporacion) {
+          diasSinAccidente = differenceInDays(hoy, new Date(dashboardData.fechaIncorporacion));
+          mensajeContador = `Llevas ${diasSinAccidente} ${diasSinAccidente === 1 ? "día" : "días"} sin accidentes desde tu incorporación`;
+          esDesdeIncorporacion = true;
+        }
+
+        return diasSinAccidente !== null ? (
+          <Card className="border-green-500 bg-green-50 dark:bg-green-950/20" data-testid="card-dias-sin-accidente">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0">
+                  <Shield className="h-12 w-12 text-green-600 dark:text-green-500" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-4xl font-bold text-green-600 dark:text-green-500" data-testid="text-dias-sin-accidente">
+                    {diasSinAccidente}
+                  </div>
+                  <p className="text-sm text-green-800 dark:text-green-200 mt-1">
+                    {mensajeContador}
+                  </p>
+                  {esDesdeIncorporacion && (
+                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                      (Desde el {format(new Date(dashboardData.fechaIncorporacion!), "dd/MM/yyyy", { locale: es })})
+                    </p>
+                  )}
+                  {dashboardData.fechaUltimoAccidente && (
+                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                      Último accidente: {format(new Date(dashboardData.fechaUltimoAccidente), "dd/MM/yyyy", { locale: es })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null;
+      })()}
 
       {/* Estadísticas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -364,6 +413,10 @@ function DashboardAdministrador() {
     queryKey: ["/api/accidentes"],
   });
 
+  const { data: ultimoAccidenteData } = useQuery<{ ultimoAccidente: { fecha: string } | null }>({
+    queryKey: ["/api/dashboard/ultimo-accidente"],
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data: InsertTrabajador) => {
       return await apiRequest("POST", "/api/trabajadores", data);
@@ -497,6 +550,45 @@ function DashboardAdministrador() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Contador de días sin accidente global */}
+      {ultimoAccidenteData && (
+        <Card className="border-green-500 bg-green-50 dark:bg-green-950/20" data-testid="card-dias-sin-accidente-admin">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0">
+                <Shield className="h-12 w-12 text-green-600 dark:text-green-500" />
+              </div>
+              <div className="flex-1">
+                {ultimoAccidenteData.ultimoAccidente ? (
+                  <>
+                    <div className="text-4xl font-bold text-green-600 dark:text-green-500" data-testid="text-dias-sin-accidente-admin">
+                      {differenceInDays(new Date(), new Date(ultimoAccidenteData.ultimoAccidente.fecha))}
+                    </div>
+                    <p className="text-sm text-green-800 dark:text-green-200 mt-1">
+                      {differenceInDays(new Date(), new Date(ultimoAccidenteData.ultimoAccidente.fecha)) === 1 
+                        ? "día sin accidentes laborales" 
+                        : "días sin accidentes laborales"}
+                    </p>
+                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                      Último accidente registrado: {format(new Date(ultimoAccidenteData.ultimoAccidente.fecha), "dd/MM/yyyy", { locale: es })}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-500">
+                      Sin accidentes
+                    </div>
+                    <p className="text-sm text-green-800 dark:text-green-200 mt-1">
+                      No hay accidentes registrados en el sistema
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard

@@ -188,7 +188,11 @@ export interface IStorage {
     episRecientes: Epi[];
     cursosRecientes: Curso[];
     accidentesRecientes: Accidente[];
+    fechaUltimoAccidente: string | null;
+    fechaIncorporacion: string | null;
   }>;
+  
+  getUltimoAccidenteGlobal(): Promise<{ fecha: string } | null>;
 }
 
 export class DbStorage implements IStorage {
@@ -709,12 +713,17 @@ export class DbStorage implements IStorage {
     episRecientes: Epi[];
     cursosRecientes: Curso[];
     accidentesRecientes: Accidente[];
+    fechaUltimoAccidente: string | null;
+    fechaIncorporacion: string | null;
   }> {
-    const [episData, cursosData, accidentesData] = await Promise.all([
+    const [episData, cursosData, accidentesData, trabajadorData] = await Promise.all([
       db.select().from(epis).where(eq(epis.trabajadorId, trabajadorId)).orderBy(desc(epis.fechaEntrega)),
       db.select().from(cursos).where(eq(cursos.trabajadorId, trabajadorId)).orderBy(desc(cursos.fechaRealizacion)),
       db.select().from(accidentes).where(eq(accidentes.trabajadorId, trabajadorId)).orderBy(desc(accidentes.fecha)),
+      db.select().from(trabajadores).where(eq(trabajadores.id, trabajadorId)),
     ]);
+
+    const trabajador = trabajadorData[0];
 
     const episSinFirma = episData.filter(epi => !epi.firmaUrl);
     // Solo contar cursos que tienen comisión de servicio subida pero no firmada
@@ -747,6 +756,12 @@ export class DbStorage implements IStorage {
       fechaCaducidad: epi.fechaCaducidad!,
     }));
 
+    // Obtener fecha del último accidente (el más reciente está primero por el ordenamiento)
+    const fechaUltimoAccidente = accidentesData.length > 0 ? accidentesData[0].fecha : null;
+    
+    // Obtener fecha de incorporación del trabajador
+    const fechaIncorporacion = trabajador?.fechaIncorporacion || null;
+
     return {
       episEntregados: episData.length,
       cursosRealizados: cursosData.length,
@@ -758,7 +773,19 @@ export class DbStorage implements IStorage {
       episRecientes: episData.slice(0, 5),
       cursosRecientes: cursosData.slice(0, 5),
       accidentesRecientes: accidentesData.slice(0, 5),
+      fechaUltimoAccidente,
+      fechaIncorporacion,
     };
+  }
+
+  async getUltimoAccidenteGlobal(): Promise<{ fecha: string } | null> {
+    const resultado = await db
+      .select({ fecha: accidentes.fecha })
+      .from(accidentes)
+      .orderBy(desc(accidentes.fecha))
+      .limit(1);
+    
+    return resultado.length > 0 ? { fecha: resultado[0].fecha } : null;
   }
 }
 
