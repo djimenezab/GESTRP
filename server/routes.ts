@@ -438,6 +438,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Eliminar Comisión de Servicio (solo Administrador y AdminGral)
+  app.delete("/api/cursos/:id/comision", async (req, res) => {
+    try {
+      const curso = await storage.getCurso(req.params.id);
+      if (!curso) {
+        return res.status(404).json({ error: "Curso no encontrado" });
+      }
+
+      const tipoAcceso = req.session.tipoAcceso;
+
+      // Solo Administrador y AdminGral pueden eliminar la comisión
+      if (tipoAcceso === "Usuario") {
+        return res.status(403).json({ error: "No tiene permisos para eliminar la Comisión de Servicio" });
+      }
+
+      // Validar acceso para Administrador: solo puede eliminar comisiones de cursos de trabajadores de sus zonas
+      if (tipoAcceso === "Administrador" && req.session.zonasIds) {
+        const trabajador = await storage.getTrabajador(curso.trabajadorId);
+        if (!trabajador || !trabajador.zonaId || !req.session.zonasIds.includes(trabajador.zonaId)) {
+          return res.status(403).json({ error: "No tiene permisos para modificar cursos de esta zona" });
+        }
+      }
+
+      // Resetear los campos de comisión de servicio
+      await storage.updateCurso(req.params.id, {
+        comisionServicioUrl: undefined,
+        comisionServicioFirmadoUrl: undefined,
+        firmaUrl: undefined,
+      });
+
+      res.json({ success: true, message: "Comisión de Servicio eliminada correctamente" });
+    } catch (error) {
+      console.error("Error deleting Comisión de Servicio:", error);
+      res.status(500).json({ error: "Error al eliminar la Comisión de Servicio" });
+    }
+  });
+
   // Accidentes routes
   app.get("/api/accidentes", async (req, res) => {
     try {

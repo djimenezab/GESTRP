@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SignaturePad } from "@/components/signature-pad";
-import { FileText, Download, Pen } from "lucide-react";
+import { FileText, Download, Pen, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Curso } from "@shared/schema";
 
@@ -23,7 +24,11 @@ export function ComisionServicioViewer({ curso }: ComisionServicioViewerProps) {
   const [isSignDialogOpen, setIsSignDialogOpen] = useState(false);
   const [signature, setSignature] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const canDelete = user?.tipoAcceso === "Administrador" || user?.tipoAcceso === "AdminGral";
 
   const rawPdfUrl = curso.comisionServicioFirmadoUrl || curso.comisionServicioUrl;
   const hasPdf = !!rawPdfUrl;
@@ -91,6 +96,32 @@ export function ComisionServicioViewer({ curso }: ComisionServicioViewerProps) {
     }
   };
 
+  const handleDeleteComision = async () => {
+    if (!confirm("¿Estás seguro de que deseas eliminar la Comisión de Servicio? Esto eliminará el documento y la firma asociada.")) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await apiRequest("DELETE", `/api/cursos/${curso.id}/comision`);
+
+      queryClient.invalidateQueries({ queryKey: ["/api/cursos"] });
+      
+      toast({
+        title: "Comisión eliminada",
+        description: "La Comisión de Servicio ha sido eliminada correctamente",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar la Comisión de Servicio",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!hasPdf) {
     return (
       <Card>
@@ -155,6 +186,18 @@ export function ComisionServicioViewer({ curso }: ComisionServicioViewerProps) {
               >
                 <Pen className="h-4 w-4 mr-2" />
                 Firmar Documento
+              </Button>
+            )}
+
+            {canDelete && (
+              <Button
+                variant="destructive"
+                onClick={handleDeleteComision}
+                disabled={isDeleting}
+                data-testid="button-delete-comision"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? "Eliminando..." : "Eliminar Comisión"}
               </Button>
             )}
           </div>
