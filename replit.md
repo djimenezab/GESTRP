@@ -74,6 +74,32 @@ The application uses Drizzle ORM with PostgreSQL, specifically Neon serverless P
 
 ## Recent Changes
 
+### November 26, 2025
+
+#### Dashboard - Accident-Free Days Counter
+- **New Field**: Added `fechaIncorporacion` (incorporation date) to the workers table schema
+  - Tracks when each worker joined the organization
+  - Used to calculate accident-free days when no accidents exist
+  - Captured in worker creation and edit forms
+
+- **Usuario Dashboard Counter**:
+  - Green-themed card with Shield icon showing days without accidents
+  - Displays days since last accident if the worker has accident history
+  - Shows days since incorporation date if the worker has no accidents
+  - Includes explanatory text with relevant date
+
+- **Administrador Dashboard Counter**:
+  - New endpoint: `GET /api/dashboard/ultimo-accidente`
+  - Returns the most recent accident date across all workers
+  - Counter shows days since last global accident
+  - Displays "Sin accidentes registrados" when no accidents exist
+
+- **Implementation Details**:
+  - Uses `differenceInDays` from date-fns for accurate calculation
+  - Storage method: `getUltimoAccidenteGlobal()` for admin dashboard
+  - RBAC enforced: Usuario can only see own data, Admin sees global data
+  - Fixed SQL parameterization using drizzle-orm's `sql` helper
+
 ### November 12, 2025
 
 #### Dashboard - Usuario Role Personalized View
