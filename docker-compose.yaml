@@ -2,10 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: node:20-alpine
-    working_dir: /app
-    # IMPORTANTE: Eliminamos la sección volumes vieja para que no tape los archivos
-    command: sh -c "npm install && npm run build && npm start"
+    build: .
     ports:
       - "3000:3000"
       - "5000:5000"
