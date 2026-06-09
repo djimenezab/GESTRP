@@ -6,8 +6,8 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    # Primero instala, luego compila (genera la carpeta dist) y finalmente arranca
-    command: sh -c "npm install && npm run build && npm start"
+    # Limpiamos rastros viejos, instalamos en limpio, compilamos y arrancamos
+    command: sh -c "rm -rf node_modules dist && npm install && npm run build && npm start"
     ports:
       - "3000:3000"
       - "5000:5000"
