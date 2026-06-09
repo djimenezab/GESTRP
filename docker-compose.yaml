@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  server:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm install && npm run dev -- --prefix server"
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=https://db.gestionrpjccm.com
+    restart: unless-stopped
+
+  client:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm install && npm run dev -- --prefix client"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    restart: unless-stopped
