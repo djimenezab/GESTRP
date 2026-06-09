@@ -12,6 +12,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=https://db.gestionrpjccm.com
+      - BACKEND_URL=https://api.gestionrpjccm.com
     restart: unless-stopped
 
   client:
