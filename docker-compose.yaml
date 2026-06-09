@@ -6,7 +6,8 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: sh -c "npm install && sh build-production.sh && npm start"
+    # Primero instala, luego compila (genera la carpeta dist) y finalmente arranca
+    command: sh -c "npm install && npm run build && npm start"
     ports:
       - "3000:3000"
       - "5000:5000"
