@@ -6,10 +6,10 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && sh build-production.sh && npm start"
     ports:
-      - "5000:5000"
       - "3000:3000"
+      - "5000:5000"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=https://db.gestionrpjccm.com
