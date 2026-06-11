@@ -107,6 +107,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.0
         version: 1.2.9(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@replit/object-storage':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@tanstack/react-query':
         specifier: ^5.60.5
         version: 5.101.0(react@18.3.1)
@@ -1804,6 +1807,10 @@ packages:
 
   '@radix-ui/rect@1.1.2':
     resolution: {integrity: sha512-xnXE7wG13PI+cxieVssYXlQJuYVRhH9NBoxt3KNwzghDIA69GMm7d4wXRouHIYjE+KvS6U/MsMO73NdS2MH9ZA==}
+
+  '@replit/object-storage@1.0.0':
+    resolution: {integrity: sha512-LmQjHioAI32TPiVSljtEkJRHk8XKsrwi4D0WvaKQ4RGA6TSStAjeI5Hm8ZQW0DiQI9PqXsiBXTb930SPqm7K8g==}
+    engines: {node: '>=18.0.0'}
 
   '@replit/vite-plugin-cartographer@0.3.2':
     resolution: {integrity: sha512-x4Do7XZ4JkdH/x1Fl5ARlzXlR5zTjZRX0pJqyXOJbdmlZZ4E8WW9TL7Tj7QTjasFJTYKmYTEohQZPYioUU1WdQ==}
@@ -5447,6 +5454,13 @@ snapshots:
       '@types/react-dom': 18.3.7(@types/react@18.3.31)
 
   '@radix-ui/rect@1.1.2': {}
+
+  '@replit/object-storage@1.0.0':
+    dependencies:
+      '@google-cloud/storage': 7.21.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
 
   '@replit/vite-plugin-cartographer@0.3.2':
     dependencies:
