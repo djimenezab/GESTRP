@@ -110,8 +110,15 @@ export class ObjectStorageService {
     return { key };
   }
 
-  // Stream object to HTTP response
-  async downloadObject(obj: R2StorageObject, res: Response, cacheTtlSec: number = 3600) {
+  // Stream object to HTTP response.
+  // options.filename — when provided, sets Content-Disposition so the browser
+  //   uses the real document name instead of the UUID-based key.
+  async downloadObject(
+    obj: R2StorageObject,
+    res: Response,
+    options: { cacheTtlSec?: number; filename?: string } = {}
+  ) {
+    const { cacheTtlSec = 3600, filename } = options;
     const bucket = getBucket();
     try {
       const result = await s3Client.send(
@@ -135,6 +142,16 @@ export class ObjectStorageService {
       if (result.ContentLength !== undefined) {
         headers["Content-Length"] = String(result.ContentLength);
       }
+
+      // Content-Disposition: use real filename from DB when available so that
+      // downloads and inline previews carry a meaningful name + extension.
+      if (filename) {
+        // RFC 6266: provide both ASCII fallback (filename=) and full UTF-8 (filename*=)
+        const ascii = filename.replace(/[^\x20-\x7E]/g, "_");
+        headers["Content-Disposition"] =
+          `inline; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
+      }
+
       res.set(headers);
 
       const body = result.Body as NodeJS.ReadableStream;

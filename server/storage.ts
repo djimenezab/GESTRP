@@ -176,6 +176,11 @@ export interface IStorage {
   createDocumentoExpediente(data: InsertDocumentoExpediente): Promise<DocumentoExpediente>;
   deleteDocumentoExpediente(id: string): Promise<void>;
 
+  // Object filename lookup (for Content-Disposition)
+  // Searches all document tables for a record whose file path matches objectPath.
+  // Returns the human-readable filename stored at upload time, or null if not found.
+  findDocumentNameByPath(objectPath: string): Promise<string | null>;
+
   // Dashboard Usuario
   getDashboardData(trabajadorId: string): Promise<{
     episEntregados: number;
@@ -699,6 +704,41 @@ export class DbStorage implements IStorage {
 
   async deleteDocumentoExpediente(id: string): Promise<void> {
     await db.delete(documentosExpediente).where(eq(documentosExpediente.id, id));
+  }
+
+  // Object filename lookup (for Content-Disposition)
+  async findDocumentNameByPath(objectPath: string): Promise<string | null> {
+    // Query all document tables in parallel — first non-null result wins
+    const [epiDoc, cursoDoc, accDoc, expDoc, fichaDoc] = await Promise.all([
+      db.select({ nombre: epiDocumentos.nombreArchivo })
+        .from(epiDocumentos)
+        .where(eq(epiDocumentos.rutaArchivo, objectPath))
+        .limit(1),
+      db.select({ nombre: cursoDocumentos.nombreArchivo })
+        .from(cursoDocumentos)
+        .where(eq(cursoDocumentos.rutaArchivo, objectPath))
+        .limit(1),
+      db.select({ nombre: accidenteDocumentos.nombreArchivo })
+        .from(accidenteDocumentos)
+        .where(eq(accidenteDocumentos.rutaArchivo, objectPath))
+        .limit(1),
+      db.select({ nombre: documentosExpediente.nombreDocumento })
+        .from(documentosExpediente)
+        .where(eq(documentosExpediente.archivoUrl, objectPath))
+        .limit(1),
+      db.select({ nombre: fichasSeguridadProductos.nombreArchivo })
+        .from(fichasSeguridadProductos)
+        .where(eq(fichasSeguridadProductos.archivoUrl, objectPath))
+        .limit(1),
+    ]);
+    return (
+      epiDoc[0]?.nombre ||
+      cursoDoc[0]?.nombre ||
+      accDoc[0]?.nombre ||
+      expDoc[0]?.nombre ||
+      fichaDoc[0]?.nombre ||
+      null
+    );
   }
 
   // Dashboard Usuario

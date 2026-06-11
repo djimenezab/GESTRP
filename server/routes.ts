@@ -662,7 +662,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const objectStorageService = new ObjectStorageService();
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      objectStorageService.downloadObject(objectFile, res);
+      // Look up the human-readable filename from the database so the browser
+      // receives a proper name+extension instead of the raw UUID key.
+      const filename = await storage.findDocumentNameByPath(req.path).catch(() => null);
+      objectStorageService.downloadObject(objectFile, res, { filename: filename ?? undefined });
     } catch (error) {
       console.error("Error serving object:", error);
       if (error instanceof ObjectNotFoundError) {
