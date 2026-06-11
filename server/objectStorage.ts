@@ -32,7 +32,17 @@ export class ObjectStorageService {
     const bucket = getBucket();
     const key = `uploads/${randomUUID()}`;
     const cmd = new PutObjectCommand({ Bucket: bucket, Key: key });
-    return getSignedUrl(s3Client, cmd, { expiresIn: 900 });
+    // Exclude checksum headers — Cloudflare R2 rejects them and causes ERR_CONNECTION_RESET
+    return getSignedUrl(s3Client, cmd, {
+      expiresIn: 900,
+      unhoistableHeaders: new Set([
+        "x-amz-checksum-crc32",
+        "x-amz-checksum-crc32c",
+        "x-amz-checksum-sha1",
+        "x-amz-checksum-sha256",
+        "x-amz-sdk-checksum-algorithm",
+      ]),
+    });
   }
 
   // Resolve /objects/uploads/{uuid} → R2StorageObject, verifying it exists

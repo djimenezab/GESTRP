@@ -13,6 +13,9 @@ export const s3Client = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
   },
   forcePathStyle: true,
+  // Cloudflare R2 does not support AWS SDK v3 checksums — disable them
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
 });
 
 export function getBucket(): string {
