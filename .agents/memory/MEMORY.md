@@ -1,0 +1,1 @@
+- [R2 object storage migration](r2-migration.md) — almacenamiento migrado de Replit GCS a Cloudflare R2 vía S3; cliente en r2Client.ts
