@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
@@ -82,29 +81,10 @@ export function AccidenteDocumentosDialog({
     },
   });
 
-  // Map de fileId → objectPath para que multiple archivos funcionen correctamente
-  const objectPathsRef = useRef<Map<string, string>>(new Map());
-
-  const handleGetUploadParameters = async (file: any) => {
-    const response = await fetch("/api/objects/upload", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-    const data = await response.json();
-    objectPathsRef.current.set(file.id, data.objectPath);
-    return {
-      method: "PUT" as const,
-      url: data.uploadURL,
-    };
-  };
-
   const handleUploadComplete = (result: any) => {
     if (result.successful && result.successful.length > 0) {
       result.successful.forEach((file: any) => {
-        const objectPath = objectPathsRef.current.get(file.id) ?? "";
-        objectPathsRef.current.delete(file.id);
+        const objectPath = (file.response?.body as any)?.objectPath ?? "";
         createDocumentoMutation.mutate({
           accidenteId: accidenteId,
           nombreArchivo: file.name || "Documento",
@@ -149,7 +129,6 @@ export function AccidenteDocumentosDialog({
             <ObjectUploader
               maxNumberOfFiles={5}
               maxFileSize={20971520} // 20MB
-              onGetUploadParameters={handleGetUploadParameters}
               onComplete={handleUploadComplete}
               buttonClassName="gap-2"
             >

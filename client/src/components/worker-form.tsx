@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTrabajadorSchema, CATEGORIAS, type InsertTrabajador, type ZonaTrabajo } from "@shared/schema";
@@ -51,30 +50,9 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
     },
   });
 
-  const objectPathRef = useRef("");
-
-  const handleFileUpload = async (file: any) => {
-    const response = await fetch("/api/objects/upload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-    
-    if (!response.ok) {
-      throw new Error("Error al obtener URL de subida");
-    }
-    
-    const data = await response.json();
-    objectPathRef.current = data.objectPath;
-    return {
-      method: "PUT" as const,
-      url: data.uploadURL,
-    };
-  };
-
   const handleUploadComplete = (result: any) => {
     if (result.successful && result.successful.length > 0) {
-      const objectPath = objectPathRef.current;
+      const objectPath = (result.successful[0].response?.body as any)?.objectPath ?? "";
       if (objectPath) {
         form.setValue("fichaEvaluacionRiesgosUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
         toast({
@@ -249,7 +227,6 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
                       <ObjectUploader
                         maxNumberOfFiles={1}
                         maxFileSize={10485760}
-                        onGetUploadParameters={handleFileUpload}
                         onComplete={handleUploadComplete}
                       >
                         <FileText className="h-4 w-4 mr-2" />

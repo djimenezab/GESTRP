@@ -3,21 +3,16 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import Uppy from "@uppy/core";
 import { DashboardModal } from "@uppy/react";
-import AwsS3 from "@uppy/aws-s3";
+import XHRUpload from "@uppy/xhr-upload";
 import type { UploadResult } from "@uppy/core";
 import { Button } from "@/components/ui/button";
 
-// Importar estilos CSS de Uppy v4
 import "@uppy/core/dist/style.min.css";
 import "@uppy/dashboard/dist/style.min.css";
 
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
-  onGetUploadParameters: (file: any) => Promise<{
-    method: "PUT";
-    url: string;
-  }>;
   onComplete?: (
     result: UploadResult<Record<string, unknown>, Record<string, unknown>>
   ) => void;
@@ -26,31 +21,14 @@ interface ObjectUploaderProps {
 }
 
 /**
- * Componente de subida de archivos que se renderiza como un botón y proporciona
- * una interfaz modal para la gestión de archivos.
- * 
- * Características:
- * - Se renderiza como un botón personalizable que abre un modal de subida
- * - Proporciona una interfaz modal para:
- *   - Selección de archivos
- *   - Vista previa de archivos
- *   - Seguimiento del progreso de subida
- *   - Visualización del estado de subida
- * 
- * El componente usa Uppy internamente para manejar toda la funcionalidad de subida.
- * 
- * @param props - Propiedades del componente
- * @param props.maxNumberOfFiles - Número máximo de archivos permitidos (por defecto: 1)
- * @param props.maxFileSize - Tamaño máximo de archivo en bytes (por defecto: 10MB)
- * @param props.onGetUploadParameters - Función para obtener parámetros de subida (método y URL)
- * @param props.onComplete - Callback cuando la subida se completa
- * @param props.buttonClassName - Clase CSS opcional para el botón
- * @param props.children - Contenido a renderizar dentro del botón
+ * Componente de subida de archivos que envía el fichero al servidor Express
+ * (POST /api/objects/upload-file, multipart/form-data), que lo sube a R2 y
+ * devuelve { objectPath }.  El objectPath está disponible en cada elemento de
+ * result.successful como (file.response?.body as any)?.objectPath.
  */
 export function ObjectUploader({
   maxNumberOfFiles = 1,
-  maxFileSize = 10485760, // 10MB por defecto
-  onGetUploadParameters,
+  maxFileSize = 10485760, // 10 MB por defecto
   onComplete,
   buttonClassName,
   children,
@@ -64,9 +42,10 @@ export function ObjectUploader({
       },
       autoProceed: false,
     })
-      .use(AwsS3, {
-        shouldUseMultipart: false,
-        getUploadParameters: onGetUploadParameters,
+      .use(XHRUpload, {
+        endpoint: "/api/objects/upload-file",
+        fieldName: "file",
+        withCredentials: true,
       })
       .on("complete", (result) => {
         onComplete?.(result);
@@ -75,7 +54,12 @@ export function ObjectUploader({
 
   return (
     <div>
-      <Button type="button" onClick={() => setShowModal(true)} className={buttonClassName} data-testid="button-upload-document">
+      <Button
+        type="button"
+        onClick={() => setShowModal(true)}
+        className={buttonClassName}
+        data-testid="button-upload-document"
+      >
         {children}
       </Button>
 

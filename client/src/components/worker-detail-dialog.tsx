@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -46,7 +46,6 @@ export function WorkerDetailDialog({
   worker,
 }: WorkerDetailDialogProps) {
   const { toast } = useToast();
-  const workerDialogObjectPathRef = useRef("");
 
   const { data: zona } = useQuery<ZonaTrabajo>({
     queryKey: ["/api/zonas-trabajo", worker.zonaId],
@@ -372,25 +371,14 @@ export function WorkerDetailDialog({
                 <ObjectUploader
                   maxNumberOfFiles={1}
                   maxFileSize={10485760}
-                  onGetUploadParameters={async (file) => {
-                    const response = await fetch('/api/objects/upload', {
-                      method: 'POST',
-                      credentials: 'include',
-                    });
-                    const data = await response.json();
-                    workerDialogObjectPathRef.current = data.objectPath;
-                    return {
-                      method: 'PUT' as const,
-                      url: data.uploadURL,
-                    };
-                  }}
                   onComplete={(result) => {
                     if (result.successful && result.successful.length > 0) {
                       const uploadedFile = result.successful[0];
+                      const objectPath = (uploadedFile.response?.body as any)?.objectPath ?? "";
                       createDocumentoMutation.mutate({
                         trabajadorId: worker.id,
                         nombreDocumento: uploadedFile.name || 'Documento',
-                        archivoUrl: workerDialogObjectPathRef.current,
+                        archivoUrl: objectPath,
                         tipoArchivo: uploadedFile.type || undefined,
                         tamanoBytes: uploadedFile.size || undefined,
                       });

@@ -1,5 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
+import { randomUUID } from "crypto";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3Client, getBucket } from "./r2Client";
 import { storage } from "./storage";
 import { requireAuth } from "./middleware";
 import { 
@@ -675,15 +679,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Obtiene URL de subida para un nuevo documento
-  app.post("/api/objects/upload", async (req, res) => {
-    const objectStorageService = new ObjectStorageService();
+  // Subida de archivos a través del servidor (evita bloqueos de redes corporativas a R2)
+  // Recibe multipart/form-data con campo "file", sube a R2 y devuelve { objectPath }.
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB
+  });
+
+  app.post("/api/objects/upload-file", upload.single("file"), async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: "No se recibió ningún archivo" });
+    }
     try {
-      const { uploadURL, objectPath } = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL, objectPath });
+      const bucket = getBucket();
+      const uuid = randomUUID();
+      const key = `uploads/${uuid}`;
+      const objectPath = `/objects/${key}`;
+
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype || "application/octet-stream",
+          ContentLength: req.file.size,
+        })
+      );
+
+      res.json({ objectPath });
     } catch (error) {
-      console.error("Error getting upload URL:", error);
-      res.status(500).json({ error: "Error al obtener URL de subida" });
+      console.error("Error al subir archivo a R2:", error);
+      res.status(500).json({ error: "Error al subir el archivo" });
     }
   });
 

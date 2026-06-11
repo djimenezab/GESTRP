@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Dialog,
@@ -57,26 +57,10 @@ export function EpiDocumentosDialog({
     },
   });
 
-  const objectPathsRef = useRef<Map<string, string>>(new Map());
-
-  const handleGetUploadParameters = async (file: any) => {
-    const response = await fetch("/api/objects/upload", {
-      method: "POST",
-      credentials: "include",
-    });
-    const data = await response.json();
-    objectPathsRef.current.set(file.id, data.objectPath);
-    return {
-      method: "PUT" as const,
-      url: data.uploadURL,
-    };
-  };
-
   const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
-      const objectPath = objectPathsRef.current.get(uploadedFile.id as string) ?? "";
-      objectPathsRef.current.delete(uploadedFile.id as string);
+      const objectPath = (uploadedFile.response?.body as any)?.objectPath ?? "";
       
       try {
         await apiRequest("POST", "/api/epi-documentos", {
@@ -136,7 +120,6 @@ export function EpiDocumentosDialog({
             <ObjectUploader
               maxNumberOfFiles={5}
               maxFileSize={20971520} // 20MB
-              onGetUploadParameters={handleGetUploadParameters}
               onComplete={handleUploadComplete}
               buttonClassName="gap-2"
             >

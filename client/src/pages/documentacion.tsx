@@ -239,42 +239,16 @@ export default function Documentacion() {
     }
   }, [openCreateProductoQuimicoDialog, user?.zonasIds]);
 
-  const handleFileUpload = (formInstance: any) => {
-    return async () => {
-      const response = await fetch("/api/objects/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      
-      if (!response.ok) {
-        throw new Error("Error al obtener URL de subida");
-      }
-      
-      const data = await response.json();
-      return {
-        method: "PUT" as const,
-        url: data.uploadURL,
-      };
-    };
-  };
-
   const handleUploadComplete = (formInstance: any) => {
     return (result: any) => {
       if (result.successful && result.successful.length > 0) {
-        const file = result.successful[0];
-        const uploadUrl = file.uploadURL || file.response?.uploadURL;
-        if (uploadUrl) {
-          const urlParts = new URL(uploadUrl).pathname.split('/');
-          const uploadsIndex = urlParts.indexOf('uploads');
-          if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
-            const objectId = urlParts[uploadsIndex + 1];
-            const objectPath = `/objects/uploads/${objectId}`;
-            formInstance.setValue("archivoUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-            toast({
-              title: "Archivo subido",
-              description: "El archivo ha sido subido correctamente",
-            });
-          }
+        const objectPath = (result.successful[0].response?.body as any)?.objectPath ?? "";
+        if (objectPath) {
+          formInstance.setValue("archivoUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+          toast({
+            title: "Archivo subido",
+            description: "El archivo ha sido subido correctamente",
+          });
         }
       }
     };
@@ -469,7 +443,6 @@ export default function Documentacion() {
                                     <ObjectUploader
                                       maxNumberOfFiles={1}
                                       maxFileSize={10485760}
-                                      onGetUploadParameters={handleFileUpload(form)}
                                       onComplete={handleUploadComplete(form)}
                                     >
                                       <FileText className="h-4 w-4 mr-2" />
@@ -932,7 +905,6 @@ export default function Documentacion() {
                           <ObjectUploader
                             maxNumberOfFiles={1}
                             maxFileSize={10485760}
-                            onGetUploadParameters={handleFileUpload(editForm)}
                             onComplete={handleUploadComplete(editForm)}
                           >
                             <FileText className="h-4 w-4 mr-2" />

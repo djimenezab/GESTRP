@@ -265,43 +265,16 @@ export default function Equipos() {
     equipo.numeroSerie.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleFileUpload = (form: any, fieldName: string) => {
-    return async () => {
-      const response = await fetch("/api/objects/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      
-      if (!response.ok) {
-        throw new Error("Error al obtener URL de subida");
-      }
-      
-      const data = await response.json();
-      return {
-        method: "PUT" as const,
-        url: data.uploadURL,
-      };
-    };
-  };
-
   const handleUploadComplete = (form: any, fieldName: string) => {
     return (result: any) => {
       if (result.successful && result.successful.length > 0) {
-        const file = result.successful[0];
-        // Extract the object ID from the upload URL (format: https://.../bucket/uploads/UUID)
-        const uploadUrl = file.uploadURL || file.response?.uploadURL;
-        if (uploadUrl) {
-          const urlParts = new URL(uploadUrl).pathname.split('/');
-          const uploadsIndex = urlParts.indexOf('uploads');
-          if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
-            const objectId = urlParts[uploadsIndex + 1];
-            const objectPath = `/objects/uploads/${objectId}`;
-            form.setValue(fieldName, objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-            toast({
-              title: "Archivo subido",
-              description: "El archivo ha sido subido correctamente",
-            });
-          }
+        const objectPath = (result.successful[0].response?.body as any)?.objectPath ?? "";
+        if (objectPath) {
+          form.setValue(fieldName, objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+          toast({
+            title: "Archivo subido",
+            description: "El archivo ha sido subido correctamente",
+          });
         }
       }
     };
@@ -623,7 +596,6 @@ export default function Equipos() {
                           <ObjectUploader
                             maxNumberOfFiles={1}
                             maxFileSize={10485760}
-                            onGetUploadParameters={handleFileUpload(createForm, "imagenUrl")}
                             onComplete={handleUploadComplete(createForm, "imagenUrl")}
                           >
                             <ImageIcon className="h-4 w-4 mr-2" />
@@ -682,7 +654,6 @@ export default function Equipos() {
                           <ObjectUploader
                             maxNumberOfFiles={1}
                             maxFileSize={10485760}
-                            onGetUploadParameters={handleFileUpload(createForm, "fichaEvaluacionUrl")}
                             onComplete={handleUploadComplete(createForm, "fichaEvaluacionUrl")}
                           >
                             <FileText className="h-4 w-4 mr-2" />
@@ -740,7 +711,6 @@ export default function Equipos() {
                           <ObjectUploader
                             maxNumberOfFiles={1}
                             maxFileSize={10485760}
-                            onGetUploadParameters={handleFileUpload(createForm, "manualUrl")}
                             onComplete={handleUploadComplete(createForm, "manualUrl")}
                           >
                             <File className="h-4 w-4 mr-2" />
@@ -968,7 +938,6 @@ export default function Equipos() {
                           <ObjectUploader
                             maxNumberOfFiles={1}
                             maxFileSize={10485760}
-                            onGetUploadParameters={handleFileUpload(editForm, "imagenUrl")}
                             onComplete={handleUploadComplete(editForm, "imagenUrl")}
                           >
                             <ImageIcon className="h-4 w-4 mr-2" />
@@ -1026,7 +995,6 @@ export default function Equipos() {
                           <ObjectUploader
                             maxNumberOfFiles={1}
                             maxFileSize={10485760}
-                            onGetUploadParameters={handleFileUpload(editForm, "fichaEvaluacionUrl")}
                             onComplete={handleUploadComplete(editForm, "fichaEvaluacionUrl")}
                           >
                             <FileText className="h-4 w-4 mr-2" />
@@ -1084,7 +1052,6 @@ export default function Equipos() {
                           <ObjectUploader
                             maxNumberOfFiles={1}
                             maxFileSize={10485760}
-                            onGetUploadParameters={handleFileUpload(editForm, "manualUrl")}
                             onComplete={handleUploadComplete(editForm, "manualUrl")}
                           >
                             <File className="h-4 w-4 mr-2" />

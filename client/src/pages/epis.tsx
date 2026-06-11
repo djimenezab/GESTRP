@@ -128,34 +128,22 @@ export default function Epis() {
 
   const updateFirmaMutation = useMutation({
     mutationFn: async ({ id, signatureData }: { id: string; signatureData: string }) => {
-      // Paso 1: Obtener URL de subida firmada desde el servidor
-      const uploadUrlRes = await fetch('/api/objects/upload', {
+      // Subir la firma como multipart a través del servidor (evita bloqueos corporativos)
+      const blob = await fetch(signatureData).then(r => r.blob());
+      const formData = new FormData();
+      formData.append('file', blob, 'firma.png');
+
+      const uploadRes = await fetch('/api/objects/upload-file', {
         method: 'POST',
         credentials: 'include',
-      });
-
-      if (!uploadUrlRes.ok) {
-        throw new Error('Error al obtener URL de subida');
-      }
-
-      const { uploadURL, objectPath } = await uploadUrlRes.json();
-
-      // Paso 2: Subir la firma (imagen PNG) a R2 usando la URL prefirmada
-      const blob = await fetch(signatureData).then(r => r.blob());
-      
-      const uploadRes = await fetch(uploadURL, {
-        method: 'PUT',
-        body: blob,
-        headers: {
-          'Content-Type': 'image/png',
-        },
+        body: formData,
       });
 
       if (!uploadRes.ok) {
         throw new Error('Error al subir la firma');
       }
 
-      // Paso 3: Enviar la ruta canónica al backend (no la URL prefirmada)
+      const { objectPath } = await uploadRes.json();
       return await apiRequest("PATCH", `/api/epis/${id}/firma`, { firmaUrl: objectPath });
     },
     onSuccess: () => {
