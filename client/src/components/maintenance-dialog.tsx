@@ -134,9 +134,9 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
           throw new Error('Error al obtener URL de subida');
         }
 
-        const { uploadURL } = await uploadUrlRes.json();
+        const { uploadURL, objectPath } = await uploadUrlRes.json();
 
-        // Paso 2: Subir la firma (imagen PNG) a la URL firmada de Google Cloud Storage
+        // Paso 2: Subir la firma (imagen PNG) a R2 usando la URL prefirmada
         const blob = await fetch(data.signatureData).then(r => r.blob());
         
         const uploadRes = await fetch(uploadURL, {
@@ -151,10 +151,8 @@ export function MaintenanceDialog({ equipoId, equipoNombre, equipoZonaId, open, 
           throw new Error('Error al subir la firma');
         }
 
-        // Paso 3: Enviar la URL firmada al backend
-        // El backend la normalizará a una ruta persistente (/objects/...) antes de guardarla
-        // Esto garantiza que la firma permanezca accesible más allá de la expiración de la URL firmada
-        firmaUrl = uploadURL;
+        // Paso 3: Usar la ruta canónica (no la URL prefirmada) para guardar en BD
+        firmaUrl = objectPath;
       }
 
       return apiRequest('POST', `/api/equipos/${equipoId}/mantenimientos`, { ...data, firmaUrl, signatureData: undefined });

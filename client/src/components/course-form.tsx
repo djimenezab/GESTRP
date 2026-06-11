@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCursoSchema, type InsertCurso } from "@shared/schema";
@@ -46,10 +47,13 @@ export function CourseForm({ onSubmit, trabajadores, initialData, isLoading }: C
     },
   });
 
-  const handleFileUpload = async () => {
+  const objectPathRef = useRef("");
+
+  const handleFileUpload = async (file: any) => {
     const response = await fetch("/api/objects/upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
     });
     
     if (!response.ok) {
@@ -57,6 +61,7 @@ export function CourseForm({ onSubmit, trabajadores, initialData, isLoading }: C
     }
     
     const data = await response.json();
+    objectPathRef.current = data.objectPath;
     return {
       method: "PUT" as const,
       url: data.uploadURL,
@@ -65,20 +70,13 @@ export function CourseForm({ onSubmit, trabajadores, initialData, isLoading }: C
 
   const handleUploadComplete = (result: any) => {
     if (result.successful && result.successful.length > 0) {
-      const file = result.successful[0];
-      const uploadUrl = file.uploadURL || file.response?.uploadURL;
-      if (uploadUrl) {
-        const urlParts = new URL(uploadUrl).pathname.split('/');
-        const uploadsIndex = urlParts.indexOf('uploads');
-        if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
-          const objectId = urlParts[uploadsIndex + 1];
-          const objectPath = `/objects/uploads/${objectId}`;
-          form.setValue("comisionServicioUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-          toast({
-            title: "PDF subido",
-            description: "La Comisión de Servicio ha sido subida correctamente",
-          });
-        }
+      const objectPath = objectPathRef.current;
+      if (objectPath) {
+        form.setValue("comisionServicioUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+        toast({
+          title: "PDF subido",
+          description: "La Comisión de Servicio ha sido subida correctamente",
+        });
       }
     }
   };

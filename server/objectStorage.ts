@@ -27,13 +27,18 @@ export class ObjectNotFoundError extends Error {
 }
 
 export class ObjectStorageService {
-  // Generate a presigned PUT URL for a new upload
-  async getObjectEntityUploadURL(): Promise<string> {
+  // Generate a presigned PUT URL for a new upload.
+  // Returns BOTH the signed URL (for the browser PUT) and the canonical
+  // /objects/… path that must be stored in the database.
+  // Never parse the upload URL on the frontend — use objectPath directly.
+  async getObjectEntityUploadURL(): Promise<{ uploadURL: string; objectPath: string }> {
     const bucket = getBucket();
-    const key = `uploads/${randomUUID()}`;
+    const uuid = randomUUID();
+    const key = `uploads/${uuid}`;
+    const objectPath = `/objects/${key}`;
     const cmd = new PutObjectCommand({ Bucket: bucket, Key: key });
     // Exclude checksum headers — Cloudflare R2 rejects them and causes ERR_CONNECTION_RESET
-    return getSignedUrl(s3Client, cmd, {
+    const uploadURL = await getSignedUrl(s3Client, cmd, {
       expiresIn: 900,
       unhoistableHeaders: new Set([
         "x-amz-checksum-crc32",
@@ -43,6 +48,7 @@ export class ObjectStorageService {
         "x-amz-sdk-checksum-algorithm",
       ]),
     });
+    return { uploadURL, objectPath };
   }
 
   // Resolve /objects/uploads/{uuid} → R2StorageObject, verifying it exists

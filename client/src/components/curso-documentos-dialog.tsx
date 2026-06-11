@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Dialog,
@@ -58,11 +58,15 @@ export function CursoDocumentosDialog({
     },
   });
 
-  const handleGetUploadParameters = async () => {
+  const objectPathsRef = useRef<Map<string, string>>(new Map());
+
+  const handleGetUploadParameters = async (file: any) => {
     const response = await fetch("/api/objects/upload", {
       method: "POST",
+      credentials: "include",
     });
     const data = await response.json();
+    objectPathsRef.current.set(file.id, data.objectPath);
     return {
       method: "PUT" as const,
       url: data.uploadURL,
@@ -72,12 +76,14 @@ export function CursoDocumentosDialog({
   const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
+      const objectPath = objectPathsRef.current.get(uploadedFile.id as string) ?? "";
+      objectPathsRef.current.delete(uploadedFile.id as string);
       
       try {
         await apiRequest("POST", "/api/curso-documentos", {
           cursoId,
           nombreArchivo: uploadedFile.name,
-          rutaArchivo: uploadedFile.uploadURL,
+          rutaArchivo: objectPath,
           tipoArchivo: uploadedFile.type || null,
           tamanoBytes: uploadedFile.size || null,
         });

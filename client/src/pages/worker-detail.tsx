@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,7 @@ export default function WorkerDetail() {
   const [isCursoDialogOpen, setIsCursoDialogOpen] = useState(false);
   const [isAccidenteDialogOpen, setIsAccidenteDialogOpen] = useState(false);
   const { toast } = useToast();
+  const workerDetailObjectPathRef = useRef("");
 
   // Query para obtener trabajador
   const { data: trabajador, isLoading: isLoadingTrabajador } = useQuery<Trabajador>({
@@ -393,12 +394,13 @@ export default function WorkerDetail() {
             <ObjectUploader
               maxNumberOfFiles={1}
               maxFileSize={10485760}
-              onGetUploadParameters={async () => {
+              onGetUploadParameters={async (file) => {
                 const response = await fetch('/api/objects/upload', {
                   method: 'POST',
                   credentials: 'include',
                 });
                 const data = await response.json();
+                workerDetailObjectPathRef.current = data.objectPath;
                 return {
                   method: 'PUT' as const,
                   url: data.uploadURL,
@@ -410,7 +412,7 @@ export default function WorkerDetail() {
                   createDocumentoMutation.mutate({
                     trabajadorId: trabajadorId,
                     nombreDocumento: uploadedFile.name || 'Documento',
-                    archivoUrl: uploadedFile.uploadURL || '',
+                    archivoUrl: workerDetailObjectPathRef.current,
                     tipoArchivo: uploadedFile.type || undefined,
                     tamanoBytes: uploadedFile.size || undefined,
                   });

@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTrabajadorSchema, CATEGORIAS, type InsertTrabajador, type ZonaTrabajo } from "@shared/schema";
@@ -50,10 +51,13 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
     },
   });
 
-  const handleFileUpload = async () => {
+  const objectPathRef = useRef("");
+
+  const handleFileUpload = async (file: any) => {
     const response = await fetch("/api/objects/upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
     });
     
     if (!response.ok) {
@@ -61,6 +65,7 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
     }
     
     const data = await response.json();
+    objectPathRef.current = data.objectPath;
     return {
       method: "PUT" as const,
       url: data.uploadURL,
@@ -69,20 +74,13 @@ export function WorkerForm({ onSubmit, initialData, isLoading }: WorkerFormProps
 
   const handleUploadComplete = (result: any) => {
     if (result.successful && result.successful.length > 0) {
-      const file = result.successful[0];
-      const uploadUrl = file.uploadURL || file.response?.uploadURL;
-      if (uploadUrl) {
-        const urlParts = new URL(uploadUrl).pathname.split('/');
-        const uploadsIndex = urlParts.indexOf('uploads');
-        if (uploadsIndex >= 0 && urlParts[uploadsIndex + 1]) {
-          const objectId = urlParts[uploadsIndex + 1];
-          const objectPath = `/objects/uploads/${objectId}`;
-          form.setValue("fichaEvaluacionRiesgosUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-          toast({
-            title: "Archivo subido",
-            description: "La ficha de evaluación ha sido subida correctamente",
-          });
-        }
+      const objectPath = objectPathRef.current;
+      if (objectPath) {
+        form.setValue("fichaEvaluacionRiesgosUrl", objectPath, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+        toast({
+          title: "Archivo subido",
+          description: "La ficha de evaluación ha sido subida correctamente",
+        });
       }
     }
   };

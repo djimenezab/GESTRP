@@ -138,9 +138,9 @@ export default function Epis() {
         throw new Error('Error al obtener URL de subida');
       }
 
-      const { uploadURL } = await uploadUrlRes.json();
+      const { uploadURL, objectPath } = await uploadUrlRes.json();
 
-      // Paso 2: Subir la firma (imagen PNG) a la URL firmada de Google Cloud Storage
+      // Paso 2: Subir la firma (imagen PNG) a R2 usando la URL prefirmada
       const blob = await fetch(signatureData).then(r => r.blob());
       
       const uploadRes = await fetch(uploadURL, {
@@ -155,9 +155,8 @@ export default function Epis() {
         throw new Error('Error al subir la firma');
       }
 
-      // Paso 3: Enviar la URL firmada al backend
-      // El backend la normalizará a una ruta persistente (/objects/...) antes de guardarla
-      return await apiRequest("PATCH", `/api/epis/${id}/firma`, { firmaUrl: uploadURL });
+      // Paso 3: Enviar la ruta canónica al backend (no la URL prefirmada)
+      return await apiRequest("PATCH", `/api/epis/${id}/firma`, { firmaUrl: objectPath });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/epis"] });

@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
@@ -81,16 +82,18 @@ export function AccidenteDocumentosDialog({
     },
   });
 
-  const handleGetUploadParameters = async () => {
+  // Map de fileId → objectPath para que multiple archivos funcionen correctamente
+  const objectPathsRef = useRef<Map<string, string>>(new Map());
+
+  const handleGetUploadParameters = async (file: any) => {
     const response = await fetch("/api/objects/upload", {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
     const data = await response.json();
+    objectPathsRef.current.set(file.id, data.objectPath);
     return {
       method: "PUT" as const,
       url: data.uploadURL,
@@ -100,10 +103,12 @@ export function AccidenteDocumentosDialog({
   const handleUploadComplete = (result: any) => {
     if (result.successful && result.successful.length > 0) {
       result.successful.forEach((file: any) => {
+        const objectPath = objectPathsRef.current.get(file.id) ?? "";
+        objectPathsRef.current.delete(file.id);
         createDocumentoMutation.mutate({
           accidenteId: accidenteId,
           nombreArchivo: file.name || "Documento",
-          rutaArchivo: file.uploadURL || "",
+          rutaArchivo: objectPath,
           tipoArchivo: file.type || undefined,
           tamanoBytes: file.size || undefined,
         });
