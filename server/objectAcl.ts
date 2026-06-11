@@ -56,12 +56,6 @@ function createObjectAccessGroup(group: ObjectAccessGroup): BaseObjectAccessGrou
   }
 }
 
-function getBucket(): string {
-  const bucket = process.env.R2_BUCKET;
-  if (!bucket) throw new Error("R2_BUCKET env var is not set");
-  return bucket;
-}
-
 // Store ACL policy as S3 object metadata.
 // S3/R2 requires copying the object to itself to update metadata.
 export async function setObjectAclPolicy(
@@ -110,7 +104,9 @@ export async function canAccessObject({
   requestedPermission: ObjectPermission;
 }): Promise<boolean> {
   const aclPolicy = await getObjectAclPolicy(objectFile);
-  if (!aclPolicy) return false;
+  // Objects without ACL metadata (e.g. migrated files) are treated as
+  // accessible by default — they were stored before ACL was introduced.
+  if (!aclPolicy) return true;
 
   if (
     aclPolicy.visibility === "public" &&

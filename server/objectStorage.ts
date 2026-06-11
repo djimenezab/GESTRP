@@ -51,7 +51,16 @@ export class ObjectStorageService {
     return { uploadURL, objectPath };
   }
 
-  // Resolve /objects/uploads/{uuid} → R2StorageObject, verifying it exists
+  // Resolve /objects/uploads/{uuid} → R2StorageObject, verifying it exists.
+  //
+  // Key resolution order:
+  //   1. Canonical key:  uploads/<uuid>          ← migrated files & new uploads (post-fix)
+  //   2. Legacy key:     <bucket>/uploads/<uuid>  ← files uploaded before endpoint normalisation
+  //
+  // The legacy format arises when R2_ENDPOINT included the bucket as a path
+  // segment AND forcePathStyle:true was used — the AWS SDK prepended the bucket
+  // again, storing objects under a double-bucket key.  We try both so that all
+  // objects are serveable regardless of when they were uploaded.
   async getObjectEntityFile(objectPath: string): Promise<R2StorageObject> {
     if (!objectPath.startsWith("/objects/")) {
       throw new ObjectNotFoundError();
@@ -61,15 +70,35 @@ export class ObjectStorageService {
       throw new ObjectNotFoundError();
     }
     const bucket = getBucket();
-    try {
-      await s3Client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
-    } catch (err: any) {
-      if (err instanceof NoSuchKey || err?.name === "NotFound" || err?.$metadata?.httpStatusCode === 404) {
-        throw new ObjectNotFoundError();
+
+    const headExists = async (k: string): Promise<boolean> => {
+      try {
+        await s3Client.send(new HeadObjectCommand({ Bucket: bucket, Key: k }));
+        return true;
+      } catch (err: any) {
+        if (
+          err instanceof NoSuchKey ||
+          err?.name === "NotFound" ||
+          err?.$metadata?.httpStatusCode === 404
+        ) {
+          return false;
+        }
+        throw err; // unexpected error — propagate
       }
-      throw err;
+    };
+
+    // 1. Canonical key (uploads/<uuid>)
+    if (await headExists(key)) {
+      return { key };
     }
-    return { key };
+
+    // 2. Legacy key (<bucket>/uploads/<uuid>) — uploaded before endpoint fix
+    const legacyKey = `${bucket}/${key}`;
+    if (await headExists(legacyKey)) {
+      return { key: legacyKey };
+    }
+
+    throw new ObjectNotFoundError();
   }
 
   // Build R2StorageObject without existence check (for writing)
